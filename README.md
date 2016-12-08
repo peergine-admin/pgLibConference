@@ -1,52 +1,52 @@
+ï»¿
 
+#æ€Žæ ·æµ‹è¯•DEMO
 
-#ÔõÑù²âÊÔDEMO
-
-    1¡¢ÔÚ°²×¿Éè±¸ÖÐ°²×°PeergineÖÐ¼ä¼þ,°²×°°üÎª£ºpgPlugin_XXXXX.apk¡£
+    1ã€åœ¨å®‰å“è®¾å¤‡ä¸­å®‰è£…Peergineä¸­é—´ä»¶,å®‰è£…åŒ…ä¸ºï¼špgPlugin_XXXXX.apkã€‚
 	
-	2¡¢È»ºóÔÚ°²×¿Éè±¸ÖÐ°²×°Demo³ÌÐò£¬°²×°°üÎªDemoApp/Demo_XXXXXX.apk¡£
+	2ã€ç„¶åŽåœ¨å®‰å“è®¾å¤‡ä¸­å®‰è£…Demoç¨‹åºï¼Œå®‰è£…åŒ…ä¸ºDemoApp/Demo_XXXXXX.apkã€‚
 	
-	3¡¢ÖØ¸´²½Öè1ºÍ²½Öè2,°²×°µ½ÆäËû°²×¿Éè±¸¡£
+	3ã€é‡å¤æ­¥éª¤1å’Œæ­¥éª¤2,å®‰è£…åˆ°å…¶ä»–å®‰å“è®¾å¤‡ã€‚
 	
-	4¡¢¸ù¾Ý½çÃæÃæÌáÊ¾ÔÚËùÓÐ°²×¿Éè±¸ÖÐÊäÈëÏàÍ¬»áÒéID£¬ÆäËûÒ»Ì¨Æô¶¯ÎªÖ÷Ï¯£¨Chairman£©£¬ÆäËûÎª·ÇÖ÷Ï¯¡£
+	4ã€æ ¹æ®ç•Œé¢é¢æç¤ºåœ¨æ‰€æœ‰å®‰å“è®¾å¤‡ä¸­è¾“å…¥ç›¸åŒä¼šè®®IDï¼Œå…¶ä»–ä¸€å°å¯åŠ¨ä¸ºä¸»å¸­ï¼ˆChairmanï¼‰ï¼Œå…¶ä»–ä¸ºéžä¸»å¸­ã€‚
 	
-	5¡¢²é¿´ÊÓÆµÁ¬½ÓÐ§¹û¡£
+	5ã€æŸ¥çœ‹è§†é¢‘è¿žæŽ¥æ•ˆæžœã€‚
 
 	
-#ÔõÑùÊ¹ÓÃ»áÒéÄ£¿é¿ª·¢APP
+#æ€Žæ ·ä½¿ç”¨ä¼šè®®æ¨¡å—å¼€å‘APP
 	
-	1¡¢Ê¹ÓÃAndroidStudio´´½¨¹¤³Ì¡£
+	1ã€ä½¿ç”¨AndroidStudioåˆ›å»ºå·¥ç¨‹ã€‚
 	
-	2¡¢½« pgLibConference ×÷ÎªÄ£¿é(Module)µ¼ÈëÄã´´½¨µÄ¹¤³Ì¡£
+	2ã€å°† pgLibConference ä½œä¸ºæ¨¡å—(Module)å¯¼å…¥ä½ åˆ›å»ºçš„å·¥ç¨‹ã€‚
 	
-	3¡¢½« pgPluginLib ×÷ÎªÄ£¿é(Module)µ¼ÈëÄã´´½¨µÄ¹¤³Ì¡£
+	3ã€å°† pgPluginLib ä½œä¸ºæ¨¡å—(Module)å¯¼å…¥ä½ åˆ›å»ºçš„å·¥ç¨‹ã€‚
 
-	4¡¢ÔÚÄãµÄ Module ÖÐÌí¼Ó¶Ô pgLibConference pgPluginLib µÄÒÀÀµ (ÔÚAndroid StudioÖÐÑ¡¶¨Éú³É app µÄ Module £¬
-µã»÷²Ëµ¥Build->Edit Libraries and Dependencies,ÔÚµ¯³öµÄ¶Ô»°¿ò×óÉÏ½ÇÓÐ¸öÂÌÉ«µÄ+ºÅ£¬µã»÷Ñ¡¶¨Module Dependency).
+	4ã€åœ¨ä½ çš„ Module ä¸­æ·»åŠ å¯¹ pgLibConference pgPluginLib çš„ä¾èµ– (åœ¨Android Studioä¸­é€‰å®šç”Ÿæˆ app çš„ Module ï¼Œ
+ç‚¹å‡»èœå•Build->Edit Libraries and Dependencies,åœ¨å¼¹å‡ºçš„å¯¹è¯æ¡†å·¦ä¸Šè§’æœ‰ä¸ªç»¿è‰²çš„+å·ï¼Œç‚¹å‡»é€‰å®šModule Dependency).
 	
-	5¡¢¿ÉÒÔ½«Demoµ¼ÈëÄãµÄ¹¤³Ì£¬²Î¿¼
+	5ã€å¯ä»¥å°†Demoå¯¼å…¥ä½ çš„å·¥ç¨‹ï¼Œå‚è€ƒ
 	private pgLibConference.OnEventListener m_OnEvent = new pgLibConference.OnEventListener() {
 		@Override
 		public void event(String sAct, String sData, final String sPeer) {
 		}
-	}¡£
-	¹¹½¨ÊÂ¼þ½ÓÊÜÆ÷¡£ÎÒÃÇµÄ¿âºÍNodeJsÒ»Ñù¶¼ÊÇÊÂ¼þÇý¶¯µÄ¡£
+	}ã€‚
+	æž„å»ºäº‹ä»¶æŽ¥å—å™¨ã€‚æˆ‘ä»¬çš„åº“å’ŒNodeJsä¸€æ ·éƒ½æ˜¯äº‹ä»¶é©±åŠ¨çš„ã€‚
 	
 	
 v1.0.5
-1.Ìí¼ÓÊÓÆµÍâ²¿²É¼¯½Ó¿Ú²ÎÊýVideoInExternal
-2.ÊÓÆµÁ÷½Ç¶Èµ÷Õû²ÎÊý¡£
-3.Ìí¼ÓAPI¸ø·þÎñÆ÷·¢ËÍÀ©Õ¹ÏûÏ¢
-4.Ìí¼ÓÊÂ¼þPeerSync±íÊ¾±¾¶ËÓë¶Ô¶Ë½¨Á¢Í¨µÀ£¬¿ÉÒÔÀûÓÃMessageSend½øÐÐÍ¨ÐÅ¡£
-5.Ìí¼ÓÊÂ¼þPeerOffline±íÊ¾¶Ô¶ËÒÑ¾­ÀëÏß¡£
-6.Ìí¼ÓÊÂ¼þVideoLostÓÃÀ´±¨¸æÊÓÆµÒÑ¾­¶ªÊ§
-7.ÄÚ²¿Ìí¼Ó³ÉÔ±¶Ë¶ÔÖ÷Ï¯¶ËµÄÐÄÌø¡£ÒÔ¼Ó¿ì½«ÍøÂçÒì³£±¨¸æ¸øÓ¦ÓÃ³ÌÐò¡£
-8.ÄÚ²¿Ìí¼ÓÊÓÆµÁ¬½ÓÊ±µÄÐÄÌø£¬ÒÔ¼ì²âÒì³£ÖØÆôÊ±¶Ô¶Ë²»ÄÜ¼°Ê±»ñÈ¡ÊÓÆµ¶ªÊ§µÄÏûÏ¢¡£
-½øÐÐÁËÈô¸ÉÓÅ»¯¡£ÐÞ¸´ÁËÈô¸ÉBUG¡£
+1.æ·»åŠ è§†é¢‘å¤–éƒ¨é‡‡é›†æŽ¥å£å‚æ•°VideoInExternal
+2.è§†é¢‘æµè§’åº¦è°ƒæ•´å‚æ•°ã€‚
+3.æ·»åŠ APIç»™æœåŠ¡å™¨å‘é€æ‰©å±•æ¶ˆæ¯
+4.æ·»åŠ äº‹ä»¶PeerSyncè¡¨ç¤ºæœ¬ç«¯ä¸Žå¯¹ç«¯å»ºç«‹é€šé“ï¼Œå¯ä»¥åˆ©ç”¨MessageSendè¿›è¡Œé€šä¿¡ã€‚
+5.æ·»åŠ äº‹ä»¶PeerOfflineè¡¨ç¤ºå¯¹ç«¯å·²ç»ç¦»çº¿ã€‚
+6.æ·»åŠ äº‹ä»¶VideoLostç”¨æ¥æŠ¥å‘Šè§†é¢‘å·²ç»ä¸¢å¤±
+7.å†…éƒ¨æ·»åŠ æˆå‘˜ç«¯å¯¹ä¸»å¸­ç«¯çš„å¿ƒè·³ã€‚ä»¥åŠ å¿«å°†ç½‘ç»œå¼‚å¸¸æŠ¥å‘Šç»™åº”ç”¨ç¨‹åºã€‚
+8.å†…éƒ¨æ·»åŠ è§†é¢‘è¿žæŽ¥æ—¶çš„å¿ƒè·³ï¼Œä»¥æ£€æµ‹å¼‚å¸¸é‡å¯æ—¶å¯¹ç«¯ä¸èƒ½åŠæ—¶èŽ·å–è§†é¢‘ä¸¢å¤±çš„æ¶ˆæ¯ã€‚
+è¿›è¡Œäº†è‹¥å¹²ä¼˜åŒ–ã€‚ä¿®å¤äº†è‹¥å¹²BUGã€‚
 
 updata 2016/11/17 v1.0.6
- * Ìí¼ÓÊÓÆµµÄ×¥ÅÄºÍÂ¼ÖÆ¹¦ÄÜ
- * ×öÁËÒ»¸ö³¬Ê±¼ì²â ÔÚÖ´ÐÐMemberAdd MemberDel Leave ²Ù×÷ÊÇ Èç¹û45ÃëÄÚÃ»ÓÐÍË³öºÍ¼ÓÈë»áÒé   ¡£¾Í²úÉúTimeOut µÄ»Øµ÷    sData Êý²Ù×÷Ãû   sPeerÊÇ²ÎÊý
- »¹Ìí¼ÓÁËCallSend ¹¦ÄÜ±È½ÏMessageSend»á²úÉúCallSendµÄ»ØÖ´
- CallSendº¯ÊýµÄ×îºóÒ»¸ö²ÎÊý×Ô¶¨Òå
- CallSend»Øµ÷ÊÂ¼þµÄsData ÊÇ´íÎó´úÂë 0ÊÇÕý³£ £¬sPeerÊÇCallSendµÄ×îºóÒ»¸ö²ÎÊý
+ * æ·»åŠ è§†é¢‘çš„æŠ“æ‹å’Œå½•åˆ¶åŠŸèƒ½
+ * åšäº†ä¸€ä¸ªè¶…æ—¶æ£€æµ‹ åœ¨æ‰§è¡ŒMemberAdd MemberDel Leave æ“ä½œæ˜¯ å¦‚æžœ45ç§’å†…æ²¡æœ‰é€€å‡ºå’ŒåŠ å…¥ä¼šè®®   ã€‚å°±äº§ç”ŸTimeOut çš„å›žè°ƒ    sData æ•°æ“ä½œå   sPeeræ˜¯å‚æ•°
+ è¿˜æ·»åŠ äº†CallSend åŠŸèƒ½æ¯”è¾ƒMessageSendä¼šäº§ç”ŸCallSendçš„å›žæ‰§
+ CallSendå‡½æ•°çš„æœ€åŽä¸€ä¸ªå‚æ•°è‡ªå®šä¹‰
+ CallSendå›žè°ƒäº‹ä»¶çš„sData æ˜¯é”™è¯¯ä»£ç  0æ˜¯æ­£å¸¸ ï¼ŒsPeeræ˜¯CallSendçš„æœ€åŽä¸€ä¸ªå‚æ•°
