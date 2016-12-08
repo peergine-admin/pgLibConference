@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">pgConference</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="btnMembAdd">MembAdd</string>
+    <string name="btnMembDel">MembDel</string>
+    <string name="btnJoin">Join</string>
+    <string name="btnLeave">Leave</string>
+    <string name="btnOpen">Open</string>
+    <string name="btnClose">Close</string>
+    <string name="btnSpeech">Speech</string>
+    <string name="radChm">Chairman</string>
+    <string name="radMem">Member</string>
+    <string name="id">会议ID:</string>
+    <string name="group">Group</string>
+    <string name="btnchair">我是主席</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Demo/Demo.iml" filepath="$PROJECT_DIR$/Demo/Demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pgLibConference/pgLibConference.iml" filepath="$PROJECT_DIR$/pgLibConference/pgLibConference.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pgModConference.iml" filepath="$PROJECT_DIR$/pgModConference.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pgPluginLib/pgPluginLib.iml" filepath="$PROJECT_DIR$/pgPluginLib/pgPluginLib.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,2 @@
+include ':Demo', ':pgLibConference'
+include ':pgPluginLib'
