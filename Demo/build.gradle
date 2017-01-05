@@ -2,21 +2,15 @@ apply plugin: 'com.android.application'
 def releaseTime() {
     return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
 }
-def deleteDemoAppDir(){
-    def filepath = new File("DemoApp")
-    filepath.deleteDir()
-}
 
 android {
     compileSdkVersion 23
     buildToolsVersion "25.0.1"
-
+    //deleteDemoAppDir()
     android.applicationVariants.all { variant ->
         variant.outputs.each { output ->
-            deleteDemoAppDir()
             def fileName = "DemoApp/Demo_v${defaultConfig.versionName}_${releaseTime()}.apk"
             output.outputFile = new File(fileName);
-
         }
     }
     defaultConfig {
