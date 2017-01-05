@@ -27,7 +27,7 @@ import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
 import com.peergine.android.conference.pgVideoPutMode;
-import com.peergine.pgConference.demo.R;
+import com.peergine.conference.demo.R;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
@@ -59,7 +59,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 
 	private boolean bChair = false;
-	private String m_sVideoParam="(Code){3}(Mode){2}(FrmRate){40}(LCode){3}(LMode){3}(LFrmRate){30}(Portrait){0}(Rotate){1}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}";
+	private String m_sVideoParam=
+			"(Code){3}(Mode){2}(FrmRate){40}" +
+			"(LCode){3}(LMode){3}(LFrmRate){30}" +
+			"(Portrait){0}(Rotate){1}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
+			"(AudioSpeechDisable){3}";
 	private Button m_btntest=null;
 
 	class PG_MEMB{
@@ -261,7 +265,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		return Node.ObjectAdd(sPeerTemp, "PG_CLASS_Peer", "", 0x10000);
 	}
 
-	// Sdk扩展运用之添加通信节点，  使用之后会产生PeerSync事件
+
 	// 设置设备的麦克风的采样率。
 	// 在初始化成功之后，打开音频通话之前调用。
 	// iRate: 采样率，单位HZ/秒。有效值：8000, 1600, 32000
@@ -355,12 +359,16 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 					{
 						//m_Conf.SvrRequest("(User){" + m_Conf.GetNode().omlEncode("_DEV_358180050453651_chairman")
 						//		+ "}(Msg){" + m_Conf.GetNode().omlEncode("hello chairman") + "}");
-						m_Conf.AudioCtrlVolume(m_sChair,0,0);
+						//m_Conf.AudioCtrlVolume(m_sChair,0,0);
+						//m_Conf.Reset(m_sGroup,"Group_member869384011853858");
 
+//						String sPath = getSDPath()+"/record.avi";
+//						m_Conf.VideoRecord(m_sChair,sPath);
+//						m_Conf.AudioRecord(m_sChair,sPath);
+						for(int i =1 ;i<memberArray.size();i++) {
+							m_Conf.AudioSpeech(memberArray.get(i).sPeer, true,false);
+						}
 						break;
-//						String sPath = getSDPath()+"/image.jpg";
-//						m_Conf.VideoCamera("_DEV_"+m_sChair,sPath);
-
 //						if(iflag==0)
 //						{
 //							iflag++;
@@ -691,6 +699,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		m_sGroup=m_editText_name.getText().toString().trim();
 		m_sChair=m_sGroup+"_chairman";
 		m_sUser = m_sChair;
+		//m_sUser = "";
 		if ( m_sUser.equals("")||m_sChair.equals("")) {
 			Log.e("Init", "Param Err");
 			return;
