@@ -29,7 +29,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-<LinearLayout
+
+    <LinearLayout
     android:orientation="horizontal"
 	android:gravity="center" 
     android:layout_width="match_parent"
@@ -92,29 +93,17 @@
     </LinearLayout>
 
 </LinearLayout>
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/id"/>
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/editText_name"
-            android:text="@string/group"
-            android:inputType="" />
+        android:layout_height="wrap_content"
+       >
 
         <CheckBox
             android:text="Chairman"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingRight="30dp"
             android:id="@+id/checkBox" />
-
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -125,7 +114,42 @@
             android:layout_height="wrap_content"
             android:text="Clean"
             android:id="@+id/btn_Clean" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="主席ID："/>
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/editText_name"
+            android:text=""
+            android:inputType=""
+            android:hint="请找客服申请测试ID" />
         </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="1">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="自己ID：" />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText_user"
+        android:text=""
+        android:inputType=""
+        android:hint="请找客服申请测试ID" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="387dp"
@@ -148,7 +172,6 @@
             android:id="@+id/btn_notifysend" />
 
         <Button
-            android:text="Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button"

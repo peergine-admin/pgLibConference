@@ -12,7 +12,7 @@
     <string name="btnSpeech">Speech</string>
     <string name="radChm">Chairman</string>
     <string name="radMem">Member</string>
-    <string name="id">会议ID:</string>
+    <string name="id">会议和主席ID:</string>
     <string name="group">Group</string>
     <string name="btnchair">我是主席</string>
 </resources>

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -27,13 +26,10 @@ import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
 import com.peergine.android.conference.pgVideoPutMode;
-import com.peergine.conference.demo.R;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import static android.os.SystemClock.sleep;
 
 public class MainActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
 
@@ -43,7 +39,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private String m_sUser = "";
 	private String m_sPass = "";
 	//private String sSvr ="120.55.85.29:7781";
-	private String sSvr ="connect.peergine.com:7701";
+	private String sSvr ="connect.peergine.com:7781";
 	private String m_sMemb = "";
 
 	private static pgLibConference m_Conf = new pgLibConference();
@@ -51,6 +47,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private int RIDLaout[]={R.id.layoutVideoS0,R.id.layoutVideoS1,R.id.layoutVideoS2,R.id.layoutVideoS3};
 	EditText m_editText_name=null;
 	CheckBox m_CheckBox=null;
+	EditText m_editText_User = null;
+
 	private Button m_btnStart = null;
 	private Button m_btnClean = null;
 
@@ -71,8 +69,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		Boolean bOpen=false;
 		SurfaceView pView=null;
 		LinearLayout pLayout=null;
-
 	}
+
 	private static ArrayList<PG_MEMB> memberArray = new ArrayList<>();
 	public static void setCameraDisplayOrientation (Activity activity, int cameraId, android.hardware.Camera camera) {
 		android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
@@ -120,6 +118,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		}
 
 		m_editText_name=(EditText)findViewById(R.id.editText_name);
+		m_editText_User = (EditText) findViewById(R.id.editText_user);
 		m_CheckBox = (CheckBox)findViewById(R.id.checkBox);
 		m_CheckBox.setOnCheckedChangeListener(this);
 		m_btnStart = (android.widget.Button) findViewById(R.id.btn_Start);
@@ -580,11 +579,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	{
 		// TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
 		Log.d("",sPeer + " 的视频已经丢失 尝试重新连接");
-		pgVideoClose(sPeer);
+		//pgVideoClose(sPeer);
 
-		sleep(1000);
+		//sleep(1000);
 
-		VideoOpen(sPeer);
+		//VideoOpen(sPeer);
 	}
 	private void EventVideoClose(String sAct,String sData,String sPeer)
 	{
@@ -694,10 +693,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void pgChairInit() {
 		if(m_editText_name.getText().toString().equals(""))
 		{
-			m_sGroup="Group";
+			Toast.makeText(this,"请在“主席ID”处输入一个测试ID",Toast.LENGTH_SHORT).show();
 		}
 		m_sGroup=m_editText_name.getText().toString().trim();
-		m_sChair=m_sGroup+"_chairman";
+		m_editText_User.setText(m_sGroup);
+		m_sChair=m_sGroup;
 		m_sUser = m_sChair;
 		//m_sUser = "";
 		if ( m_sUser.equals("")||m_sChair.equals("")) {
@@ -716,14 +716,22 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		oMemb.pLayout.addView(oMemb.pView);
 
 	}
+
+
 	//选择成为成员端的初始化方式
 	private void pgMembInit() {
 		if(m_editText_name.getText().toString().equals(""))
 		{
-			m_sGroup="Group";
+			Toast.makeText(this,"请在“主席ID”处输入一个测试ID",Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if(m_editText_User.getText().toString().equals(""))
+		{
+			Toast.makeText(this,"请在“自己ID”处输入另一个测试ID",Toast.LENGTH_SHORT).show();
+			return;
 		}
 		m_sGroup=m_editText_name.getText().toString().trim();
-		m_sChair=m_sGroup+"_chairman";
+		m_sChair=m_sGroup;
 
 		//为了方便演示以及 避免ID重复，做了随机数
 //		Date d=new Date();
@@ -731,7 +739,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		TelephonyManager tm = (TelephonyManager) this.getSystemService(TELEPHONY_SERVICE);
 
 		@SuppressLint("HardwareIds") String IMEI =tm.getDeviceId();;
-		m_sUser = m_sGroup+"_member"+IMEI;
+		m_sUser = m_editText_User.getText().toString().trim();
 		if ( m_sUser.equals("")||m_sChair.equals("")) {
 			Log.e("Init", "Param Err");
 			return;
@@ -768,10 +776,12 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		if(isChecked)
 		{
 			bChair=true;
+			m_editText_User.setEnabled(false);
 		}
 		else
 		{
 			bChair=false;
+			m_editText_User.setEnabled(true);
 		}
 	}
 

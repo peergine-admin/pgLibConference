@@ -58,6 +58,8 @@ public class pgLibConference {
     private int m_iActiveStamp=0;
     private int m_iKeepStamp=0;
     private int iIDTimer=0;
+    private boolean m_bEventEnable=true;
+    private int m_iVideoInitFlag=0;
 
 
     //检查超时
@@ -224,7 +226,7 @@ public class pgLibConference {
     private boolean m_bInitialized=false;
     private boolean m_bLogined=false;
 
-    private boolean m_bStarted = false;
+    private boolean m_bApiStart = false;
     private boolean m_bApiVideoStart = false;
     private boolean m_bApiAudioStart=false;
 
@@ -389,7 +391,7 @@ public class pgLibConference {
                 m_iAudioSpeechDisable = ParseInt(m_Node.omlGetContent(sVideoParam,"AudioSpeech"),0);
             }
             m_bLogined = false;
-            m_bStarted = false;
+            m_bApiStart = false;
             if(m_sChair.equals(sUser))
             {
                 m_bChairman=true;
@@ -548,7 +550,7 @@ public class pgLibConference {
                 OutString("MemberAdd: no Chairman");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("MemberAdd:  no start");
                 return false;
             }
@@ -594,7 +596,7 @@ public class pgLibConference {
                 OutString("MemberDel: no Chairman");
                 return ;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("MemberDel:  no start");
                 return ;
             }
@@ -635,7 +637,7 @@ public class pgLibConference {
                 OutString("pgLibConference.Join: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("Start: Service no start!");
                 return false;
             }
@@ -668,7 +670,7 @@ public class pgLibConference {
                 OutString("pgLibConference.SvrRequest: Not initialize");
                 return ;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("Leave: Service no start!");
                 return ;
             }
@@ -765,7 +767,7 @@ public class pgLibConference {
             OutString("pgLibConference.SvrRequest: Not initialize");
             return false;
         }
-        if (!this.m_bStarted) {
+        if (!this.m_bApiStart) {
             return false;
         }
 
@@ -790,7 +792,7 @@ public class pgLibConference {
             OutString("pgLibConference.SvrRequest: Not initialize");
             return false;
         }
-        if (!this.m_bStarted) {
+        if (!this.m_bApiStart) {
             return false;
         }
 
@@ -998,8 +1000,8 @@ public class pgLibConference {
                 OutString("pgLibConference.SvrRequest: Not initialize");
                 return ;
             }
-            if (!m_bStarted) {
-                OutString("VideoClose:m_bStarted false!");
+            if (!m_bApiStart) {
+                OutString("VideoClose:m_bApiStart false!");
                 return;
             }
 
@@ -1034,7 +1036,7 @@ public class pgLibConference {
                 OutString("pgLibConference.VideoGetView: Not initialize");
                 return null;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("VideoGetView: Service no start!");
                 return null;
             }
@@ -1109,7 +1111,7 @@ public class pgLibConference {
                 OutString("pgLibConference.SvrRequest: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("VideoControl: Service no start");
                 return false;
             }
@@ -1144,7 +1146,7 @@ public class pgLibConference {
                 OutString("pgLibConference.VideoCamera: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("VideoCamera: Service no start");
                 return false;
             }
@@ -1210,7 +1212,7 @@ public class pgLibConference {
                 OutString("pgLibConference.VideoRecord: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("VideoRecord: Service no start");
                 return false;
             }
@@ -1269,7 +1271,7 @@ public class pgLibConference {
             OutString("pgLibConference.SvrRequest: Not initialize");
             return false;
         }
-        if (!this.m_bStarted) {
+        if (!this.m_bApiStart) {
             return false;
         }
 
@@ -1294,7 +1296,7 @@ public class pgLibConference {
             OutString("pgLibConference.SvrRequest: Not initialize");
             return ;
         }
-        if (!this.m_bStarted) {
+        if (!this.m_bApiStart) {
             return ;
         }
 
@@ -1405,7 +1407,7 @@ public class pgLibConference {
                 OutString("pgLibConference.AudioRecord: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("AudioRecord: Service no start");
                 return false;
             }
@@ -1453,7 +1455,7 @@ public class pgLibConference {
                 OutString("pgLibConference.SvrRequest: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("CameraSwitch: Service no start");
                 return false;
             }
@@ -1494,7 +1496,7 @@ public class pgLibConference {
                 OutString("pgLibConference.SvrRequest: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("MessageSend: Service no start");
                 return false;
             }
@@ -1533,7 +1535,7 @@ public class pgLibConference {
                 OutString("CallSend: Not initialize");
                 return false;
             }
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("CallSend: Service no start");
                 return false;
             }
@@ -1567,7 +1569,7 @@ public class pgLibConference {
      */
     public boolean NotifySend(String sData) {
         try {
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 OutString("NotifySend: Service no start");
                 return false;
             }
@@ -1677,32 +1679,33 @@ public class pgLibConference {
             Keep();
             return;
         }
-        if (sAct.equals("TimerActive")) {
+        else if (sAct.equals("TimerActive")) {
             TimerActive();
             return;
         }
-        if (sAct.equals("Relogin")) {
-            NodeLogin();
-            return;
-        }
-        if (sAct.equals("ChairmanAdd")) {
+        else if (sAct.equals("ChairmanAdd")) {
             ChairmanAdd();
             return;
         }
+        else if (sAct.equals("Relogin")) {
+            NodeLogin();
+            return;
+        }
 
-        if(sAct.indexOf("MemberAdd")==0)
+
+        else if(sAct.indexOf("MemberAdd")==0)
         {
             String sPeer = sAct.substring(10);
             TaskTimeOut("MemberAdd",sPeer);
             return;
         }
-        if(sAct.indexOf("MemberDel")==0)
+        else if(sAct.indexOf("MemberDel")==0)
         {
             String sPeer = sAct.substring(10);
             TaskTimeOut("MemberDel",sPeer);
             return;
         }
-        if(sAct.indexOf("Leave")==0)
+        else if(sAct.indexOf("Leave")==0)
         {
             TaskTimeOut("Leave","");
             return;
@@ -1715,7 +1718,7 @@ public class pgLibConference {
 
     //事件下发程序
     private void EventProc(String sAct, String sData, String sPeer) {
-        if (m_eventListener != null) {
+        if (m_eventListener != null && m_bEventEnable) {
             OutString("EventProc: sAct=" + sAct + ", sData=" + sData + ", sPeer=" + sPeer);
             m_eventListener.event(sAct, sData, sPeer);
         }
@@ -1793,6 +1796,10 @@ public class pgLibConference {
     //设置Node 上线参数
     private boolean NodeStart() {
 
+        if (m_Node == null) {
+			return false;
+		}
+
         m_sObjSvr = m_sInitSvrName;
         m_sSvrAddr = m_sInitSvrAddr;
         // Config jni node.
@@ -1819,6 +1826,7 @@ public class pgLibConference {
             return false;
         }
 
+        m_bEventEnable = true;
         // Enable video input external
         NodeVideoExter();
         // Login to server.
@@ -1827,6 +1835,19 @@ public class pgLibConference {
             NodeStop();
             return false;
         }
+
+        //意外重新上线
+        if (m_bApiStart) {
+			ServiceStart();
+		}
+
+        if (m_bApiVideoStart) {
+			VideoInit(m_iVideoInitFlag);
+		}
+
+		if (m_bApiAudioStart) {
+			AudioInit();
+		}
         //ServiceStart();
         // Set video option.
         return true;
@@ -1841,6 +1862,7 @@ public class pgLibConference {
         ServiceStop();
         NodeLogout();
 
+        m_bEventEnable = false;
         m_Node.Stop();
         OutString("NodeStop finish!");
     }
@@ -1943,6 +1965,10 @@ public class pgLibConference {
     //登录回复信息
     private int NodeLoginReply(int iErr, String sData) {
 
+        if (m_Node == null) {
+			return 1;
+		}
+
         if (iErr != 0) {
             OutString("pgLibLive.NodeLoginReply: Login failed. uErr=" + iErr);
 
@@ -1961,21 +1987,13 @@ public class pgLibConference {
             NodeRedirect(sRedirect);
             return 1;
         }
-
-
-
-        if(ServiceStart())
-        {
+        if (ServiceStart()) {
             m_bLogined = true;
             EventProc("Login", "0", m_sObjSvr);
         }
-        else
-        {
-            NodeRelogin(30);
-            return 1;
-        }
 
-        //TimerStart("(Act){QueryOnlineList}", 100, false);
+
+       
         OutString("NodeLoginReply finish!");
         return 1;
     }
@@ -1996,7 +2014,6 @@ public class pgLibConference {
     {
         if (!this.m_Node.ObjectAdd(this.m_sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
             OutString("ChairmanAdd:  failed.");
-
         }
     }
 
@@ -2012,8 +2029,7 @@ public class pgLibConference {
         do {
             if(m_sObjChair.equals(m_sObjSelf))
             {
-                if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", "", (0x10000 | 0x10 | 0x4 | 0x1 | 0x40)))
-                {
+                if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", "", (0x10000 | 0x10 | 0x4 | 0x1 | 0x40))) {
                     OutString("ServiceStart: Add group object failed");
                     break;
                 }
@@ -2026,10 +2042,8 @@ public class pgLibConference {
                 }
 
             }
-            else
-            {
-                if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", m_sObjChair, (0x10000 | 0x10 | 0x1)))
-                {
+            else {
+                if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", m_sObjChair, (0x10000 | 0x10 | 0x1))) {
                     OutString("ServiceStart: Add group object failed");
                     break;
                 }
@@ -2039,13 +2053,12 @@ public class pgLibConference {
 
             if (!m_Node.ObjectAdd(m_sObjD, "PG_CLASS_Data", m_sObjG, 0)) {
                 OutString("ServiceStart: Add  Data object failed");
-
                 break;
             }
 
 
             OutString("ServiceStart: success");
-            m_bStarted = true;
+            m_bApiStart = true;
             //开始发送心跳包
             iIDTimer = TimerStart("(Act){TimerActive}", 10, false);
             if (iIDTimer < 0) {
@@ -2062,19 +2075,25 @@ public class pgLibConference {
 
     //视音频去同步 会议去同步
     private void ServiceStop() {
-
-        m_bStarted =false;
+        if (m_Node == null) {
+                    return;
+        }
+        m_bApiStart =false;
         //停止心跳包发送
         TimerStop(iIDTimer);
         if (this.m_bApiVideoStart) {
             this.VideoClean();
-            this.m_bApiVideoStart = false;
+            
         }
         if (this.m_bApiAudioStart) {
             this.AudioClean();
-            this.m_bApiAudioStart = false;
+           
         }
+        this.m_bApiVideoStart = false;
+        this.m_bApiAudioStart = false;
 
+        String sDataMdf = "(Action){0}(PeerList){(" + m_Node.omlEncode(m_sObjSelf) + "){0}}";
+		m_Node.ObjectRequest(m_sObjG, 32, sDataMdf, "");
 
         m_Node.ObjectDelete(m_sObjD);
         m_Node.ObjectDelete(m_sObjG);
@@ -2092,7 +2111,7 @@ public class pgLibConference {
                 return;
             }
 
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 m_iActiveStamp = 0;
                 return;
             }
@@ -2115,7 +2134,7 @@ public class pgLibConference {
                     //视频打开发送心跳
                     //给各连接的节点发送心跳
                     m_Node.ObjectRequest(oPeer.sPeer, 36, "Active?", "pgLibConference.MessageSend");
-                    
+                    OutString("Active?");
                 }
             }
         }catch (Exception ex) {
@@ -2130,7 +2149,7 @@ public class pgLibConference {
                 return;
             }
 
-            if (!m_bStarted) {
+            if (!m_bApiStart) {
                 m_iKeepStamp=0;
                 return;
             }
@@ -2143,14 +2162,14 @@ public class pgLibConference {
             m_Node.ObjectRequest(m_sObjChair, 36, "Keep?", "pgLibConference.MessageSend");
             OutString("Keep");
         }catch (Exception ex) {
-            OutString("TimerActive: ex=" + ex.toString());
+            OutString("Keep: ex=" + ex.toString());
         }
 
     }
 
     //视频相关初始化
     private boolean VideoInit(int iFlag) {
-
+        m_iVideoInitFlag = iFlag;
         this.VideoOption();
         int uFlag=0x10000 | 0x1 | 0x10 |0x20;
         switch (iFlag)
@@ -2325,8 +2344,6 @@ public class pgLibConference {
     //自身消息处理
     private int SelfMessage(String sData, String sPeer) {
         try {
-
-
             String sCmd = "";
             String sParam = "";
             int iInd = sData.indexOf('?');
@@ -2347,7 +2364,7 @@ public class pgLibConference {
                 this.EventProc("Message", sParam, sPeer);
             }
             else if (sCmd.equals("Active")) {
-                if (m_bStarted) {
+                if (m_bApiStart) {
                     PG_PEER oPeer = VideoPeerSearch(sPeer);
                     if (oPeer != null) {
                         oPeer.iActStamp = m_iActiveStamp;
@@ -2357,7 +2374,7 @@ public class pgLibConference {
             }
             else if(sCmd.equals("Keep"))
             {
-                if (m_bStarted) {
+                if (m_bApiStart) {
                     PG_PEER oPeer = VideoPeerSearch(sPeer);
                     if (oPeer != null) {
                         oPeer.iKeepStamp = m_iKeepStamp;
