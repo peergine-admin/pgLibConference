@@ -54,7 +54,7 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechSelf = 1;
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer=3;
-    private static final String LIB_VER = "10";
+    private static final String LIB_VER = "11";
     private int m_iActiveStamp=0;
     private int m_iKeepStamp=0;
     private int iIDTimer=0;
