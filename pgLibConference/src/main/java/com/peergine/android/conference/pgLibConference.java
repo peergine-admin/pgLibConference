@@ -1198,13 +1198,26 @@ public class pgLibConference {
         m_iAudioSpeechDisable = iDisableMode;
     }
     /*
-       * 描述：录制 sPeer 节点的图片
+       * 描述：开始录制 sPeer 节点的视频
        * 阻塞方式：非阻塞，立即返回
        * 参数：sPeer 节点名  sPath 路径
        *
-       *  如果 sPath 为空则停止录像
-       *
        * */
+    public boolean VideoRecordStart(String sPeer,String sPath)
+    {
+        return VideoRecord(sPeer,sPath);
+    }
+
+    /*
+      * 描述：停止录制 sPeer 节点的视频
+      * 阻塞方式：非阻塞，立即返回
+      * 参数：sPeer 节点名
+      *
+      * */
+    public boolean VideoRecordStop(String sPeer)
+    {
+        return VideoRecord(sPeer,"");
+    }
     public boolean VideoRecord(String sPeer,String sPath)
     {
         try {
@@ -1245,7 +1258,7 @@ public class pgLibConference {
             }
             String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}";
             int iErr=m_Node.ObjectRequest(sObjV, 38, sIn, "VideoRecord:"+sPeer);
-            if(iErr!=0)
+            if(iErr>0)
             {
                 OutString("VideoRecord Error  = "+iErr);
                 return false;
@@ -1399,7 +1412,27 @@ public class pgLibConference {
             }
         }
     }
+    /*
+           * 描述：开始录制 sPeer 节点的音频
+           * 阻塞方式：非阻塞，立即返回
+           * 参数：sPeer 节点名  sPath 路径
+           *
+           * */
+    public boolean AudioRecordStart(String sPeer,String sPath)
+    {
+        return AudioRecord(sPeer,sPath);
+    }
 
+    /*
+         * 描述：开始录制 sPeer 节点的音频
+         * 阻塞方式：非阻塞，立即返回
+         * 参数：sPeer 节点名  sPath 路径
+         *
+         * */
+    public boolean AudioRecordStop(String sPeer)
+    {
+        return AudioRecord(sPeer,"");
+    }
     public boolean AudioRecord(String sPeer,String sPath)
     {
         try {
@@ -1430,7 +1463,7 @@ public class pgLibConference {
 
             String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}";
             int iErr=m_Node.ObjectRequest(m_sObjA, 37, sIn, "AudioRecord:"+sPeer);
-            if(iErr!=0)
+            if(iErr>0)
             {
                 OutString("AudioRecord Error  = "+iErr);
                 return false;
