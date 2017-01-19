@@ -55,9 +55,15 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer=3;
     private static final String LIB_VER = "11";
+
+    //打开视频
     private int m_iActiveStamp=0;
+
+    //同步
     private int m_iKeepStamp=0;
+
     private int iIDTimer=0;
+
     private boolean m_bEventEnable=true;
     private int m_iVideoInitFlag=0;
 
@@ -152,7 +158,7 @@ public class pgLibConference {
         boolean bRequest =false;
         boolean bLarge = false;
         int iActStamp=m_iActiveStamp;
-        int iKeepStamp=m_iKeepStamp;
+
         pgLibJNINode Node=null;
         SurfaceView View=null;
 
@@ -174,7 +180,38 @@ public class pgLibConference {
             iActStamp=m_iActiveStamp;
         }
     }
+
     private ArrayList<PG_PEER> m_listVideoPeer =new ArrayList<PG_PEER>();
+
+    private class PG_SYNC{
+        String sPeer="";
+        int iKeepStamp=0;
+        PG_SYNC(String sPeer){
+            this.sPeer=sPeer;
+            iKeepStamp= m_iKeepStamp;
+        }
+    }
+
+    private ArrayList<PG_SYNC> m_listSyncPeer = new ArrayList<>();
+    //搜索加入会议的节点
+    private PG_SYNC SyncPeerSearch(String sPeer){
+        try {
+            if (sPeer.equals("") ) {
+                OutString("VideoPeerSearch can't Search Start");
+                return null;
+            }
+            for (int i = 0; i < m_listSyncPeer.size(); i++) {
+                if (m_listSyncPeer.get(i).sPeer.equals(sPeer)) {
+                    return m_listSyncPeer.get(i);
+                }
+            }
+        }
+        catch (Exception ex) {
+            OutString("GroupSearch: ex=" + ex.toString());
+        }
+        return null;
+    }
+
 
 
     // Randomer.
@@ -2155,12 +2192,12 @@ public class pgLibConference {
             if (m_listVideoPeer == null) {
                 return;
             }
-
-            for (int i = 0; i < m_listVideoPeer.size(); i++) {
-                PG_PEER oPeer = m_listVideoPeer.get(i);
+            ArrayList<PG_PEER> listVideoPeer = (ArrayList<PG_PEER>) m_listVideoPeer.clone();
+            for (int i = 0; i < listVideoPeer.size(); i++) {
+                PG_PEER oPeer = listVideoPeer.get(i);
                 if((!oPeer.sPeer.equals(m_sObjSelf))&&(oPeer.Node!=null)) {
                     //检测心跳超时
-                    if ((m_iActiveStamp - oPeer.iActStamp) > 30&&oPeer.iActStamp!=0) {
+                    if ((m_iActiveStamp - oPeer.iActStamp) > 30&&oPeer.iActStamp>0) {
                         EventProc("VideoLost","",oPeer.sPeer);
                     }
                     
@@ -2191,8 +2228,23 @@ public class pgLibConference {
 
             TimerStart("(Act){Keep}", 10, false);
 
-            //视频打开发送心跳
-            m_Node.ObjectRequest(m_sObjChair, 36, "Keep?", "pgLibConference.MessageSend");
+
+            int i = 0;
+//            while (i < m_listSyncPeer.size()) {
+//                PG_SYNC oSync = m_listSyncPeer.get(i);
+//                if ((m_iKeepStamp - oSync.iKeepStamp) > 30) {
+//                    EventProc("PeerOffline", "reason=1", oSync.sPeer);
+//                    m_listSyncPeer.remove(i);
+//                    continue;
+//                }
+//                i++;
+//            }
+
+            for (i = 0; i < m_listSyncPeer.size(); i++) {
+                PG_SYNC oSync = m_listSyncPeer.get(i);
+                m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "pgLibConference.MessageSend");
+            }
+
             OutString("Keep");
         }catch (Exception ex) {
             OutString("Keep: ex=" + ex.toString());
@@ -2408,9 +2460,14 @@ public class pgLibConference {
             else if(sCmd.equals("Keep"))
             {
                 if (m_bApiStart) {
-                    PG_PEER oPeer = VideoPeerSearch(sPeer);
-                    if (oPeer != null) {
-                        oPeer.iKeepStamp = m_iKeepStamp;
+                    if(m_bChairman) {
+                        PG_SYNC oSync = SyncPeerSearch(sPeer);
+                        if (oSync != null) {
+                            oSync.iKeepStamp = m_iKeepStamp;
+                        }
+                    }
+                    else {
+                        m_Node.ObjectRequest(m_sObjChair, 36, "Keep?", "pgLibConference.MessageSend");
                     }
                 }
             }
@@ -2749,6 +2806,7 @@ public class pgLibConference {
             if (uMeth == 0) {
                 String sAct = this.m_Node.omlGetContent(sData, "Action");
                 if (sAct .equals( "1")) {
+                    m_listSyncPeer.add(new PG_SYNC(sObj));
                     this.EventProc("ChairmanSync", "", "");
                     TimerStart("(Act){Keep}", 10, false);
 
@@ -2757,6 +2815,10 @@ public class pgLibConference {
                 String sMeth = this.m_Node.omlGetContent(sData, "Meth");
                 if (sMeth.equals("34")) {
                     String sError = this.m_Node.omlGetContent(sData, "Error");
+                    PG_SYNC oSync = SyncPeerSearch(sObj);
+                    if(oSync!=null){
+                        m_listSyncPeer.remove(oSync);
+                    }
                     PeerOffline( sObj,  sError);
                     ChairmanDel();
                     TimerStart("(Act){ChairmanAdd}",10,false);
@@ -2770,6 +2832,7 @@ public class pgLibConference {
             if (uMeth == 0) {
                 String sAct = this.m_Node.omlGetContent(sData, "Action");
                 if (sAct .equals( "1")) {
+                    m_listSyncPeer.add(new PG_SYNC(sObj));
                     this.EventProc("PeerSync", "", sObj);
 
                 }
@@ -2777,6 +2840,11 @@ public class pgLibConference {
                 String sMeth = this.m_Node.omlGetContent(sData, "Meth");
                 if (sMeth .equals( "34")) {
                     String sError = this.m_Node.omlGetContent(sData, "Error");
+                    PG_SYNC oSync = SyncPeerSearch(sObj);
+                    if(oSync!=null){
+                        m_listSyncPeer.remove(oSync);
+                    }
+
                     PeerOffline(sObj,sError);
                 }
             }
