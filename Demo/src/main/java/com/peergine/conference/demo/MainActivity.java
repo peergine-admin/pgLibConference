@@ -689,6 +689,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		}
 	};
 
+
 	//选择成为主席端的初始化方式
 	private void pgChairInit() {
 		if(m_editText_name.getText().toString().equals(""))
@@ -708,6 +709,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		if (!m_Conf.Initialize( m_sGroup, m_sChair, m_sUser, "",
 				sSvr, "", m_sVideoParam, this)) {
 			Log.d("pgConference", "Init failed");
+			Alert("Error", "Network error, DNS Resolution failed!");
 			return;
 		}
 		PG_MEMB oMemb=memberArray.get(0);
