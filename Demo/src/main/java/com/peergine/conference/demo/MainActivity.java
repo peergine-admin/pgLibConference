@@ -8,6 +8,9 @@ import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -22,6 +25,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
@@ -61,7 +65,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			"(Code){3}(Mode){2}(FrmRate){40}" +
 			"(LCode){3}(LMode){3}(LFrmRate){30}" +
 			"(Portrait){0}(Rotate){1}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
-			"(AudioSpeechDisable){3}";
+			"(AudioSpeechDisable){0}";
 	private Button m_btntest=null;
 
 	class PG_MEMB{
@@ -116,6 +120,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 				oMemb.pLayout = (LinearLayout) findViewById(RIDLaout[i]);
 				memberArray.add(oMemb);
 		}
+		TextView textView = (TextView)findViewById(R.id.text_notuse);
+		textView.requestFocus();
 
 		m_editText_name=(EditText)findViewById(R.id.editText_name);
 		m_editText_User = (EditText) findViewById(R.id.editText_user);
@@ -328,12 +334,16 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			int k=0;
 			switch (args0.getId()) {
 				case R.id.btn_Start:
+
+					m_IsVideoStart=false;
+
 					if(bChair) {
 						pgChairInit();
 					}
 					else {
 						pgMembInit();
 					}
+
 					Log.d("OnClink", "init button");
 					break;
 
@@ -491,6 +501,10 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	{
 		// TODO: 2016/11/7 提醒应用程序此节点离线了
 		Log.d( "",sPeer+"节点离线");
+		if(!sPeer.equals("_DEV_"+m_sUser))
+		{
+			pgVideoRestore(sPeer);
+		}
 	}
 
 	//sPeer的离线消息
@@ -504,6 +518,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventChairmanOffline(String sAct,String sData,String sPeer)
 	{
 		Log.d( "","主席节点离线");
+		//m_Conf.Leave();
+		if(!sPeer.equals("_DEV_"+m_sUser))
+		{
+			pgVideoRestore(sPeer);
+		}
 	}
 //-------------------------------------------------------------------------
 	//sPeer的离线消息
@@ -575,16 +594,54 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		//调用
 		VideoOpen(sPeer);
 	}
-	private void EventVideoLost(String sAct,String sData,String sPeer)
+
+
+	Looper looper = Looper.myLooper();
+	MyHandler myHandler = new MyHandler(looper);
+	private void EventVideoLost(String sAct, String sData, final String sPeer)
 	{
 		// TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
 		Log.d("",sPeer + " 的视频已经丢失 尝试重新连接");
-		//pgVideoClose(sPeer);
+		pgVideoClose(sPeer);
 
-		//sleep(1000);
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					sleep(1000);
+					Message message = myHandler.obtainMessage();
+					message.obj = sPeer;
+					//这里这个 arg1 是Message对象携带的参数我主要用它来区分消息对象(Message)
+					message.arg1 = 2;
+					//把消息发送给目标对象，目标对象就是 myHandler 就是关联我们得到的那个消息对象的Handler
+					message.sendToTarget();
 
-		//VideoOpen(sPeer);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}.start();
+
+
+
 	}
+	class MyHandler extends Handler {
+		public MyHandler() {}
+		public MyHandler(Looper looper) {
+			super(looper);
+		}
+		@Override
+		public void handleMessage(Message msg) {
+			if (msg.arg1 == 1) {
+				String sPeer = (String) msg.obj;
+				VideoOpen(sPeer);
+			} else if (msg.arg1 == 2) {
+				CharSequence xh2_msg = (CharSequence) msg.obj;
+
+			}
+		}
+	}
+
 	private void EventVideoClose(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/8  通知应用程序视频已经挂断
@@ -709,7 +766,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		if (!m_Conf.Initialize( m_sGroup, m_sChair, m_sUser, "",
 				sSvr, "", m_sVideoParam, this)) {
 			Log.d("pgConference", "Init failed");
-			Alert("Error", "Network error, DNS Resolution failed!");
+			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
 			return;
 		}
 		PG_MEMB oMemb=memberArray.get(0);
@@ -750,6 +807,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		if (!m_Conf.Initialize( m_sGroup, m_sChair, m_sUser, "",
 				sSvr, "", m_sVideoParam, this)) {
 			Log.d("pgConference", "Init failed");
+			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
 			return;
 		}
 		PG_MEMB oMemb=memberArray.get(0);
@@ -760,11 +818,12 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	//结束会议模块
 	private void pgClean()
 	{
-		for(int i=0;i<memberArray.size();i++)
+		for(int i=1;i<memberArray.size();i++)
 		{
 			PG_MEMB oMemb=memberArray.get(i);
-			if(!oMemb.sPeer.equals(""))
+			if(!oMemb.sPeer.equals("")&&(!oMemb.sPeer.equals(m_sUser))) {
 				m_Conf.VideoClose(oMemb.sPeer);
+			}
 			oMemb.pLayout.removeAllViews();
 			oMemb.pView=null;
 			oMemb.sPeer="";
@@ -797,7 +856,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 				return null;
 			}
 
-			for (int i = 0; i < memberArray.size(); i++) {
+			for (int i = 1; i < memberArray.size(); i++) {
 
 				if (memberArray.get(i).sPeer .equals(sPeer)||memberArray.get(i).sPeer.equals("")||memberArray.get(i).sPeer==null) {
 					return memberArray.get(i);
@@ -828,6 +887,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		MembTmp.pView=m_Conf.VideoOpen(sPeer,160,120);
 		if(MembTmp.pView!=null)
 		{
+			MembTmp.pLayout.removeAllViews();
 			MembTmp.pLayout.addView(MembTmp.pView);
 		}
 
@@ -835,6 +895,23 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	}
 
+	private boolean m_IsVideoStart = false;
+	private void pgVideoStart()
+	{
+		if(m_IsVideoStart){
+			pgVideoStop();
+		}
+		m_Conf.VideoStart(pgVideoPutMode.Normal);
+		m_Conf.AudioStart();
+		m_IsVideoStart= true;
+	}
+	private void pgVideoStop()
+	{
+
+		m_Conf.VideoStop();
+		m_Conf.AudioStop();
+		m_IsVideoStart= false;
+	}
 	/*
 	* 重置节点的显示窗口
 	* */
