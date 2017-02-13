@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
@@ -16,7 +15,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -59,59 +57,64 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private EditText m_editText_Notify =null;
 	private Button m_btnNotifySend= null;
 
+	private TextView text_info = null;
 
 	private boolean bChair = false;
 	private String m_sVideoParam=
 			"(Code){3}(Mode){2}(FrmRate){40}" +
 			"(LCode){3}(LMode){3}(LFrmRate){30}" +
-			"(Portrait){0}(Rotate){1}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
+			"(Portrait){1}(Rotate){0}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
 			"(AudioSpeechDisable){0}";
 	private Button m_btntest=null;
 
+
+
 	class PG_MEMB{
 		String sPeer="";
-		Boolean bOpen=false;
+		Boolean bVideoSync=false;
+		Boolean bJoin=false;
 		SurfaceView pView=null;
 		LinearLayout pLayout=null;
 	}
 
 	private static ArrayList<PG_MEMB> memberArray = new ArrayList<>();
-	public static void setCameraDisplayOrientation (Activity activity, int cameraId, android.hardware.Camera camera) {
-		android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
-		android.hardware.Camera.getCameraInfo (cameraId , info);
-		int rotation = activity.getWindowManager ().getDefaultDisplay ().getRotation ();
-		int degrees = 0;
-		switch (rotation) {
-			case Surface.ROTATION_0:
-				degrees = 0;
-				break;
-			case Surface.ROTATION_90:
-				degrees = 90;
-				break;
-			case Surface.ROTATION_180:
-				degrees = 180;
-				break;
-			case Surface.ROTATION_270:
-				degrees = 270;
-				break;
-		}
-		int result;
-		if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-			result = (info.orientation + degrees) % 360;
-			result = (360 - result) % 360;   // compensate the mirror
-		} else {
-			// back-facing
-			result = ( info.orientation - degrees + 360) % 360;
-		}
-		camera.setDisplayOrientation (result);
-	}
+//	public static void setCameraDisplayOrientation (Activity activity, int cameraId, android.hardware.Camera camera) {
+//		android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+//		android.hardware.Camera.getCameraInfo (cameraId , info);
+//		int rotation = activity.getWindowManager ().getDefaultDisplay ().getRotation ();
+//		int degrees = 0;
+//		switch (rotation) {
+//			case Surface.ROTATION_0:
+//				degrees = 0;
+//				break;
+//			case Surface.ROTATION_90:
+//				degrees = 90;
+//				break;
+//			case Surface.ROTATION_180:
+//				degrees = 180;
+//				break;
+//			case Surface.ROTATION_270:
+//				degrees = 270;
+//				break;
+//		}
+//		int result;
+//		if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+//			result = (info.orientation + degrees) % 360;
+//			result = (360 - result) % 360;   // compensate the mirror
+//		} else {
+//			// back-facing
+//			result = ( info.orientation - degrees + 360) % 360;
+//		}
+//		camera.setDisplayOrientation (result);
+//	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
 				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		setContentView(R.layout.activity_main);
+
+
 //		Camera camera=null;
 //		setCameraDisplayOrientation(this,Camera.CameraInfo.CAMERA_FACING_FRONT,camera);
 		for(int i=0;i<4;i++)
@@ -120,8 +123,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 				oMemb.pLayout = (LinearLayout) findViewById(RIDLaout[i]);
 				memberArray.add(oMemb);
 		}
-		TextView textView = (TextView)findViewById(R.id.text_notuse);
-		textView.requestFocus();
+//		TextView textView = (TextView)findViewById(R.id.text_notuse);
+//		textView.requestFocus();
 
 		m_editText_name=(EditText)findViewById(R.id.editText_name);
 		m_editText_User = (EditText) findViewById(R.id.editText_user);
@@ -134,6 +137,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		m_btnClean =(android.widget.Button) findViewById(R.id.btn_Clean);
 		m_btnClean.setOnClickListener(m_OnClink);
 
+
 		m_editText_Notify =(EditText)findViewById(R.id.editText_notify);
 
 		m_btnNotifySend=(android.widget.Button) findViewById(R.id.btn_notifysend);
@@ -144,6 +148,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		m_Conf.SetEventListener(m_OnEvent);
 
 
+		text_info= (TextView) findViewById(R.id.text_info);
 
 		//m_listMember.setAdapter(new ArrayAdapter<String>(this, R.id.linearLayoutMain, data));
 	}
@@ -185,23 +190,24 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	}
 
 
-	//屏幕旋转 设置摄像头旋转角度	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-			 super.onConfigurationChanged(newConfig);
-			// 检测屏幕的方向：纵向或横向
-
-			if (this.getResources().getConfiguration().orientation
-				== Configuration.ORIENTATION_LANDSCAPE) {
-				//当前为横屏， 在此处添加额外的处理代码
-				SetRotate(0);
-				// todo 或者添加 为180度
-			}
-			else if (this.getResources().getConfiguration().orientation
-				== Configuration.ORIENTATION_PORTRAIT) {
-				//当前为竖屏， 在此处添加额外的处理代码
-				SetRotate(90);
-			}
-		}
+	//屏幕旋转 设置摄像头旋转角度
+//	@Override
+//	public void onConfigurationChanged(Configuration newConfig) {
+//			 super.onConfigurationChanged(newConfig);
+//			// 检测屏幕的方向：纵向或横向
+//
+//			if (this.getResources().getConfiguration().orientation
+//				== Configuration.ORIENTATION_LANDSCAPE) {
+//				//当前为横屏， 在此处添加额外的处理代码
+//				SetRotate(0);
+//				// todo 或者添加 为180度
+//			}
+//			else if (this.getResources().getConfiguration().orientation
+//				== Configuration.ORIENTATION_PORTRAIT) {
+//				//当前为竖屏， 在此处添加额外的处理代码
+//				SetRotate(90);
+//			}
+//		}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -327,6 +333,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		return sdDir.toString();
 
 	}
+	private void Show(String s){
+		String sInfo = text_info.getText()+"\n"+s;
+		text_info.setText(sInfo);
+	}
+
 	private int iflag=0;
 	private android.view.View.OnClickListener m_OnClink = new android.view.View.OnClickListener() {
 		// Control clicked
@@ -343,12 +354,13 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 					else {
 						pgMembInit();
 					}
-
+					m_btnStart.setEnabled(false);
 					Log.d("OnClink", "init button");
 					break;
 
 				case R.id.btn_Clean:
 					pgClean();
+					m_btnStart.setEnabled(true);
 					Log.d("OnClink", "MemberAdd button");
 					break;
 				case R.id.btn_notifysend:
@@ -477,10 +489,12 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		// TODO: 2016/11/7 登录成功与否关系到后面的步骤能否执行 ，如果登录失败请再次初始化
 		if(sData.equals("0"))
 		{
+			Show("已经登录");
 			Log.d( "","已经登录");
 		}
 		else
 		{
+			Show("登录失败 err = "+sData);
 			Log.d( "","登录失败");
 		}
 	}
@@ -488,19 +502,19 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	//登出
 	private void EventLogout(String sAct,String sData,String sPeer)
 	{
-		Log.d( "","已经注销"+sData);
+		Show( "已经注销"+sData);
 	}
 	//sPeer的离线消息
 	private void EventPeerSync(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序可以和此节点相互发送消息了
-		Log.d( "",sPeer+"节点建立连接");
+		Show(sPeer+"节点建立连接");
 	}
 	//sPeer的离线消息
 	private void EventPeerOffline(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序此节点离线了
-		Log.d( "",sPeer+"节点离线");
+		Show( sPeer+"节点离线");
 		if(!sPeer.equals("_DEV_"+m_sUser))
 		{
 			pgVideoRestore(sPeer);
@@ -511,13 +525,13 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventChairmanSync(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序可以和主席发送消息了
-		Log.d( "","主席节点建立连接");
+		Show( "主席节点建立连接");
 		m_Conf.Join();
 	}
 	//sPeer的离线消息
 	private void EventChairmanOffline(String sAct,String sData,String sPeer)
 	{
-		Log.d( "","主席节点离线");
+		Show( "主席节点离线");
 		//m_Conf.Leave();
 		if(!sPeer.equals("_DEV_"+m_sUser))
 		{
@@ -529,26 +543,40 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventAskJoin(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 sPeer请求加入会议  MemberAdd表示把他加入会议
-
+		Show( sPeer+"请求加入会议->同意");
 		m_Conf.MemberAdd(sPeer);
 	}
 	//sPeer的离线消息
 	private void EventJoin(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
-
+		Show( sPeer+"加入会议");
 		if(sPeer.equals("_DEV_"+m_sUser))
 		{
 			//加入的是自己   启动视音频  ：
 			m_Conf.VideoStart(pgVideoPutMode.Normal);
 			m_Conf.AudioStart();
+		}else {
+			PG_MEMB oMemb = MembSearch(sPeer);
+			oMemb.sPeer=sPeer;
+			oMemb.bJoin = true;
+			if(oMemb.bVideoSync&&oMemb.pView==null){
+				String sObjSelf="_DEV_"+m_sUser;
+				if(sObjSelf.compareTo(sPeer)>0)
+				{
+					Show( " 发起视频请求");
+					VideoOpen(sPeer);
+				}
+			}
 		}
+
 
 		Log.d( "", sPeer+" 加入会议");
 	}
 	//sPeer的离线消息
 	private void EventLeave(String sAct,String sData,String sPeer)
 	{
+		Show( sPeer+"离开会议");
 		if(sPeer.equals("_DEV_"+m_sUser))
 		{
 			//离开的是自己   关闭视音频
@@ -573,10 +601,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventVideoSync(String sAct,String sData,String sPeer)
 	{
         // TODO: 2016/11/7 提醒应用程序可以打开这个sPeer的视频了
+		Show( sPeer+"的视频数据同步完成");
 		String sObjSelf="_DEV_"+m_sUser;
 		if(sObjSelf.compareTo(sPeer)>0)
 		{
-			Log.d( ""," 发起视频请求");
+			Show( " 发起视频请求");
 			VideoOpen(sPeer);
 		}
 	}
@@ -589,7 +618,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventVideoOpen(String sAct,String sData,String sPeer)
 	{
 		//收到视频请求
-		Log.d( "",sPeer + " 请求视频");
+		Show( sPeer + " 请求视频连线->同意");
 		//// TODO: 2016/11/7 在这之后回复
 		//调用
 		VideoOpen(sPeer);
@@ -598,33 +627,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	Looper looper = Looper.myLooper();
 	MyHandler myHandler = new MyHandler(looper);
-	private void EventVideoLost(String sAct, String sData, final String sPeer)
-	{
-		// TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
-		Log.d("",sPeer + " 的视频已经丢失 尝试重新连接");
-		pgVideoClose(sPeer);
-
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					sleep(1000);
-					Message message = myHandler.obtainMessage();
-					message.obj = sPeer;
-					//这里这个 arg1 是Message对象携带的参数我主要用它来区分消息对象(Message)
-					message.arg1 = 2;
-					//把消息发送给目标对象，目标对象就是 myHandler 就是关联我们得到的那个消息对象的Handler
-					message.sendToTarget();
-
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}.start();
-
-
-
-	}
 	class MyHandler extends Handler {
 		public MyHandler() {}
 		public MyHandler(Looper looper) {
@@ -641,11 +643,39 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			}
 		}
 	}
+	private void EventVideoLost(String sAct, String sData, final String sPeer)
+	{
+		// TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
+		Log.d("",sPeer + " 的视频已经丢失 尝试重新连接");
+		pgVideoClose(sPeer);
+
+//		new Thread() {
+//			@Override
+//			public void run() {
+//				try {
+//					sleep(1000);
+//					Message message = myHandler.obtainMessage();
+//					message.obj = sPeer;
+//					//这里这个 arg1 是Message对象携带的参数我主要用它来区分消息对象(Message)
+//					message.arg1 = 2;
+//					//把消息发送给目标对象，目标对象就是 myHandler 就是关联我们得到的那个消息对象的Handler
+//					message.sendToTarget();
+//
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}.start();
+
+
+
+	}
+
 
 	private void EventVideoClose(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/8  通知应用程序视频已经挂断
-		Log.d("",sPeer + " 已经挂断视频");
+		Show(sPeer + " 已经挂断视频");
 		pgVideoRestore(sPeer);
 
 	}
@@ -876,7 +906,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		PG_MEMB MembTmp = MembSearch(sPeer);
 		if(MembTmp==null)
 		{
-			m_Conf.VideoOpen(sPeer,0,0);
+			m_Conf.VideoReject(sPeer);
 			return false;
 		}
 		if(MembTmp.sPeer.equals(""))

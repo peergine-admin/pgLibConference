@@ -17,31 +17,31 @@ import java.util.TimerTask;
 /**
  * Created by ctkj-004 on 2016/8/16.
  *
- * update 2016/11/1 v1.0.3
+ * Update 2016/11/1 v1.0.3
  * 添加SvrRequest API函数：给服务器发送扩展消息
  *      包含事件：SvrReplyError  Data为错误代码 和 SvrReply Data为服务器回复消息
  *
- *updata 2016/11/17 v1.0.6
+ * Updata 2016/11/17 v1.0.6
  * 添加视频的抓拍和录制功能
  * 做了一个超时检测 在执行MemberAdd MemberDel Leave 操作是 如果45秒内没有退出和加入会议   。就产生TimeOut 的回调    sData 数操作名   sPeer是参数
- 这个还没有测试稳定 只是测试了一下程序能跑过去
- 还添加了CallSend   会产生CallSend的回执
- CallSend函数的最后一个参数自定义
- CallSend回调事件的sData 是错误代码 0是正常 ，sPeer是CallSend的最后一个参数
- *新增函数 AudioCtrlVolume 控制sPeer 的扬声器和麦克风是否播放或采集声音数据，sPeer为空时
+ * 这个还没有测试稳定 只是测试了一下程序能跑过去
+ * 还添加了CallSend   会产生CallSend的回执
+ * CallSend函数的最后一个参数自定义
+ * CallSend回调事件的sData 是错误代码 0是正常 ，sPeer是CallSend的最后一个参数
+ * 新增函数 AudioCtrlVolume 控制sPeer 的扬声器和麦克风是否播放或采集声音数据，sPeer为空时
 
- *updata 2016/12/30 v9
- *1、升级产品版本规则，版本号前3位是中间件版本，后一位是SDK版本
- *2、升级打包规则，不同平台分别打包
- *3、updata增加一些视音频操作函数，节点操作函数 ，Reset 函数 等
+ * Updata 2016/12/30 v9
+ * 1、升级产品版本规则，版本号前3位是中间件版本，后一位是SDK版本
+ * 2、升级打包规则，不同平台分别打包
+ * 3、updata增加一些视音频操作函数，节点操作函数 ，Reset 函数 等
  * 4、增加音频初始化选项
  *
- * updata 2016/12/30 v10
+ * Updata 2016/12/30 v10
  * 1、升级AudioSpeech函数，增加一个参数，同时兼容之前的函数。
  */
 
 /*
-* updata 2017/02/09 v12
+* Updata 2017/02/09 v12
 * 优化心跳包发送顺序。
 *
 * */
@@ -61,14 +61,13 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechSelfAndPeer=3;
     private static final String LIB_VER = "13";
 
-
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
 
     // Event listen interface object.
     private OnEventListener m_eventListener = null;
     private pgLibJNINode m_Node = null;
-    private pgLibConfNodeProc m_NodeProc=null;
+    private pgLibNodeProc m_NodeProc=null;
     private String m_sInitSvrName="pgConnectSvr";
     private String m_sInitSvrAddr="";
 
@@ -277,12 +276,9 @@ public class pgLibConference {
         return null;
     }
 
-
-
-
     // PG Node callback class.
-    private class pgLibConfNodeProc extends pgLibJNINodeProc {
-        pgLibConfNodeProc() {
+    private class pgLibNodeProc extends pgLibJNINodeProc {
+        pgLibNodeProc() {
             super();
         }
         public int OnReply(String sObj, int uErrCode, String sData, String sParam) {
@@ -379,11 +375,11 @@ public class pgLibConference {
     public boolean Initialize(String sName, String sChair, String sUser, String sPass, String sSvrAddr,
                               String sRelayAddr, String sVideoParam, Context oCtx)
     {
+        OutString("->Initialize start");
         try {
 
-            if(m_bInitialized)
-            {
-                OutString("Initialized  e");
+            if(m_bInitialized) {
+                OutString("->Initialize :Initialized = true");
                 return true;
             }
             if(sName.equals("")||sName.length()>64){
@@ -410,13 +406,14 @@ public class pgLibConference {
                 Clean();
                 return false;
             }
+            TimeOutAdd(timerOut);
 
             m_IsChairmanAdd=false;
             //m_IsJoin = false;
             m_Random = new java.util.Random();
             // Create Node objects.
             m_Node = new pgLibJNINode();
-            m_NodeProc = new pgLibConfNodeProc();
+            m_NodeProc = new pgLibNodeProc();
 
             // Init status
             m_sInitSvrName = "pgConnectSvr";
@@ -457,11 +454,8 @@ public class pgLibConference {
 
             m_bLogined = false;
             m_bServiceStart = false;
-            m_bChairman=false;
-            if(m_sChair.equals(sUser))
-            {
-                m_bChairman=true;
-            }
+
+            m_bChairman = m_sChair.equals(sUser);
 
             m_sObjG = "_G_"+m_sName;
             m_sObjD = "_D_"+m_sName;
@@ -478,6 +472,7 @@ public class pgLibConference {
             m_bEventEnable=true;
             m_iVideoInitFlag=0;
             m_iTaskTimeOut = 45;
+
             m_listSyncPeer.clear();
             m_listVideoPeer.clear();
             m_listTask.clear();
@@ -494,7 +489,7 @@ public class pgLibConference {
             return false;
         }
         m_bInitialized=true;
-        OutString("Initialize succeed");
+
         return true;
     }
 
@@ -504,9 +499,8 @@ public class pgLibConference {
      */
     public void Clean() {
         try {
-
             NodeStop();
-
+            TimeOutDel(timerOut);
             TimerClean();
 
             m_sObjSvr = "";
@@ -515,10 +509,8 @@ public class pgLibConference {
             m_Node = null;
             m_NodeProc = null;
 
-            pgLibJNINode.Clean();
+            //pgLibJNINode.Clean();
             m_bInitialized=false;
-            m_listSyncPeer.clear();
-            m_listVideoPeer.clear();
         }
         catch (Exception ex) {
             OutString("Clean: ex=" + ex.toString());
@@ -820,11 +812,7 @@ public class pgLibConference {
                 sChair=m_sChair;
             }
             ServiceStop();
-            m_bChairman=false;
-            if(m_sChair.equals(m_sUser))
-            {
-                m_bChairman=true;
-            }
+            m_bChairman = m_sChair.equals(m_sUser);
             m_sObjChair="_DEV_"+sChair;
             m_sObjG = "_G_"+sName;
             m_sObjD = "_D_"+sName;
@@ -1414,7 +1402,7 @@ public class pgLibConference {
     * iVolume 表示音量的百分比
     *
     * */
-    public boolean AudioCtrlVolume(String sPeer,int iMode, int iVolume) {
+    public boolean AudioCtrlVolume(String sPeer,int iType, int iVolume) {
 
         if (!this.m_bApiAudioStart) {
             OutString("Audio not init");
@@ -1425,11 +1413,11 @@ public class pgLibConference {
             sPeer="_DEV_"+sPeer;
         }
 
-        iMode=iMode>0?1:0;
+        iType=iType>0?1:0;
 
         iVolume = iVolume<0 ? 0 : iVolume;//iVolume防止参数小于0
         iVolume = iVolume>100 ? 100 : iVolume;//大于100 取100
-        String sData = "(Peer){}(Action){1}(Type){1}(Volume){"+m_Node.omlEncode(iVolume+"")+"}(Max){0}(Min){0}";
+        String sData = "(Peer){}(Action){1}(Type){"+iType+"}(Volume){"+m_Node.omlEncode(iVolume+"")+"}(Max){0}(Min){0}";
         int iErr = m_Node.ObjectRequest(m_sObjA, 34, sData, "pgLibConference.Volume");
         if (iErr > 0) {
             OutString("AudioCtrlVolume:set Volume, iErr=" + iErr);
@@ -1794,54 +1782,61 @@ public class pgLibConference {
 
 
     //定时器处理程序
-    private void TimerProc(String sParam) {
-        String sAct = m_Node.omlGetContent(sParam, "Act");
-        if (sAct.equals("Keep")) {
-            Keep();
-            return;
-        }
-        else if (sAct.equals("TimerActive")) {
-            TimerActive();
-            return;
-        }
-        else if (sAct.equals("ChairmanAdd")) {
-            ChairmanAdd();
-            return;
-        }
-        else if (sAct.equals("Relogin")) {
-            NodeLogin();
-            return;
-        }
+    private TimerOut timerOut = new TimerOut() {
+        @Override
+        public void TimerProc(String sParam) {
+            String sAct = m_Node.omlGetContent(sParam, "Act");
+            if (sAct.equals("Keep")) {
+                Keep();
+                return;
+            }
+            else if (sAct.equals("TimerActive")) {
+                TimerActive();
+                return;
+            }
+            else if (sAct.equals("ChairmanAdd")) {
+                ChairmanAdd();
+                return;
+            }
+            else if (sAct.equals("Relogin")) {
+                NodeLogin();
+                return;
+            }
 
 
-        else if(sAct.indexOf("MemberAdd")==0)
-        {
-            String sPeer = sAct.substring(10);
-            TaskTimeOut("MemberAdd",sPeer);
-            return;
-        }
-        else if(sAct.indexOf("MemberDel")==0)
-        {
-            String sPeer = sAct.substring(10);
-            TaskTimeOut("MemberDel",sPeer);
-            return;
-        }
-        else if(sAct.indexOf("Leave")==0)
-        {
-            TaskTimeOut("Leave","");
-            return;
-        }
+            else if(sAct.indexOf("MemberAdd")==0)
+            {
+                String sPeer = sAct.substring(10);
+                TaskTimeOut("MemberAdd",sPeer);
+                return;
+            }
+            else if(sAct.indexOf("MemberDel")==0)
+            {
+                String sPeer = sAct.substring(10);
+                TaskTimeOut("MemberDel",sPeer);
+                return;
+            }
+            else if(sAct.indexOf("Leave")==0)
+            {
+                TaskTimeOut("Leave","");
+                return;
+            }
 
-//        else if (sAct.equals("PeerCheck")) {
+            //        else if (sAct.equals("PeerCheck")) {
 //            PeerCheckTimeout();
 //        }
-    }
+        }
+    };
 
     //事件下发程序
     private void EventProc(String sAct, String sData, String sPeer) {
-        if (m_eventListener != null && m_bEventEnable) {
-            OutString("EventProc: sAct=" + sAct + ", sData=" + sData + ", sPeer=" + sPeer);
-            m_eventListener.event(sAct, sData, sPeer);
+        try {
+            if (m_eventListener != null && m_bEventEnable) {
+                OutString("EventProc: sAct=" + sAct + ", sData=" + sData + ", sPeer=" + sPeer);
+                m_eventListener.event(sAct, sData, sPeer);
+            }
+        }catch (Exception ex){
+            OutString("->EventProc ex= "+ex.toString());
         }
     }
 
@@ -2085,37 +2080,38 @@ public class pgLibConference {
 
     //登录回复信息
     private int NodeLoginReply(int iErr, String sData) {
-
-        if (m_Node == null) {
-            return 1;
-        }
-
-        if (iErr != 0) {
-            OutString("pgLibLive.NodeLoginReply: Login failed. uErr=" + iErr);
-
-            EventProc("Login", String.valueOf(iErr), "");
-            if (iErr == 11 || iErr == 12 || iErr == 14) {
-                NodeRedirectReset(10);
+        OutString(" ->NodeLoginReply ");
+        try {
+            if (m_Node == null) {
+                return 1;
             }
 
-            return 1;
+            if (iErr != 0) {
+                OutString("pgLibLive.NodeLoginReply: Login failed. uErr=" + iErr);
+
+                EventProc("Login", String.valueOf(iErr), "");
+                if (iErr == 11 || iErr == 12 || iErr == 14) {
+                    NodeRedirectReset(10);
+                }
+
+                return 1;
+            }
+
+            // Process redirect.
+            String sParam = m_Node.omlGetContent(sData, "Param");
+            String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
+            if (!sRedirect.equals("")) {
+                NodeRedirect(sRedirect);
+                return 1;
+            }
+            if (ServiceStart()) {
+                m_bLogined = true;
+                EventProc("Login", "0", m_sObjSvr);
+            }
+
+        }catch (Exception ex){
+            OutString("->NodeLoginReply ex = "+ex.toString());
         }
-
-        // Process redirect.
-        String sParam = m_Node.omlGetContent(sData, "Param");
-        String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
-        if (!sRedirect.equals("")) {
-            NodeRedirect(sRedirect);
-            return 1;
-        }
-        if (ServiceStart()) {
-            m_bLogined = true;
-            EventProc("Login", "0", m_sObjSvr);
-        }
-
-
-
-        OutString("NodeLoginReply finish!");
         return 1;
     }
 
@@ -2134,106 +2130,124 @@ public class pgLibConference {
     //添加主席节点  使之能在加入会议前与主席通信，发送Join信号
     private void ChairmanAdd()
     {
-        if(m_IsChairmanAdd) {
-            ChairmanDel();
+        OutString(" ->ChairmanAdd ");
+        try {
+            if (m_IsChairmanAdd) {
+                ChairmanDel();
+            }
+            if (!this.m_Node.ObjectAdd(this.m_sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
+                OutString("ChairmanAdd:  failed.");
+                return;
+            }
+            m_IsChairmanAdd = true;
+        }catch (Exception ex){
+            OutString("->ChairmanAdd ex = "+ex.toString());
         }
-        if (!this.m_Node.ObjectAdd(this.m_sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
-            OutString("ChairmanAdd:  failed.");
-            return;
-        }
-        m_IsChairmanAdd = true;
     }
 
     //删除主席节点  使能在添加主席节点失败后能重新添加
     private void ChairmanDel()
     {
-        this.m_Node.ObjectDelete(this.m_sObjChair);
-        m_IsChairmanAdd = false;
+        OutString(" ->ChairmanDel ");
+        try {
+            this.m_Node.ObjectDelete(this.m_sObjChair);
+            m_IsChairmanAdd = false;
+        }catch (Exception ex){
+            OutString("->ChairmanDel ex = "+ex.toString());
+        }
     }
 
     // 建立通讯组 视音频通讯类
     private boolean ServiceStart() {
+        OutString(" ->ServiceStart ");
+        try {
+            do {
+                if(m_sObjChair.equals(m_sObjSelf)) {
+                    if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", "", (0x10000 | 0x10 | 0x4 | 0x1 | 0x40))) {
+                        OutString("ServiceStart: Add group object failed");
+                        break;
+                    }
+                    int iMask = 0x0200; // Tell all.
+                    String sDataMdf = "(Action){1}(PeerList){("+m_sObjSelf+"){" + iMask + "}}";
+                    int iErr = m_Node.ObjectRequest(m_sObjG, 32, sDataMdf, "");
+                    if (iErr > 0) {
+                        OutString("ServiceStart: Add group Chairman failed");
+                        break;
+                    }
+                }
+                else {
+                    if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", m_sObjChair, (0x10000 | 0x10 | 0x1))) {
+                        OutString("ServiceStart: Add group object failed");
+                        break;
+                    }
+                    ChairmanAdd();
+                }
 
-        do {
-            if(m_sObjChair.equals(m_sObjSelf))
-            {
-                if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", "", (0x10000 | 0x10 | 0x4 | 0x1 | 0x40))) {
-                    OutString("ServiceStart: Add group object failed");
+                if (!m_Node.ObjectAdd(m_sObjD, "PG_CLASS_Data", m_sObjG, 0)) {
+                    OutString("ServiceStart: Add  Data object failed");
                     break;
                 }
-                int iMask = 0x0200; // Tell all.
-                String sDataMdf = "(Action){1}(PeerList){("+m_sObjSelf+"){" + iMask + "}}";
-                int iErr = m_Node.ObjectRequest(m_sObjG, 32, sDataMdf, "");
-                if (iErr > 0) {
-                    OutString("ServiceStart: Add group Chairman failed");
-                    break;
+
+
+                m_bServiceStart = true;
+                //开始发送心跳包
+                if (TimerStart("(Act){TimerActive}", 10, false) < 0) {
+                    return false;
                 }
+                m_iActiveStamp = 0;
 
-            }
-            else {
-                if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", m_sObjChair, (0x10000 | 0x10 | 0x1))) {
-                    OutString("ServiceStart: Add group object failed");
-                    break;
+                if(TimerStart("(Act){Keep}", m_iExpire, false)<0){
+                    return false;
                 }
+                m_iKeepChainmanStamp=0;
+                m_iKeepStamp=0;
 
-                ChairmanAdd();
-            }
-
-            if (!m_Node.ObjectAdd(m_sObjD, "PG_CLASS_Data", m_sObjG, 0)) {
-                OutString("ServiceStart: Add  Data object failed");
-                break;
-            }
-
-
-            OutString("ServiceStart: success");
-            m_bServiceStart = true;
-            //开始发送心跳包
-            int iIDTimer = TimerStart("(Act){TimerActive}", 10, false);
-            if (iIDTimer < 0) {
-                return false;
-            }
-            m_iActiveStamp = 0;
-
-            TimerStart("(Act){Keep}", m_iExpire, false);
-            return true;
-        }while (false);
-        ServiceStop();
+                return true;
+            }while (false);
+            ServiceStop();
+        }catch (Exception ex){
+            OutString("->ServiceStart ex = "+ex.toString());
+        }
         return false;
     }
 
     //视音频去同步 会议去同步
     private void ServiceStop() {
-        if (m_Node == null) {
-            return;
+        OutString(" ->ServiceStop TimeOut");
+        try {
+            if (m_Node == null) {
+                return;
+            }
+            m_bServiceStart = false;
+            //停止心跳包发送
+
+            if (this.m_bApiVideoStart) {
+                this.VideoClean();
+
+            }
+            if (this.m_bApiAudioStart) {
+                this.AudioClean();
+
+            }
+            this.m_bApiVideoStart = false;
+            this.m_bApiAudioStart = false;
+
+            String sDataMdf = "(Action){0}(PeerList){(" + m_Node.omlEncode(m_sObjSelf) + "){0}}";
+            m_Node.ObjectRequest(m_sObjG, 32, sDataMdf, "");
+
+            m_Node.ObjectDelete(m_sObjD);
+            m_Node.ObjectDelete(m_sObjG);
+            if (!m_bChairman) {
+                ChairmanDel();
+            }
+        }catch (Exception ex){
+            OutString("->ServiceStop ex = "+ex.toString());
         }
-        m_bServiceStart =false;
-        //停止心跳包发送
-
-        if (this.m_bApiVideoStart) {
-            this.VideoClean();
-
-        }
-        if (this.m_bApiAudioStart) {
-            this.AudioClean();
-
-        }
-        this.m_bApiVideoStart = false;
-        this.m_bApiAudioStart = false;
-
-        String sDataMdf = "(Action){0}(PeerList){(" + m_Node.omlEncode(m_sObjSelf) + "){0}}";
-        m_Node.ObjectRequest(m_sObjG, 32, sDataMdf, "");
-
-        m_Node.ObjectDelete(m_sObjD);
-        m_Node.ObjectDelete(m_sObjG);
-        if(!m_bChairman)
-        {
-            ChairmanDel();
-        }
-        OutString("ServiceStop: finish");
     }
 
     //视频开始后的心跳检测可发送
     private void TimerActive() {
+        OutString(" ->TimerActive TimeOut");
         try {
             if (m_Node == null) {
                 return;
@@ -2604,7 +2618,7 @@ public class pgLibConference {
             this.EventProc("SvrNotify", sParam, sPeer);
         }
         else if (sCmd.equals("Restart")) {
-            if (sParam.indexOf("redirect=1") >= 0) {
+            if (sParam.contains("redirect=1")) {
                 NodeRedirectReset(3);
             }
         }
@@ -2883,213 +2897,195 @@ public class pgLibConference {
 
     private int NodeOnExtRequest(String sObj, int uMeth, String sData, int iHandle, String sPeer) {
         OutString("NodeOnExtRequest: " + sObj + ", " + uMeth + ", " + sData + ", " + sPeer);
-
-        //Peer类相关
-        if (sObj.equals(m_sObjSvr)) {
-            if (uMeth == 0) {
-                String sAct = this.m_Node.omlGetContent(sData, "Action");
-                if (!sAct.equals("1") && this.m_sObjSvr.equals("") ) {
-                    this.NodeRelogin(3);
+        try {
+            //Peer类相关
+            if (sObj.equals(m_sObjSvr)) {
+                if (uMeth == 0) {
+                    String sAct = this.m_Node.omlGetContent(sData, "Action");
+                    if (!sAct.equals("1") && this.m_sObjSvr.equals("")) {
+                        this.NodeRelogin(3);
+                    }
+                } else if (uMeth == 1) {
+                    ServerError(sData);
                 }
-            } else if (uMeth == 1) {
-                ServerError(sData);
-            }
-            return 0;
-        }else if (sObj.equals(m_sObjSelf)) {
-            if (uMeth == 35) {
-                return this.SelfCall(sData, sPeer,iHandle);
-            }
-            else if (uMeth == 36) {
-                if (sPeer.equals(this.m_sObjSvr)) {
-                    return this.ServerMessage(sData, sPeer);
-                } else {
-                    return this.SelfMessage(sData, sPeer);
+                return 0;
+            } else if (sObj.equals(m_sObjSelf)) {
+                if (uMeth == 35) {
+                    return this.SelfCall(sData, sPeer, iHandle);
+                } else if (uMeth == 36) {
+                    if (sPeer.equals(this.m_sObjSvr)) {
+                        return this.ServerMessage(sData, sPeer);
+                    } else {
+                        return this.SelfMessage(sData, sPeer);
+                    }
+                } else if (uMeth == 47) {
+                    //ID冲突 被踢下线了
+                    EventProc("Logout", "47", "");
+                } else if (uMeth == 0) {
+                    SelfSync(sData, sPeer);
                 }
-            }
-            else if(uMeth==47) {
-                //ID冲突 被踢下线了
-                EventProc("Logout","47","");
-            }
-            else if (uMeth == 0) {
-                SelfSync(sData, sPeer);
-            }
-            return 0;
-        }
-        else if (sObj.equals(this.m_sObjChair)) {
+                return 0;
+            } else if (sObj.equals(this.m_sObjChair)) {
 
-            if (uMeth == 0) {
-                String sAct = this.m_Node.omlGetContent(sData, "Action");
-                if (sAct .equals( "1")) {
+                if (uMeth == 0) {
+                    String sAct = this.m_Node.omlGetContent(sData, "Action");
+                    if (sAct.equals("1")) {
 
-                    KeepAdd(sObj);
-
-                    this.EventProc("ChairmanSync", "", "");
-
-
-                }
-            } else if (uMeth == 1) {
-                String sMeth = this.m_Node.omlGetContent(sData, "Meth");
-                if (sMeth.equals("34")) {
-                    String sError = this.m_Node.omlGetContent(sData, "Error");
-
-                    KeepDel(sObj);
-
-                    PeerOffline( sObj,  sError);
-//                    ChairmanDel();
-                    ChairmanAdd();
-                }
-            }
-
-            return 0;
-        }
-        else if(this.m_Node.ObjectGetClass(sObj).equals("PG_CLASS_Peer"))
-        {
-            if (uMeth == 0) {
-                String sAct = this.m_Node.omlGetContent(sData, "Action");
-                if (sAct .equals( "1")) {
-
-                    //心跳包列表 添加
-                    if(m_bChairman) {
                         KeepAdd(sObj);
-                    }
-                    this.EventProc("PeerSync", "", sObj);
-                }
-            }else  if (uMeth == 1) {
-                String sMeth = this.m_Node.omlGetContent(sData, "Meth");
-                if (sMeth .equals( "34")) {
-                    String sError = this.m_Node.omlGetContent(sData, "Error");
 
-                    //心跳包列表 删除
-                    if(m_bChairman) {
+                        this.EventProc("ChairmanSync", "", "");
+
+
+                    }
+                } else if (uMeth == 1) {
+                    String sMeth = this.m_Node.omlGetContent(sData, "Meth");
+                    if (sMeth.equals("34")) {
+                        String sError = this.m_Node.omlGetContent(sData, "Error");
+
                         KeepDel(sObj);
+
+                        PeerOffline(sObj, sError);
+//                    ChairmanDel();
+                        //TimerStart("(Act){ChairmanAdd}",10,false);
                     }
-                    PeerOffline(sObj,sError);
-                }
-            }
-            return 0;
-        }
-
-        //通讯组类相关
-        if(sObj.equals(m_sObjG)){
-            if(uMeth==33){
-                //成员有更新
-                //加入列表，
-                // OutString("GroupUpdate start");
-                this.GroupUpdate(sData);
-
-            }
-        }
-
-        //DData类相关
-        if (sObj .equals(this.m_sObjD)) {
-            if (uMeth == 32) {
-                this.EventProc("Notify", sData, sPeer);
-            }
-            return 0;
-        }
-        //接收视频类方法
-        if (sObj.equals(m_sObjV)) {
-            if(uMeth==0)
-            {
-                String sAct = this.m_Node.omlGetContent(sData, "Action");
-                if(sAct.equals("1"))
-                {
-                    EventProc("VideoSync","",sPeer);
                 }
 
-            }
-            else if (uMeth == 35) {
-                VideoJoin(sObj, sData, iHandle, sPeer,"VideoOpen");
-                return -1;
-            }
-            else if (uMeth == 36) {
-                VideoLeave(sObj, sData, iHandle, sPeer,"VideoClose");
-            }
-            else if (uMeth == 40) {
-                VideoFrameStat(sData, "VideoFrameStat");
-            }
-            return 0;
-        }
-        if (sObj.equals(m_sObjLV)) {
-            if(uMeth==0)
-            {
-                String sAct = this.m_Node.omlGetContent(sData, "Action");
-                if(sAct.equals("1"))
-                {
-                    EventProc("VideoSyncL","",sPeer);
-                }
-            }
-            else if (uMeth == 35) {
-                VideoJoin(sObj, sData, iHandle, sPeer,"VideoOpenL");
-                return -1;
-            }
-            else if (uMeth == 36) {
-                VideoLeave(sObj, sData, iHandle, sPeer,"VideoCloseL");
-            }
-            else if (uMeth == 40) {
-                VideoFrameStat(sData, "VideoFrameStatL");
-            }
-            return 0;
-        }
-        //音频类相关
-        if (sObj.equals(m_sObjA)) {
-            if (uMeth == 0) {
-                String sAct = this.m_Node.omlGetContent(sData, "Action");
-                if (sAct.equals("1")) {
-                    EventProc("AudioSync", "", sPeer);
-                }
-            }
-        }
+                return 0;
+            } else if (this.m_Node.ObjectGetClass(sObj).equals("PG_CLASS_Peer")) {
+                if (uMeth == 0) {
+                    String sAct = this.m_Node.omlGetContent(sData, "Action");
+                    if (sAct.equals("1")) {
 
+                        //心跳包列表 添加
+                        if (m_bChairman) {
+                            KeepAdd(sObj);
+                        }
+                        this.EventProc("PeerSync", "", sObj);
+                    }
+                } else if (uMeth == 1) {
+                    String sMeth = this.m_Node.omlGetContent(sData, "Meth");
+                    if (sMeth.equals("34")) {
+                        String sError = this.m_Node.omlGetContent(sData, "Error");
+
+                        //心跳包列表 删除
+                        if (m_bChairman) {
+                            KeepDel(sObj);
+                        }
+                        PeerOffline(sObj, sError);
+                    }
+                }
+                return 0;
+            }
+
+            //通讯组类相关
+            if (sObj.equals(m_sObjG)) {
+                if (uMeth == 33) {
+                    //成员有更新
+                    //加入列表，
+                    // OutString("GroupUpdate start");
+                    this.GroupUpdate(sData);
+
+                }
+            }
+
+            //DData类相关
+            if (sObj.equals(this.m_sObjD)) {
+                if (uMeth == 32) {
+                    this.EventProc("Notify", sData, sPeer);
+                }
+                return 0;
+            }
+            //接收视频类方法
+            if (sObj.equals(m_sObjV)) {
+                if (uMeth == 0) {
+                    String sAct = this.m_Node.omlGetContent(sData, "Action");
+                    if (sAct.equals("1")) {
+                        EventProc("VideoSync", "", sPeer);
+                    }
+
+                } else if (uMeth == 35) {
+                    VideoJoin(sObj, sData, iHandle, sPeer, "VideoOpen");
+                    return -1;
+                } else if (uMeth == 36) {
+                    VideoLeave(sObj, sData, iHandle, sPeer, "VideoClose");
+                } else if (uMeth == 40) {
+                    VideoFrameStat(sData, "VideoFrameStat");
+                }
+                return 0;
+            }
+            if (sObj.equals(m_sObjLV)) {
+                if (uMeth == 0) {
+                    String sAct = this.m_Node.omlGetContent(sData, "Action");
+                    if (sAct.equals("1")) {
+                        EventProc("VideoSyncL", "", sPeer);
+                    }
+                } else if (uMeth == 35) {
+                    VideoJoin(sObj, sData, iHandle, sPeer, "VideoOpenL");
+                    return -1;
+                } else if (uMeth == 36) {
+                    VideoLeave(sObj, sData, iHandle, sPeer, "VideoCloseL");
+                } else if (uMeth == 40) {
+                    VideoFrameStat(sData, "VideoFrameStatL");
+                }
+                return 0;
+            }
+            //音频类相关
+            if (sObj.equals(m_sObjA)) {
+                if (uMeth == 0) {
+                    String sAct = this.m_Node.omlGetContent(sData, "Action");
+                    if (sAct.equals("1")) {
+                        EventProc("AudioSync", "", sPeer);
+                    }
+                }
+            }
+        }catch (Exception ex){
+            OutString("NodeOnExtRequest ex="+ex.toString());
+        }
         return 0;
     }
 
     private int NodeOnReply(String sObj, int iErr, String sData, String sParam) {
         OutString("NodeOnReply: " + sObj + ", " + iErr + ", " + sData + ", " + sParam);
+        try {
 
 
+            if (sObj.equals(m_sObjSvr)) {
+                if (sParam.equals("NodeLogin")) {
+                    NodeLoginReply(iErr, sData);
+                } else if (sParam.equals("pgLibConference.SvrRequest")) {
+                    SvrReply(iErr, sData);
+                }
 
-
-        if (sObj.equals(m_sObjSvr)) {
-            if (sParam.equals("NodeLogin")) {
-                NodeLoginReply(iErr, sData);
+                return 1;
+            }
+            if (sParam.indexOf("CallSend") == 0) {
+                String sSession = "";
+                int iInd = sParam.indexOf(':');
+                sSession = sData.substring(9);
+                EventProc("CallSend", sSession + ":" + iErr, sObj);
+                return 1;
+            }
+            if (sParam.indexOf("VideoJoin") == 0) {
+                //视频加入通知
+                this.EventProc("VideoJoin", "" + iErr, sParam.substring(10));
+                return 1;
+            }
+            if (sParam.indexOf("VideoCamera") == 0) {
+                VideoCameraReply(sData);
+                return 1;
+            }
+            if (sParam.indexOf("VideoRecord") == 0) {
+                VideoRecordReply(sData);
+                return 1;
             }
 
-            else if(sParam.equals("pgLibConference.SvrRequest"))
-            {
-                SvrReply(iErr, sData);
+            if (sObj.equals(m_sObjA)) {
+                if (sParam.equals("pgLibConference.Volume")) { // Cancel file
+                    EventProc("AudioCtrlVolume", Integer.valueOf(iErr).toString(), sObj);
+                }
             }
-
-            return 1;
-        }
-        if(sParam.indexOf("CallSend")==0)
-        {
-            String sSession = "";
-            int iInd =sParam.indexOf(':');
-            sSession = sData.substring(9);
-            EventProc("CallSend",sSession+":"+iErr,sObj);
-            return 1;
-        }
-        if (sParam.indexOf("VideoJoin") == 0) {
-            //视频加入通知
-            this.EventProc("VideoJoin", ""+iErr, sParam.substring(10));
-            return 1;
-        }
-        if(sParam.indexOf("VideoCamera")==0)
-        {
-            VideoCameraReply(sData);
-            return 1;
-        }
-        if(sParam.indexOf("VideoRecord")==0)
-        {
-            VideoRecordReply(sData);
-            return 1;
-        }
-
-        if (sObj.equals(m_sObjA)) {
-            if (sParam.equals("pgLibConference.Volume")) { // Cancel file
-                EventProc("AudioCtrlVolume",Integer.valueOf(iErr).toString(),sObj);
-            }
+        }catch (Exception ex){
+            OutString("->NodeOnReply ex="+ex);
         }
         return 1;
     }
@@ -3107,6 +3103,25 @@ public class pgLibConference {
     }
 
     // 定时器相关
+
+    public interface TimerOut {
+        void TimerProc(String sParam);
+    }
+    ArrayList<TimerOut> m_listTimerOut = new ArrayList<>();
+    //private TimerOut onTimerOut =null;
+    public void TimeOutAdd(TimerOut timerOut)
+    {
+        if(m_listTimerOut!=null) {
+            m_listTimerOut.add(timerOut);
+        }
+    }
+    public void TimeOutDel(TimerOut timerOut)
+    {
+        if(m_listTimerOut!=null) {
+            m_listTimerOut.remove(timerOut);
+        }
+    }
+
     private class TimerItem {
 
         int iCookie = 0;
@@ -3170,7 +3185,15 @@ public class pgLibConference {
                 continue;
             }
 
-            TimerProc(oItem.sParam);
+            try {
+                ArrayList<TimerOut> list = (ArrayList<TimerOut>) m_listTimerOut.clone();
+                for (TimerOut timerOut : list) {
+                    timerOut.TimerProc(oItem.sParam);
+                }
+            }catch (Exception ex){
+                OutString("TimerProc : "+ex.toString());
+            }
+//            TimerProc(oItem.sParam);
 
             if (!oItem.bRepeat) {
                 oItem.iTimeoutVal = 0;
@@ -3183,6 +3206,7 @@ public class pgLibConference {
     // Create Timer message handler.
     private boolean TimerInit() {
         try {
+            m_listTimerOut.clear();
             m_timerHandler = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
@@ -3198,6 +3222,7 @@ public class pgLibConference {
         }
         catch (Exception ex) {
             OutString("TimerInit: ex=" + ex.toString());
+            m_listTimerOut = null;
             m_timerHandler = null;
             m_timerTask = null;
             m_timer = null;
@@ -3211,6 +3236,7 @@ public class pgLibConference {
                 m_timer.cancel();
                 m_timer = null;
             }
+            m_listTimerOut.clear();
 
             m_timerTask = null;
             m_timerHandler = null;

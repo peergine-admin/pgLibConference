@@ -2,13 +2,13 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "25.0.1"
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 21
         versionCode 25
-        versionName "1.25.1.0"
+        versionName "1.25.2.0"
     }
 
     buildTypes {
@@ -20,5 +20,5 @@ android {
 }
 
 dependencies {
-    compile files('src/main/libs/pgnpp.jar')
+    compile files('libs/pgnpp.jar')
 }

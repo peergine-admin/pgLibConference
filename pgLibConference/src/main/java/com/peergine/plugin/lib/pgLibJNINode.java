@@ -4,7 +4,10 @@
   filename    : pgLibJNINode.java
   discription : 
   modify      : create, chenbichao, 2012/1/8
-
+              :
+              : modify, chenbichao, 2016/12/1
+              : Fix the return value BUG of PostMessage()
+              :
 *****************************************************************/
 
 package com.peergine.plugin.lib;
@@ -424,7 +427,7 @@ public class pgLibJNINode {
 	public boolean PostMessage(String sMsg) {
 		try {
 			int iRet = (Integer)methods[MethInd[27]].invoke(objNode, sMsg);
-			return (iRet != 0);
+			return (iRet == 0);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

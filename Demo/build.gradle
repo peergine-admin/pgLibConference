@@ -17,8 +17,8 @@ android {
         applicationId "com.peergine.conference.demo"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 10
-        versionName "1.25.1.10"
+        versionCode 13
+        versionName "1.25.2.13"
     }
 
     buildTypes {
@@ -42,4 +42,5 @@ dependencies {
     //noinspection GradleCompatible
     compile 'com.android.support:support-v4:20.0.0'
     compile project(':pgLibConference')
+    compile project(':pgPluginLib')
 }

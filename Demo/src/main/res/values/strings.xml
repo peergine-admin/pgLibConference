@@ -15,4 +15,5 @@
     <string name="id">会议和主席ID:</string>
     <string name="group">Group</string>
     <string name="btnchair">我是主席</string>
+    <string name="str_chairman">Chairman</string>
 </resources>
