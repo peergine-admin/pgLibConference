@@ -221,7 +221,9 @@ public class pgLibConference {
         //保证Video关闭前退出会议
         boolean bRequest =false;
         boolean bLarge = false;
-        int iActStamp=m_iActiveStamp;
+
+        int iActStamp=0;
+        Boolean bVideoLost=false;
 
         pgLibJNINode Node=null;
         SurfaceView View=null;
@@ -242,6 +244,7 @@ public class pgLibConference {
             bLarge = false;
             bOpened=false;
             iActStamp=m_iActiveStamp;
+            bVideoLost=false;
         }
     }
 
@@ -767,11 +770,11 @@ public class pgLibConference {
             }
 
             //先关闭视频
-            for (int i=0;i<m_listVideoPeer.size();i++)
-            {
-                PG_PEER oPeer = m_listVideoPeer.get(i);
-                VideoClose(oPeer);
-            }
+//            for (int i=0;i<m_listVideoPeer.size();i++)
+//            {
+//                PG_PEER oPeer = m_listVideoPeer.get(i);
+//                VideoClose(oPeer);
+//            }
 
 //            if(!m_IsJoin){
 //                return;
@@ -2288,9 +2291,9 @@ public class pgLibConference {
                 PG_PEER oPeer = listVideoPeer.get(i);
                 if((!oPeer.sPeer.equals(m_sObjSelf))&&(oPeer.Node!=null)) {
                     //检测心跳超时
-                    if ((m_iActiveStamp - oPeer.iActStamp) > 30&&oPeer.iActStamp>0) {
+                    if ((m_iActiveStamp - oPeer.iActStamp) > 30&&(!oPeer.bVideoLost)) {
                         EventProc("VideoLost","",oPeer.sPeer);
-
+                        oPeer.bVideoLost=true;
                     }
 
                     //视频打开发送心跳
@@ -2366,17 +2369,18 @@ public class pgLibConference {
 	            ArrayList<PG_SYNC> listSyncPeer = (ArrayList<PG_SYNC>) m_listSyncPeer.clone();
 
                 //如果是主席，主动给所有成员发心跳
-                for (int i = 0; i < listSyncPeer.size(); i++) {
-                    PG_SYNC oSync = listSyncPeer.get(i);
-                    m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "pgLibConference.MessageSend");
+                for (int i = 0; i < m_listSyncPeer.size(); i++) {
+                    PG_SYNC oSync = m_listSyncPeer.get(i);
+
                     if ((m_iKeepStamp - oSync.iKeepStamp) > m_iExpire*2) {
                         //超时
-                        // PeerDelete(oSync.sPeer);
+                        PeerDelete(oSync.sPeer);
                         EventProc("PeerOffline", "reason=1", oSync.sPeer);
-//                        PG_SYNC oSync1 = SyncPeerSearch(oSync.sPeer);
-//                        if(oSync1!=null) {
-//                            m_listSyncPeer.remove(oSync1);
-//                        }
+                        PG_SYNC oSync1 = SyncPeerSearch(oSync.sPeer);
+                        if(oSync1!=null) {
+                            m_listSyncPeer.remove(oSync1);
+                            continue;
+                        }
 //                        //查找Chairman
 //                        PG_PEER oCtrl = VideoPeerSearch(oSync.sPeer);
 //                        if (oCtrl !=null)
@@ -2386,6 +2390,8 @@ public class pgLibConference {
 //                            MemberDel(oCtrl.sPeer);
 //                        }
                     }
+
+                    m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "pgLibConference.MessageSend");
                 }
             }
             else {
@@ -2427,6 +2433,16 @@ public class pgLibConference {
             case pgVideoPutMode.Normal:
             default:
         }
+
+        //预览
+        this.m_Node.ObjectAdd("Prvw", "PG_CLASS_Video", "", 0x2);
+        String sWndRect = "(Code){0}(Mode){2}(Rate){40}(Wnd){}";
+        int iErr=this.m_Node.ObjectRequest("Prvw", 32, sWndRect, "pgLibConference.PrvwStart");
+        if (iErr > 0) {
+            OutString("pgLibConference.m_VideoInit: Open Prvw failed. iErr=" + iErr);
+            return false;
+        }
+
         if (!this.m_Node.ObjectAdd(this.m_sObjV, "PG_CLASS_Video", this.m_sObjG, uFlag)) {
             OutString("pgLibConference.m_VideoInit: Add 'Video' failed.");
             return false;
@@ -2434,7 +2450,7 @@ public class pgLibConference {
 
         String sData = "(Code){" + this.m_iVideoCode + "}(Mode){" + this.m_iVideoMode + "}(Rate){" + this.m_iVideoFrmRate + "}";
 
-        int iErr = this.m_Node.ObjectRequest(this.m_sObjV, 32, sData, "pgLibConference.VideoStart");
+        iErr = this.m_Node.ObjectRequest(this.m_sObjV, 32, sData, "pgLibConference.VideoStart");
         if (iErr > 0) {
             OutString("pgLibConference.m_VideoInit: Open live failed. iErr=" + iErr);
             return false;
@@ -2452,14 +2468,7 @@ public class pgLibConference {
             OutString("pgLibConference.m_VideoInit: Open live failed. iErr=" + iErr);
             return false;
         }
-        //预览
-        this.m_Node.ObjectAdd("Prvw", "PG_CLASS_Video", "", 0x2);
-        String sWndRect = "(Code){0}(Mode){2}(Rate){40}(Wnd){}";
-        iErr=this.m_Node.ObjectRequest("Prvw", 32, sWndRect, "pgLibConference.PrvwStart");
-        if (iErr > 0) {
-            OutString("pgLibConference.m_VideoInit: Open Prvw failed. iErr=" + iErr);
-            return false;
-        }
+
 
         return true;
     }
@@ -2504,14 +2513,16 @@ public class pgLibConference {
 //            }
 //            m_listVideoPeer.clear();
 
-            this.m_Node.ObjectRequest("Prvw", 33, "", "pgLibConference.PrvwClean");
-            this.m_Node.ObjectDelete("Prvw");
+
             //		}
+            this.m_Node.ObjectRequest(this.m_sObjLV, 33, "", "pgLibConference.VideoCleanL");
+            this.m_Node.ObjectDelete(this.m_sObjLV);
+
             this.m_Node.ObjectRequest(this.m_sObjV, 33, "", "pgLibConference.VideoClean");
             this.m_Node.ObjectDelete(this.m_sObjV);
 
-            this.m_Node.ObjectRequest(this.m_sObjLV, 33, "", "pgLibConference.VideoCleanL");
-            this.m_Node.ObjectDelete(this.m_sObjLV);
+            this.m_Node.ObjectRequest("Prvw", 33, "", "pgLibConference.PrvwClean");
+            this.m_Node.ObjectDelete("Prvw");
 
         }catch (Exception ex)
         {
@@ -2617,13 +2628,22 @@ public class pgLibConference {
                     PG_PEER oPeer = VideoPeerSearch(sPeer);
                     if (oPeer != null) {
                         oPeer.iActStamp = m_iActiveStamp;
+                        oPeer.bVideoLost=false;
                     }
                 }
                 return 0;
             }
+            else if(sCmd.equals("KeepStart"))
+            {
+                KeepAdd(sPeer);
+            }
             else if(sCmd.equals("Keep"))
             {
                 KeepRecv(sPeer);
+            }
+            else if(sCmd.equals("KeepEnd"))
+            {
+                KeepDel(sPeer);
             }
         }catch (Exception ex){
             OutString("SelfMessage"+ex.toString());
