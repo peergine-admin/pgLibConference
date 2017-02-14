@@ -42,5 +42,4 @@ dependencies {
     //noinspection GradleCompatible
     compile 'com.android.support:support-v4:20.0.0'
     compile project(':pgLibConference')
-    compile project(':pgPluginLib')
 }

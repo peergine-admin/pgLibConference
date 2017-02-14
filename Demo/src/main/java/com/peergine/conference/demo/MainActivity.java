@@ -46,7 +46,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	private static pgLibConference m_Conf = new pgLibConference();
 
-	private int RIDLaout[]={R.id.layoutVideoS0,R.id.layoutVideoS1,R.id.layoutVideoS2,R.id.layoutVideoS3};
+	private int RIDLaout[]={R.id.layoutVideoS1,R.id.layoutVideoS2,R.id.layoutVideoS3};
 	EditText m_editText_name=null;
 	CheckBox m_CheckBox=null;
 	EditText m_editText_User = null;
@@ -66,8 +66,10 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			"(Portrait){1}(Rotate){0}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
 			"(AudioSpeechDisable){0}";
 	private Button m_btntest=null;
-	private SurfaceView m_Preview=null;
 
+	LinearLayout PreviewLayout=null;
+	private SurfaceView m_Preview=null;
+	//R.id.layoutVideoS0,
 
 	class PG_MEMB{
 		String sPeer="";
@@ -117,7 +119,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 //		Camera camera=null;
 //		setCameraDisplayOrientation(this,Camera.CameraInfo.CAMERA_FACING_FRONT,camera);
-		for(int i=0;i<4;i++)
+		PreviewLayout = (LinearLayout) findViewById(R.id.layoutVideoS0);
+		for(int i=0;i<RIDLaout.length;i++)
 		{
 				PG_MEMB oMemb = new PG_MEMB();
 				oMemb.pLayout = (LinearLayout) findViewById(RIDLaout[i]);
@@ -557,10 +560,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	{
 		// TODO: 2016/11/7 sPeer请求加入会议  MemberAdd表示把他加入会议
 		Show( sPeer+"请求加入会议->同意");
-		PG_MEMB oMemb = MembSearch(sPeer);
-		if((oMemb!=null)&&!(oMemb.sPeer.equals(sPeer))) {
-			m_Conf.MemberAdd(sPeer);
-		}
+		m_Conf.MemberAdd(sPeer);
 	}
 	//sPeer的离线消息
 	private boolean m_bVideoStart =false;
@@ -568,14 +568,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	{
 		// TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
 		Show( sPeer+"加入会议");
-		if(sPeer.equals("_DEV_"+m_sUser)&&(!m_bVideoStart))
-		{
-			//加入的是自己   启动视音频  ：
-			m_Conf.VideoStart(pgVideoPutMode.Normal);
-			m_Conf.AudioStart();
-			m_bVideoStart=true;
-
-		}else {
+		if(!sPeer.equals("_DEV_"+m_sUser))
+		 {
 			PG_MEMB oMemb = MembSearch(sPeer);
 			oMemb.sPeer=sPeer;
 			oMemb.bJoin = true;
@@ -584,7 +578,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 				if(sObjSelf.compareTo(sPeer)>0)
 				{
 					Show( " 发起视频请求");
-					VideoOpen(sPeer);
+					pgVideoOpen(sPeer);
 				}
 			}
 		}
@@ -594,23 +588,23 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventLeave(String sAct,String sData,String sPeer)
 	{
 		Show( sPeer+"离开会议");
-		if(sPeer.equals("_DEV_"+m_sUser)&&m_bVideoStart)
-		{
-			//离开的是自己   关闭视音频
-			m_Conf.VideoStop();
-			m_Conf.AudioStop();
-			m_bVideoStart=false;
-			// 清理所有连接节点 数据
-//			int i=0;
-//			while (i<memberArray.size()){
-//				pgVideoClose(memberArray.get(i).sPeer);
-//				i++;
-//			}
-		}
-		else {
-			//清理这个节点播放视频相关的窗口 和绑定关系以及相关数据
-//			pgVideoClose(sPeer);
-		}
+//		if(sPeer.equals("_DEV_"+m_sUser)&&m_bVideoStart)
+//		{
+//			//离开的是自己   关闭视音频
+//			m_Conf.VideoStop();
+//			m_Conf.AudioStop();
+//			m_bVideoStart=false;
+//			// 清理所有连接节点 数据
+////			int i=0;
+////			while (i<memberArray.size()){
+////				pgVideoClose(memberArray.get(i).sPeer);
+////				i++;
+////			}
+//		}
+//		else {
+//			//清理这个节点播放视频相关的窗口 和绑定关系以及相关数据
+////			pgVideoClose(sPeer);
+//		}
 		Log.d( ""," 离开会议");
 	}
 //---------------------------------------------------------------------
@@ -628,7 +622,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			if(sObjSelf.compareTo(sPeer)>0)
 			{
 				Show( " 发起视频请求");
-				VideoOpen(sPeer);
+				pgVideoOpen(sPeer);
 			}
 		}
 	}
@@ -644,7 +638,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		Show( sPeer + " 请求视频连线->同意");
 		//// TODO: 2016/11/7 在这之后回复
 		//调用
-		VideoOpen(sPeer);
+		pgVideoOpen(sPeer);
 	}
 
 
@@ -659,7 +653,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		public void handleMessage(Message msg) {
 			if (msg.arg1 == 1) {
 				String sPeer = (String) msg.obj;
-				VideoOpen(sPeer);
+				pgVideoOpen(sPeer);
 			} else if (msg.arg1 == 2) {
 				CharSequence xh2_msg = (CharSequence) msg.obj;
 
@@ -678,7 +672,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //			if(sObjSelf.compareTo(sPeer)>0)
 //			{
 //				Show( " 发起视频请求");
-//				VideoOpen(sPeer);
+//				pgVideoOpen(sPeer);
 //			}
 //		}
 //
@@ -836,12 +830,10 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			return;
 		}
 		m_Preview= m_Conf.PreviewCreate(160, 120);
-
-		PG_MEMB oMemb=memberArray.get(0);
-		oMemb.sPeer=m_sUser;
-		oMemb.pView = m_Preview;
-		oMemb.pLayout.addView(oMemb.pView);
-
+		PreviewLayout.removeAllViews();
+		PreviewLayout.addView(m_Preview);
+		m_Conf.VideoStart(pgVideoPutMode.Normal);
+		m_Conf.AudioStart();
 	}
 
 
@@ -879,27 +871,26 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			return;
 		}
 		m_Preview= m_Conf.PreviewCreate(160, 120);
-		PG_MEMB oMemb=memberArray.get(0);
-		oMemb.sPeer=m_sUser;
-		oMemb.pView =m_Preview;
-
-		oMemb.pLayout.addView(oMemb.pView);
+		PreviewLayout.removeAllViews();
+		PreviewLayout.addView(m_Preview);
+		m_Conf.VideoStart(pgVideoPutMode.Normal);
+		m_Conf.AudioStart();
 	}
 	//结束会议模块
 	private void pgClean()
 	{
-		for(int i=1;i<memberArray.size();i++)
+		for(int i=0;i<memberArray.size();i++)
 		{
 			PG_MEMB oMemb=memberArray.get(i);
 			if(!oMemb.sPeer.equals("")) {
 				pgVideoClose(oMemb.sPeer);
 			}
 		}
+		m_Conf.VideoStop();
+		m_Conf.AudioStop();
+
 		//m_Conf.PreviewDestroy();
 		m_Conf.Clean();
-		pgVideoClose(memberArray.get(0).sPeer);
-		m_Preview=null;
-
 	}
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -924,10 +915,9 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 				Log.d("","Search can't Search Start");
 				return null;
 			}
+			for (int i = 0; i < memberArray.size(); i++) {
 
-			for (int i = 1; i < memberArray.size(); i++) {
-
-				if (memberArray.get(i).sPeer .equals(sPeer)||memberArray.get(i).sPeer.equals("")||memberArray.get(i).sPeer==null) {
+				if (memberArray.get(i).sPeer .equals(sPeer)||memberArray.get(i).sPeer .equals("")) {
 					return memberArray.get(i);
 				}
 			}
@@ -940,9 +930,10 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	}
 
 	//打开视频时完成窗口和相关数据的改变
-	private boolean VideoOpen(String sPeer) {
+	private boolean pgVideoOpen(String sPeer) {
 
 		PG_MEMB MembTmp = MembSearch(sPeer);
+		//没有窗口了
 		if(MembTmp==null)
 		{
 			m_Conf.VideoReject(sPeer);
@@ -1003,14 +994,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	//清理窗口数据和关闭视频
 	private void pgVideoClose(String sPeer)
 	{
+		m_Conf.VideoClose(sPeer);
 		pgVideoRestore(sPeer);
-		if(sPeer.equals(m_sUser)){
-//			m_Conf.PreviewDestroy();
-		}else{
-			m_Conf.VideoClose(sPeer);
-		}
-
-
 	}
 	//给所有加入会议的成员发送消息
 	private boolean pgNotifySend()

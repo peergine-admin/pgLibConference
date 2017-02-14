@@ -47,6 +47,15 @@ import java.util.TimerTask;
 * */
 
 /*
+* Updata 2017/02/014 v13
+* 继续优化心跳包。
+* 删除会议模块在离线事件和离开会议后的主动清理视频的代码。
+* 修复上报离线事件后再次连接上报同步消息。
+* 修复主席端对同一节点反复上报离线消息。
+* 修复反复上报VideoLost消息。
+*
+* */
+/*
 * TODO ，优化心跳包发送顺序。
 *
 *
@@ -115,7 +124,7 @@ public class pgLibConference {
     private boolean m_bApiAudioStart=false;
 
     ///------------------------------------------------------------------------
-    private int m_iExpire = 10;
+    private int m_iExpire = 5;
     //打开视频
     private int m_iActiveStamp=0;
 
@@ -422,8 +431,6 @@ public class pgLibConference {
                 return false;
             }
             TimeOutAdd(timerOut);
-
-            m_IsChairmanAdd=false;
             //m_IsJoin = false;
             m_Random = new java.util.Random();
             // Create Node objects.
@@ -1972,8 +1979,11 @@ public class pgLibConference {
         }
 
         //意外重新上线
-        if (m_bServiceStart) {
-            ServiceStart();
+        if (!ServiceStart()) {
+            OutString("ServiceStart: login failed.");
+            ServiceStop();
+            NodeStop();
+            return false;
         }
 
         if (m_bApiVideoStart) {
@@ -2126,10 +2136,9 @@ public class pgLibConference {
                 NodeRedirect(sRedirect);
                 return 1;
             }
-            if (ServiceStart()) {
-                m_bLogined = true;
-                EventProc("Login", "0", m_sObjSvr);
-            }
+
+            m_bLogined = true;
+            EventProc("Login", "0", m_sObjSvr);
 
         }catch (Exception ex){
             OutString("->NodeLoginReply ex = "+ex.toString());
@@ -2148,32 +2157,44 @@ public class pgLibConference {
     }
     */
 
-    private boolean m_IsChairmanAdd = false;
     //添加主席节点  使之能在加入会议前与主席通信，发送Join信号
     private void ChairmanAdd()
     {
         OutString(" ->ChairmanAdd ");
         try {
-            if (m_IsChairmanAdd) {
-                ChairmanDel();
+            if(m_Node.ObjectGetClass(m_sObjChair).equals("PG_CLASS_Peer")) {
+                PeerSync(m_sObjChair,"",1);
             }
-            if (!this.m_Node.ObjectAdd(this.m_sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
-                OutString("ChairmanAdd:  failed.");
-                return;
+            else {
+                if (!this.m_Node.ObjectAdd(this.m_sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
+                    OutString("ChairmanAdd:  failed.");
+                    return;
+                }
             }
-            m_IsChairmanAdd = true;
         }catch (Exception ex){
             OutString("->ChairmanAdd ex = "+ex.toString());
         }
     }
 
+    private void PeerSync(String sObject,String sPeer,int uAction)
+    {
+        OutString(" ->PeerSync Act="+uAction);
+        if(m_Node==null){
+            return;
+        }
+        uAction=(uAction<=0)?0:1;
+        try {
+            m_Node.ObjectSync(sObject, sPeer, uAction);
+        }catch (Exception ex){
+            OutString("->PeerSync ex = "+ex.toString());
+        }
+    }
     //删除主席节点  使能在添加主席节点失败后能重新添加
     private void ChairmanDel()
     {
         OutString(" ->ChairmanDel ");
         try {
             this.m_Node.ObjectDelete(this.m_sObjChair);
-            m_IsChairmanAdd = false;
         }catch (Exception ex){
             OutString("->ChairmanDel ex = "+ex.toString());
         }
@@ -2336,6 +2357,7 @@ public class pgLibConference {
                     oSync.iKeepStamp = m_iKeepStamp;
                 }else {
                     KeepAdd(sPeer);
+                    EventProc("PeerSync", "reason=1", sPeer);
                 }
             }
             else {
@@ -2374,7 +2396,7 @@ public class pgLibConference {
 
                     if ((m_iKeepStamp - oSync.iKeepStamp) > m_iExpire*2) {
                         //超时
-                        PeerDelete(oSync.sPeer);
+//                        PeerSync(oSync.sPeer,"",0);
                         EventProc("PeerOffline", "reason=1", oSync.sPeer);
                         PG_SYNC oSync1 = SyncPeerSearch(oSync.sPeer);
                         if(oSync1!=null) {
@@ -3224,7 +3246,7 @@ public class pgLibConference {
 
         for (int i = 0; i < m_listVideoPeer.size(); i++) {
             PG_PEER oCtrl = m_listVideoPeer.get(i);
-            if (oCtrl.bRequest && (m_iCurStamp - oCtrl.iStamp) > 6) {
+            if (oCtrl.bRequest && (m_iCurStamp - oCtrl.iStamp) > 20) {
                 DropPeerHelper(oCtrl.sPeer);
             }
         }
