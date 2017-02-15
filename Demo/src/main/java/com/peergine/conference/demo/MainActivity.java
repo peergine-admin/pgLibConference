@@ -44,7 +44,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private String sSvr ="connect.peergine.com:7781";
 	private String m_sMemb = "";
 
-	private static pgLibConference m_Conf = new pgLibConference();
+	private pgLibConference m_Conf = new pgLibConference();
+	private pgLibJNINode m_Node = null;
 
 	private int RIDLaout[]={R.id.layoutVideoS1,R.id.layoutVideoS2,R.id.layoutVideoS3};
 	EditText m_editText_name=null;
@@ -61,7 +62,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	private boolean bChair = false;
 	private String m_sVideoParam=
-			"(Code){3}(Mode){2}(FrmRate){40}" +
+			"(Code){1}(Mode){2}(FrmRate){40}" +
 			"(LCode){3}(LMode){3}(LFrmRate){30}" +
 			"(Portrait){1}(Rotate){0}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
 			"(AudioSpeechDisable){0}";
@@ -109,6 +110,36 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //		}
 //		camera.setDisplayOrientation (result);
 //	}
+
+
+	//定时器
+	pgLibConference.TimerOut timerOut =new pgLibConference.TimerOut() {
+		@Override
+		public void TimerProc(String sParam) {
+			if(m_Node==null) {
+				return;
+			}
+			String sAct = m_Node.omlGetContent(sParam,"Act");
+			if(sAct.equals("DoVideoOpen")){
+				String sPeer = m_Node.omlGetContent(sParam,"Peer");
+				if(!sPeer.equals("_DEV_"+m_sUser))
+				{
+//			PG_MEMB oMemb = MembSearch(sPeer);
+//			oMemb.sPeer=sPeer;
+//			oMemb.bJoin = true;
+//			if(oMemb.bVideoSync&&oMemb.pView==null){
+					String sObjSelf="_DEV_"+m_sUser;
+					if(sObjSelf.compareTo(sPeer)>0)
+					{
+						Show( " 发起视频请求");
+						pgVideoOpen(sPeer);
+					}
+//			}
+				}
+			}
+		}
+	};
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -356,6 +387,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 					else {
 						pgMembInit();
 					}
+					m_Node= m_Conf.GetNode();
+					m_Conf.TimeOutAdd(timerOut);
 					m_btnStart.setEnabled(false);
 					Log.d("OnClink", "init button");
 					break;
@@ -506,17 +539,36 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	{
 		Show( "已经注销"+sData);
 	}
+
+	//保存初次连接 ,如果程序崩溃，
+	ArrayList<String> m_PeerLink = new ArrayList<>();
+	boolean PeerLinkSearch(String sPeer){
+		for(int i=0;i<m_PeerLink.size();i++){
+			if(m_PeerLink.get(i).equals(sPeer)){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	//sPeer的离线消息
 	private void EventPeerSync(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序可以和此节点相互发送消息了
 		Show(sPeer+"节点建立连接");
+		if(!PeerLinkSearch(sPeer)){
+			//第一次建立连接，防止己方程序崩溃
+			m_PeerLink.add(sPeer);
+			m_Conf.MessageSend("SyncFrist:",sPeer);
+		}
+
+
 	}
 	//sPeer的离线消息
 	private void EventPeerOffline(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序此节点离线了
-		Show( sPeer+"节点离线");
+		Show( sPeer+"节点离线 sData = "+sData);
 //		if(!sPeer.equals("_DEV_"+m_sUser))
 //		{
 //			pgVideoClose(sPeer);
@@ -533,8 +585,13 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventChairmanSync(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序可以和主席发送消息了
-		Show( "主席节点建立连接");
+		Show( "主席节点建立连接 Act = "+sAct+" : "+sData + " : "+sPeer);
 		m_Conf.Join();
+		if(!PeerLinkSearch(sPeer)){
+			//第一次建立连接，防止己方程序崩溃
+			m_PeerLink.add(sPeer);
+			m_Conf.MessageSend("SyncFrist:",sPeer);
+		}
 	}
 	//sPeer的离线消息
 	private void EventChairmanOffline(String sAct,String sData,String sPeer)
@@ -568,20 +625,9 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	{
 		// TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
 		Show( sPeer+"加入会议");
-		if(!sPeer.equals("_DEV_"+m_sUser))
-		 {
-			PG_MEMB oMemb = MembSearch(sPeer);
-			oMemb.sPeer=sPeer;
-			oMemb.bJoin = true;
-			if(oMemb.bVideoSync&&oMemb.pView==null){
-				String sObjSelf="_DEV_"+m_sUser;
-				if(sObjSelf.compareTo(sPeer)>0)
-				{
-					Show( " 发起视频请求");
-					pgVideoOpen(sPeer);
-				}
-			}
-		}
+		String sParam  = "(Act){DoVideoOpen}(Peer){"+sPeer+"}";
+		m_Conf.TimerStart(sParam,1,false);
+
 		Log.d( "", sPeer+" 加入会议");
 	}
 	//sPeer的离线消息
@@ -613,18 +659,18 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventVideoSync(String sAct,String sData,String sPeer)
 	{
         // TODO: 2016/11/7 提醒应用程序可以打开这个sPeer的视频了
-		Show( sPeer+"的视频数据同步完成");
-		PG_MEMB oMemb = MembSearch(sPeer);
-		oMemb.sPeer=sPeer;
-		oMemb.bVideoSync = true;
-		if(oMemb.bJoin&&oMemb.pView==null){
-			String sObjSelf="_DEV_"+m_sUser;
-			if(sObjSelf.compareTo(sPeer)>0)
-			{
-				Show( " 发起视频请求");
-				pgVideoOpen(sPeer);
-			}
-		}
+//		Show( sPeer+"的视频数据同步完成");
+////		PG_MEMB oMemb = MembSearch(sPeer);
+////		oMemb.sPeer=sPeer;
+////		oMemb.bVideoSync = true;
+////		if(oMemb.bJoin&&oMemb.pView==null){
+//			String sObjSelf="_DEV_"+m_sUser;
+//			if(sObjSelf.compareTo(sPeer)>0)
+//			{
+//				Show( " 发起视频请求");
+//				pgVideoOpen(sPeer);
+//			}
+////		}
 	}
 	//sPeer的离线消息
 	private void EventVideoSyncL(String sAct,String sData,String sPeer)
@@ -730,8 +776,16 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventMessage(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 处理sPeer发送过来的消息
-		Show(sPeer+":"+ sData);
-		Log.d("",sPeer+":"+ sData);
+//		Show(sPeer+":"+ sData);
+//		Log.d("",sPeer+":"+ sData);
+//		if(sData.equals("SyncFirst:")){
+//			PG_MEMB oMemb = MembSearch(sPeer);
+//			if(oMemb!=null&&oMemb.sPeer.equals(sPeer)){
+//				//对方检测到是第一次连接本端，证明对端关于视频的数据已经置空，于是本端如果有对端的视频数据也置空
+//				pgVideoClose(sPeer);
+//			}
+//		}
+
 	}
 
 
@@ -879,6 +933,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	//结束会议模块
 	private void pgClean()
 	{
+		m_Conf.TimeOutDel(timerOut);
+		m_Node=null;
 		for(int i=0;i<memberArray.size();i++)
 		{
 			PG_MEMB oMemb=memberArray.get(i);
@@ -891,6 +947,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 		//m_Conf.PreviewDestroy();
 		m_Conf.Clean();
+		m_PeerLink.clear();
 	}
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
