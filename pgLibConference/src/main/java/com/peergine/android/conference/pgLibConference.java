@@ -2121,6 +2121,8 @@ public class pgLibConference {
                 NodeRelogin(iDelay);
             }
         }
+
+
     }
 
     //登录回复信息
@@ -2159,17 +2161,6 @@ public class pgLibConference {
         return 1;
     }
 
-    /*
-    private void QueryOnlineList() {
-        String sDataIn = "22:";
-        int iErr = m_Node.ObjectRequest(m_sObjSvr, 35, sDataIn, "QueryOnlineList");
-        if (iErr > 0) {
-            OutString("QueryOnlineList: iErr=" + iErr);
-            TimerStart("(Act){QueryOnlineList}", 5, false);
-        }
-    }
-    */
-
     //添加主席节点  使之能在加入会议前与主席通信，发送Join信号
     private void ChairmanAdd()
     {
@@ -2177,6 +2168,7 @@ public class pgLibConference {
         try {
             if(m_Node.ObjectGetClass(m_sObjChair).equals("PG_CLASS_Peer")) {
                 PeerSync(m_sObjChair,"",1);
+//                ChairmanDel();
             }
             else {
                 if (!this.m_Node.ObjectAdd(this.m_sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
@@ -2219,7 +2211,7 @@ public class pgLibConference {
         try {
             do {
                 if(m_sObjChair.equals(m_sObjSelf)) {
-                    if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", "", (0x10000 | 0x10 | 0x4 | 0x1 | 0x40))) {
+                    if (!m_Node.ObjectAdd(m_sObjG, "PG_CLASS_Group", "", (0x10000 | 0x10 | 0x4 | 0x1 ))) {
                         OutString("ServiceStart: Add group object failed");
                         break;
                     }
@@ -2401,7 +2393,7 @@ public class pgLibConference {
 
          	if(m_bChairman) {
 
-	            ArrayList<PG_SYNC> listSyncPeer = (ArrayList<PG_SYNC>) m_listSyncPeer.clone();
+	            //ArrayList<PG_SYNC> listSyncPeer = (ArrayList<PG_SYNC>) m_listSyncPeer.clone();
 
                 //如果是主席，主动给所有成员发心跳
                  int i = 0;
@@ -2410,21 +2402,11 @@ public class pgLibConference {
 
                     if ((m_iKeepStamp - oSync.iKeepStamp) > m_iExpire*2) {
                         //超时
-                        PeerSync(oSync.sPeer,"",0);
+//                        PeerSync(oSync.sPeer,"",0);
                         EventProc("PeerOffline", "reason=1", oSync.sPeer);
-//                        PG_SYNC oSync1 = SyncPeerSearch(oSync.sPeer);
-//                        if(oSync1!=null) {
-                            m_listSyncPeer.remove(i);
-                            continue;
-//                        }
-//                        //查找Chairman
-//                        PG_PEER oCtrl = VideoPeerSearch(oSync.sPeer);
-//                        if (oCtrl !=null)
-//                        {
-//                            //删除窗口 从表中删除
-//                            VideoClose(oCtrl);
-//                            MemberDel(oCtrl.sPeer);
-//                        }
+                        PeerDelete(oSync.sPeer);
+                        m_listSyncPeer.remove(i);
+                        continue;
                     }
 
                     m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "pgLibConference.MessageSend");
@@ -2433,13 +2415,8 @@ public class pgLibConference {
             }
             else {
                 if ((m_iKeepStamp - m_iKeepChainmanStamp) > m_iExpire*2) {
-//                    PG_PEER oPeer = VideoPeerSearch(m_sObjChair);
-//                    if(oPeer!=null){
-//                        VideoClose(oPeer);
-//                        Leave();
-//                    }
+
                     ChairmanAdd();
-                   //TimerStart("(Act){ChairmanAdd}",1,false);
                 }
             }
         }catch (Exception ex) {
@@ -2542,17 +2519,6 @@ public class pgLibConference {
         OutString("->VideoClean");
         try {
 
-//            for (int i=0;i<m_listVideoPeer.size();i++)
-//            {
-//                PG_PEER oPeer = m_listVideoPeer.get(i);
-//                if((!oPeer.sPeer.equals(""))&&(!oPeer.sPeer.equals(m_sObjSelf))) {
-//                    VideoClose(oPeer);
-//                }
-//            }
-//            m_listVideoPeer.clear();
-
-
-            //		}
             this.m_Node.ObjectRequest(this.m_sObjLV, 33, "", "pgLibConference.VideoCleanL");
             this.m_Node.ObjectDelete(this.m_sObjLV);
 
@@ -2730,6 +2696,31 @@ public class pgLibConference {
             {
                 NodeRedirectReset(0);
             }
+//            else if (sError.equals("0")) {
+//                String sParam = m_Node.omlGetContent(sData, "Param");
+//                String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
+//                if (!sRedirect.equals("")) {
+//                    NodeRedirect(sRedirect);
+//                    return ;
+//                }
+//
+//                m_bLogined = true;
+//                EventProc("Login", "0", m_sObjSvr);
+//            }
+        }
+    }
+    private void ServerRelogin(String sData) {
+        String sError = m_Node.omlGetContent(sData, "ErrCode");
+        if (sError.equals("0")) {
+            String sParam = m_Node.omlGetContent(sData, "Param");
+            String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
+            if (!sRedirect.equals("")) {
+                NodeRedirect(sRedirect);
+                return;
+            }
+
+            m_bLogined = true;
+            EventProc("Login", "0", m_sObjSvr);
         }
     }
 
@@ -3006,6 +2997,8 @@ public class pgLibConference {
                     }
                 } else if (uMeth == 1) {
                     ServerError(sData);
+                } else if (uMeth == 46) {
+                    ServerRelogin(sData);
                 }
                 return 0;
             } else if (sObj.equals(m_sObjSelf)) {
