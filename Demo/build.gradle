@@ -5,7 +5,7 @@ def releaseTime() {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "25.0.1"
+    buildToolsVersion "25.0.2"
     //deleteDemoAppDir()
     android.applicationVariants.all { variant ->
         variant.outputs.each { output ->
@@ -19,6 +19,7 @@ android {
         targetSdkVersion 23
         versionCode 13
         versionName "1.25.2.13"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -40,6 +41,11 @@ android {
 
 dependencies {
     //noinspection GradleCompatible
-    compile 'com.android.support:support-v4:20.0.0'
+    compile 'com.android.support:support-v4:25.1.1'
     compile project(':pgLibConference')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    testCompile 'junit:junit:4.12'
 }

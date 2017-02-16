@@ -33,9 +33,36 @@ import com.peergine.plugin.lib.pgLibJNINode;
 import java.io.File;
 import java.util.ArrayList;
 
+/*
+*
+* TODO: + 说明：
+如果代码中有该标识，说明在标识处有功能代码待编写，待实现的功能在说明中会简略说明。
+
+FIXME: + 说明：
+如果代码中有该标识，说明标识处代码需要修正，甚至代码是错误的，不能工作，需要修复，如何修正会在说明中简略说明。
+
+ XXX : + 说明：
+如果代码中有该标识，说明标识处代码虽然实现了功能，但是实现的方法有待商榷，希望将来能改进，要改进的地方会在说明中简略说明。
+
+*
+*
+*
+* */
+
+
+
+/*
+ * Updata 2017 02 15 V13
+ * 添加定时器的使用示范
+ * 修改VideoStart  AudioStart  VideoOpen 的使用时机示范。
+ *
+ *
+ */
+
+
+
 public class MainActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
 
-	private int m_iMode = 0;
 	private String m_sGroup = "";
 	private String m_sChair = "";
 	private String m_sUser = "";
@@ -81,6 +108,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	}
 
 	private static ArrayList<PG_MEMB> memberArray = new ArrayList<>();
+
+
 //	public static void setCameraDisplayOrientation (Activity activity, int cameraId, android.hardware.Camera camera) {
 //		android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
 //		android.hardware.Camera.getCameraInfo (cameraId , info);
@@ -112,26 +141,32 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //	}
 
 
-	//定时器
+	//定时器例子 超时处理实现
 	pgLibConference.TimerOut timerOut =new pgLibConference.TimerOut() {
 		@Override
 		public void TimerProc(String sParam) {
 			if(m_Node==null) {
 				return;
 			}
+
+			//中间件oml 格式数据解析示例
 			String sAct = m_Node.omlGetContent(sParam,"Act");
 			if(sAct.equals("DoVideoOpen")){
+				//
 				String sPeer = m_Node.omlGetContent(sParam,"Peer");
 				if(!sPeer.equals("_DEV_"+m_sUser))
 				{
-//			PG_MEMB oMemb = MembSearch(sPeer);
-//			oMemb.sPeer=sPeer;
-//			oMemb.bJoin = true;
-//			if(oMemb.bVideoSync&&oMemb.pView==null){
 					String sObjSelf="_DEV_"+m_sUser;
+					/*
+					// Demo 是为了演示方便 在这里实现自动打开视频的功能
+					// 所以才做了这个ID大的主动打开视频
+					// 实际情况中建议从Join出得到设备列表，或者本地保存列表，用ListView显示，点击某个ID然后开始打开视频
+					*/
 					if(sObjSelf.compareTo(sPeer)>0)
 					{
 						Show( " 发起视频请求");
+
+						//todo 客户使用按钮请求视频更好。
 						pgVideoOpen(sPeer);
 					}
 //			}
@@ -150,6 +185,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 //		Camera camera=null;
 //		setCameraDisplayOrientation(this,Camera.CameraInfo.CAMERA_FACING_FRONT,camera);
+
+		//todo 4个窗口初始化
 		PreviewLayout = (LinearLayout) findViewById(R.id.layoutVideoS0);
 		for(int i=0;i<RIDLaout.length;i++)
 		{
@@ -160,6 +197,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //		TextView textView = (TextView)findViewById(R.id.text_notuse);
 //		textView.requestFocus();
 
+		//初始化控件
 		m_editText_name=(EditText)findViewById(R.id.editText_name);
 		m_editText_User = (EditText) findViewById(R.id.editText_user);
 		m_CheckBox = (CheckBox)findViewById(R.id.checkBox);
@@ -181,7 +219,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		m_btntest.setOnClickListener(m_OnClink);
 		m_Conf.SetEventListener(m_OnEvent);
 
-
+		//显示一些信息
 		text_info= (TextView) findViewById(R.id.text_info);
 
 		//m_listMember.setAdapter(new ArrayAdapter<String>(this, R.id.linearLayoutMain, data));
@@ -279,41 +317,10 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		m_Conf.Clean();
 	}
 
-	/// Sdk扩展运用之添加通信节点，  使用之后会产生PeerSync事件
-	// 添加节点连接
-	// sPeer: 对端的节点名（用户名）
-	public boolean PeerAdd(String sPeer) {
-		if (sPeer.equals("")) {
-			return false;
-		}
-
-		String sPeerTemp = sPeer;
-		if (sPeerTemp.indexOf("_DEV_") != 0) {
-			sPeerTemp = ("_DEV_" + sPeer);
-		}
-
-		pgLibJNINode Node = m_Conf.GetNode();
-		if (Node == null) {
-			return false;
-		}
-
-		String sClass = Node.ObjectGetClass(sPeerTemp);
-		if (sClass.equals("PG_CLASS_Peer")) {
-			return true;
-		}
-
-		if (!sClass.equals("")) {
-			Node.ObjectDelete(sPeerTemp);
-		}
-
-		return Node.ObjectAdd(sPeerTemp, "PG_CLASS_Peer", "", 0x10000);
-	}
-
-
 	// 设置设备的麦克风的采样率。
 	// 在初始化成功之后，打开音频通话之前调用。
 	// iRate: 采样率，单位HZ/秒。有效值：8000, 1600, 32000
-	//
+	// 示范利用中间件编写扩展
 	public void SetAudioSampleRate(int iRate) {
 		pgLibJNINode Node = m_Conf.GetNode();
 		if (Node != null) {
@@ -324,28 +331,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			}
 		}
 	}
-
-	///// Sdk扩展运用之添加通信节点，  使用之后会产生PeerSync事件
-	// 删除节点连接。（一般不用主动删除节点，因为如果没有通信，节点连接会自动老化。）
-	// sPeer: 对端的节点名（用户名）
-	public void PeerDelete(String sPeer) {
-		if (sPeer.equals("")) {
-			return;
-		}
-
-		String sPeerTemp = sPeer;
-		if (sPeerTemp.indexOf("_DEV_") != 0) {
-			sPeerTemp = ("_DEV_" + sPeer);
-		}
-
-		pgLibJNINode Node = m_Conf.GetNode();
-		if (Node == null) {
-			return;
-		}
-
-		Node.ObjectDelete(sPeerTemp);
-	}
-
 
 	public void Alert(String sTitle, String sMsg) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -387,8 +372,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 					else {
 						pgMembInit();
 					}
+
+					//初始化定时器
 					m_Node= m_Conf.GetNode();
-					m_Conf.TimeOutAdd(timerOut);
+					m_Conf.TimerOutAdd(timerOut);
+
 					m_btnStart.setEnabled(false);
 					Log.d("OnClink", "init button");
 					break;
@@ -425,16 +413,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 							m_Conf.AudioSpeech(memberArray.get(i).sPeer, true,false);
 						}
 						break;
-//						if(iflag==0)
-//						{
-//							iflag++;
-//							PeerAdd("123");
-//						}
-//						else
-//						{
-//							PeerDelete("123");
-//							iflag=0;
-//						}
 
 
 //						if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
@@ -476,34 +454,16 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 
 
-//	public void CloseCap()
-//	{
-//		pgLibJNINode Node = m_Conf.GetNode();
-//		if (Node != null) {
-//			if (Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
-//				int iErr=Node.ObjectRequest("_vTemp", 2, "(Item){9}(Value){" + 0+ "}", "");
-//				Node.ObjectDelete("_vTemp");
-//			}
-//		}
-//	}
-//	public void OpenCap(){
-//		pgLibJNINode Node = m_Conf.GetNode();
-//		if (Node != null) {
-//			if (Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
-//				int iErr=Node.ObjectRequest("_vTemp", 2, "(Item){9}(Value){" + 1+ "}", "");
-//				Node.ObjectDelete("_vTemp");
-//			}
-//		}
-//	}
 	//视频传输的状态
-	private void EventVideoStatus(String sAct,String sData,String sPeer)
+	private void EventVideoFrameStat(String sAct,String sData,String sPeer)
 	{
+		//Show()
 
 	}
 	//服务端下发的通知
 	private void EventSvrNotify(String sAct,String sData,String sPeer)
 	{
-
+		Show("SvrNotify :"+sData+" : "+sPeer);
 	}
 	//发给服务端的消息的回执
 	private void EventSvrReply(String sAct,String sData,String sPeer)
@@ -569,16 +529,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	{
 		// TODO: 2016/11/7 提醒应用程序此节点离线了
 		Show( sPeer+"节点离线 sData = "+sData);
-//		if(!sPeer.equals("_DEV_"+m_sUser))
-//		{
-//			pgVideoClose(sPeer);
-//		}else{
-//			int i=1;
-//			while (i<memberArray.size()){
-//				pgVideoClose(memberArray.get(i).sPeer);
-//				i++;
-//			}
-//		}
 	}
 
 	//sPeer的离线消息
@@ -596,19 +546,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	//sPeer的离线消息
 	private void EventChairmanOffline(String sAct,String sData,String sPeer)
 	{
-		Show( "主席节点离线");
-		//m_Conf.Leave();
-//		if(!sPeer.equals("_DEV_"+m_sUser))
-//		{
-//			pgVideoClose(sPeer);
-//		}
-//		else {
-//			int i=1;
-//			while (i<memberArray.size()){
-//				pgVideoClose(memberArray.get(i).sPeer);
-//				i++;
-//			}
-//		}
+		Show( "主席节点离线 sData = "+sPeer);
 	}
 //-------------------------------------------------------------------------
 	//sPeer的离线消息
@@ -634,23 +572,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventLeave(String sAct,String sData,String sPeer)
 	{
 		Show( sPeer+"离开会议");
-//		if(sPeer.equals("_DEV_"+m_sUser)&&m_bVideoStart)
-//		{
-//			//离开的是自己   关闭视音频
-//			m_Conf.VideoStop();
-//			m_Conf.AudioStop();
-//			m_bVideoStart=false;
-//			// 清理所有连接节点 数据
-////			int i=0;
-////			while (i<memberArray.size()){
-////				pgVideoClose(memberArray.get(i).sPeer);
-////				i++;
-////			}
-//		}
-//		else {
-//			//清理这个节点播放视频相关的窗口 和绑定关系以及相关数据
-////			pgVideoClose(sPeer);
-//		}
+
 		Log.d( ""," 离开会议");
 	}
 //---------------------------------------------------------------------
@@ -659,24 +581,14 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventVideoSync(String sAct,String sData,String sPeer)
 	{
         // TODO: 2016/11/7 提醒应用程序可以打开这个sPeer的视频了
-//		Show( sPeer+"的视频数据同步完成");
-////		PG_MEMB oMemb = MembSearch(sPeer);
-////		oMemb.sPeer=sPeer;
-////		oMemb.bVideoSync = true;
-////		if(oMemb.bJoin&&oMemb.pView==null){
-//			String sObjSelf="_DEV_"+m_sUser;
-//			if(sObjSelf.compareTo(sPeer)>0)
-//			{
-//				Show( " 发起视频请求");
-//				pgVideoOpen(sPeer);
-//			}
-////		}
+		Show("视频同步");
 	}
 	//sPeer的离线消息
 	private void EventVideoSyncL(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用可以打开这个sPeer的第二种流
 		Log.d( ""," 第二种视频同步");
+		Show("第二种视频同步");
 	}
 	private void EventVideoOpen(String sAct,String sData,String sPeer)
 	{
@@ -776,8 +688,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventMessage(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 处理sPeer发送过来的消息
-//		Show(sPeer+":"+ sData);
-//		Log.d("",sPeer+":"+ sData);
+		Show(sPeer+":"+ sData);
+		Log.d("",sPeer+":"+ sData);
 //		if(sData.equals("SyncFirst:")){
 //			PG_MEMB oMemb = MembSearch(sPeer);
 //			if(oMemb!=null&&oMemb.sPeer.equals(sPeer)){
@@ -796,8 +708,10 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			// TODO Auto-generated method stub
 
 			Log.d("pgLibConference", "OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sPeer);
-
-			if (sAct.equals("Login")) {
+			if (sAct.equals("VideoFrameStat")) {
+				EventVideoFrameStat(sAct,sData,sPeer);
+			}
+			else if (sAct.equals("Login")) {
 				EventLogin(sAct,sData,sPeer);
 			}
 			else if (sAct.equals("Logout")) {
@@ -933,7 +847,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	//结束会议模块
 	private void pgClean()
 	{
-		m_Conf.TimeOutDel(timerOut);
+		m_Conf.TimerOutDel(timerOut);
 		m_Node=null;
 		for(int i=0;i<memberArray.size();i++)
 		{

@@ -20,5 +20,5 @@ android {
 }
 
 dependencies {
-    compile files('libs/pgnpp.jar')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }

@@ -53,6 +53,19 @@ import java.util.TimerTask;
 * 修复上报离线事件后再次连接上报同步消息。
 * 修复主席端对同一节点反复上报离线消息。
 * 修复反复上报VideoLost消息。
+* 修改PG_PEER 的列表添加位置，由加入会议添加，离开会议删除，改为视频打开或收到请求添加，视频关闭删除
+* 修改函数VideoOpen中对同一节点的Node和View，由新建改为继承。
+* 修改Keep函数中的列表的遍历方式。
+* 修改ServiceStart的执行位置，使得可以在SDK Initialze 后可以在之后任意位置VideoStart 和AudioStart
+* 函数执行打印信息
+*
+* 开放定时器
+*    相关接口TimerOut
+*  相关函数：
+*    TimerOutAdd  把接口TimerOut的实现加入定时器处理
+*    TimerOutDel  把接口TimerOut的实现从定时器处理中删除
+*    TimerStart  开始一个定时器处理
+*    TimerStop  对定时时间长或者循环定时进行停止操作
 *
 * */
 /*
@@ -421,7 +434,7 @@ public class pgLibConference {
                 Clean();
                 return false;
             }
-            TimeOutAdd(timerOut);
+            TimerOutAdd(timerOut);
             //m_IsJoin = false;
             m_Random = new java.util.Random();
             // Create Node objects.
@@ -514,7 +527,7 @@ public class pgLibConference {
         OutString("->Clean");
         try {
             NodeStop();
-            TimeOutDel(timerOut);
+            TimerOutDel(timerOut);
             TimerClean();
 
             m_sObjSvr = "";
@@ -2911,7 +2924,8 @@ public class pgLibConference {
             if(sPeer.equals(m_sObjChair))
             {
                 sAct="ChairmanOffline";
-            }else
+            }
+            else
             {
                 sAct="PeerOffline";
             }
@@ -2988,7 +3002,7 @@ public class pgLibConference {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
                     if (!sAct.equals("1") && this.m_sObjSvr.equals("")) {
-                        this.NodeRelogin(3);
+                        this.NodeRelogin(10);
                     }
                 } else if (uMeth == 1) {
                     ServerError(sData);
@@ -3188,13 +3202,26 @@ public class pgLibConference {
     }
     ArrayList<TimerOut> m_listTimerOut = new ArrayList<>();
     //private TimerOut onTimerOut =null;
-    public void TimeOutAdd(TimerOut timerOut)
+
+
+    /**
+     * 描述:将TimerOut接口添加到超时处理列表中
+     * 阻塞方式：非阻塞
+     * @param timerOut
+     */
+    public void TimerOutAdd(TimerOut timerOut)
     {
         if(m_listTimerOut!=null) {
             m_listTimerOut.add(timerOut);
         }
     }
-    public void TimeOutDel(TimerOut timerOut)
+
+    /**
+     * 描述:将TimerOut接口从超时处理列表中删除
+     * 阻塞方式：非阻塞
+     * @param timerOut
+     */
+    public void TimerOutDel(TimerOut timerOut)
     {
         if(m_listTimerOut!=null) {
             m_listTimerOut.remove(timerOut);
@@ -3334,6 +3361,14 @@ public class pgLibConference {
         }
     }
 
+    /**
+     * 描述：开启一个定时器
+     * 阻塞方式：非阻塞
+     * @param sParam  : 超时处理接口收到的参数
+     * @param iTimeout :超时时间
+     * @param bRepeat : 是否循环
+     * @return  : 定时器实例ID
+     */
     public int TimerStart(String sParam, int iTimeout, boolean bRepeat) {
 
         try {
@@ -3366,6 +3401,11 @@ public class pgLibConference {
         }
     }
 
+    /**
+     * 描述：关闭一个定时器
+     * 阻塞方式：非阻塞
+     * @param iTimerID : 定时器实例ID
+     */
     public void TimerStop(int iTimerID) {
 
         try {
