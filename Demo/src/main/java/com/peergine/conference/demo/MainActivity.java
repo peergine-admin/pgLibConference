@@ -36,14 +36,12 @@ import java.util.ArrayList;
 /*
 *
 * TODO: + 说明：
-如果代码中有该标识，说明在标识处有功能代码待编写，待实现的功能在说明中会简略说明。
-
-FIXME: + 说明：
-如果代码中有该标识，说明标识处代码需要修正，甚至代码是错误的，不能工作，需要修复，如何修正会在说明中简略说明。
-
- XXX : + 说明：
-如果代码中有该标识，说明标识处代码虽然实现了功能，但是实现的方法有待商榷，希望将来能改进，要改进的地方会在说明中简略说明。
-
+* 如果代码中有该标识，说明在标识处有功能代码待编写，待实现的功能在说明中会简略说明。
+* FIXME: + 说明：
+* 如果代码中有该标识，说明标识处代码需要修正，甚至代码是错误的，不能工作，需要修复，如何修正会在说明中简略说明。
+*
+* XXX : + 说明：
+* 如果代码中有该标识，说明标识处代码虽然实现了功能，但是实现的方法有待商榷，希望将来能改进，要改进的地方会在说明中简略说明。
 *
 *
 *
@@ -58,8 +56,6 @@ FIXME: + 说明：
  *
  *
  */
-
-
 
 public class MainActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
 
@@ -363,8 +359,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			int k=0;
 			switch (args0.getId()) {
 				case R.id.btn_Start:
-
-//					m_IsVideoStart=false;
 					m_bVideoStart = false;
 					if(bChair) {
 						pgChairInit();
@@ -391,6 +385,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //					m_Conf.MessageSend("hellllllo","Group_member869384011853858");
 //					//pgNotifySend();
 				{
+
 //					String sPath = getSDPath() + "/Video.avi";
 //					m_Conf.VideoRecord("_DEV_" + m_sChair, sPath);
 //					Log.d("OnClink", "MemberAdd button");
@@ -399,7 +394,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 					break;
 				}
 				case R.id.button:
-//
+//              test Api
 					{
 						//m_Conf.SvrRequest("(User){" + m_Conf.GetNode().omlEncode("_DEV_358180050453651_chairman")
 						//		+ "}(Msg){" + m_Conf.GetNode().omlEncode("hello chairman") + "}");
@@ -423,28 +418,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //							setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 //						}
 					}
-
-
-
-//					SurfaceView view=m_Conf.VideoGetView(memberArray.get(1).sPeer);
-//					if(view!=null)
-//					{
-//
-//						Log.d("view test","view==null");
-//					}
-//					SurfaceView view1=m_Conf.VideoGetView(memberArray.get(2).sPeer);
-//					if(view1!=null)
-//					{
-//
-//						Log.d("view1 test","view==null");
-//					}
-//					SurfaceView view2=m_Conf.VideoGetView(memberArray.get(3).sPeer);
-//					if(view2!=null)
-//					{
-//
-//						Log.d("view2 test","view==null");
-//					}
-
 				default:
 
 					break;
@@ -566,6 +539,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		String sParam  = "(Act){DoVideoOpen}(Peer){"+sPeer+"}";
 		m_Conf.TimerStart(sParam,1,false);
 
+		m_Conf.NotifySend(sPeer + " : join ");
 		Log.d( "", sPeer+" 加入会议");
 	}
 	//sPeer的离线消息
@@ -621,39 +595,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private void EventVideoLost(String sAct, String sData, final String sPeer)
 	{
 		// TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
-		Show(sPeer + " 的视频已经丢失 尝试重新连接");
-//		pgVideoClose(sPeer);
-//
-//		PG_MEMB oMemb = MembSearch(sPeer);
-//		if(oMemb.sPeer.equals(sPeer)){
-//			String sObjSelf="_DEV_"+m_sUser;
-//			if(sObjSelf.compareTo(sPeer)>0)
-//			{
-//				Show( " 发起视频请求");
-//				pgVideoOpen(sPeer);
-//			}
-//		}
-//
-//		new Thread() {
-//			@Override
-//			public void run() {
-//				try {
-//					sleep(1000);
-//					Message message = myHandler.obtainMessage();
-//					message.obj = sPeer;
-//					//这里这个 arg1 是Message对象携带的参数我主要用它来区分消息对象(Message)
-//					message.arg1 = 2;
-//					//把消息发送给目标对象，目标对象就是 myHandler 就是关联我们得到的那个消息对象的Handler
-//					message.sendToTarget();
-//
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}.start();
-
-
-
+		Show(sPeer + " 的视频已经丢失 可以尝试重新连接");
 	}
 
 
@@ -681,7 +623,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	//组消息
 	private void EventNotify(String sAct,String sData,String sPeer)
 	{
-
+		Show(sPeer + ": sData = "+sData);
 	}
 
 	//sPeer的消息处理
@@ -690,14 +632,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		// TODO: 2016/11/7 处理sPeer发送过来的消息
 		Show(sPeer+":"+ sData);
 		Log.d("",sPeer+":"+ sData);
-//		if(sData.equals("SyncFirst:")){
-//			PG_MEMB oMemb = MembSearch(sPeer);
-//			if(oMemb!=null&&oMemb.sPeer.equals(sPeer)){
-//				//对方检测到是第一次连接本端，证明对端关于视频的数据已经置空，于是本端如果有对端的视频数据也置空
-//				pgVideoClose(sPeer);
-//			}
-//		}
-
 	}
 
 
@@ -756,8 +690,17 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			else if (sAct .equals( "VideoJoin")) {
 				EventVideoJoin(sAct,sData,sPeer);
 			}
+			else if (sAct .equals( "VideoCamera")) {
+				EventVideoCamera(sAct,sData,sPeer);
+			}
+			else if (sAct .equals( "VideoRecord")) {
+				EventVideoRecord(sAct,sData,sPeer);
+			}
 			else if(sAct.equals("Message")) {
 				EventMessage(sAct,sData,sPeer);
+			}
+			else if(sAct.equals("CallSend")) {
+				EventCallSend(sAct,sData,sPeer);
 			}
 			else if(sAct.equals("Notify")) {
 				EventNotify(sAct,sData,sPeer);
@@ -773,6 +716,18 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			}
 		}
 	};
+
+	private void EventCallSend(String sAct, String sData, String sPeer) {
+		// CallSend （具有回执的信息） 最终结果
+	}
+
+	private void EventVideoRecord(String sAct, String sData, String sPeer) {
+		// VideoRecord 视频录制的结果
+	}
+
+	private void EventVideoCamera(String sAct, String sData, String sPeer) {
+		// VideoCamera 视频拍照的结果
+	}
 
 
 	//选择成为主席端的初始化方式

@@ -2828,7 +2828,7 @@ public class pgLibConference {
         }
         String sPeer = m_Node.omlGetContent(sData, "Peer");
         String sPath = m_Node.omlGetContent(sData, "Path");
-        EventProc("VideoCamera", sPath, sPeer);
+        EventProc("VideoRecord", sPath, sPeer);
     }
 
     //服务器下发数据
