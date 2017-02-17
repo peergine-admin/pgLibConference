@@ -44,18 +44,40 @@
     8.内部添加视频连接时的心跳，以检测异常重启时对端不能及时获取视频丢失的消息。
     进行了若干优化。修复了若干BUG。
 
-updata 2016/11/17 v1.0.6
+##updata 2016/11/17 v1.0.6
      1、添加视频的抓拍和录制功能
      2、做了一个超时检测 在执行MemberAdd MemberDel Leave 操作是 如果45秒内没有退出和加入会议   。就产生TimeOut 的回调    sData 数操作名   sPeer是参数
      3、还添加了CallSend 功能比较MessageSend会产生CallSend的回执
      4、CallSend函数的最后一个参数自定义
      5、CallSend回调事件的sData 是错误代码 0是正常 ，sPeer是CallSend的最后一个参数
 
-updata 2016/12/30 v1.25.1.9
+##updata 2016/12/30 v1.25.1.9
      1、升级产品版本规则，版本号前3位是中间件版本，后一位是SDK版本
      2、升级打包规则，不同平台分别打包
      3、updata增加一些视音频操作函数，节点操作函数 ，Reset 函数 等
      4、增加音频初始化选项
 
-updata 2016/12/30 v1.25.1.10
+##updata 2016/12/30 v1.25.1.10
      1、升级AudioSpeech函数，增加一个参数，同时兼容之前的函数。
+
+
+ ##Updata 2017/02/014 v13
+     继续优化心跳包。
+     删除会议模块在离线事件和离开会议后的主动清理视频的代码。
+     修复上报离线事件后再次连接上报同步消息。
+     修复主席端对同一节点反复上报离线消息。
+     修复反复上报VideoLost消息。
+     修改PG_PEER 的列表添加位置，由加入会议添加，离开会议删除，改为视频打开或收到请求添加，视频关闭删除
+     修改函数VideoOpen中对同一节点的Node和View，由新建改为继承。
+     修改Keep函数中的列表的遍历方式。
+     修改ServiceStart的执行位置，使得可以在SDK Initialze 后可以在之后任意位置VideoStart 和AudioStart
+     函数执行打印信息
+
+     开放定时器
+        相关接口TimerOut
+      相关函数：
+        TimerOutAdd  把接口TimerOut的实现加入定时器处理
+        TimerOutDel  把接口TimerOut的实现从定时器处理中删除
+        TimerStart  开始一个定时器处理
+        TimerStop  对定时时间长或者循环定时进行停止操作
+

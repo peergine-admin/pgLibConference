@@ -91,7 +91,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private String m_sVideoParam=
 			"(Code){1}(Mode){2}(FrmRate){40}" +
 			"(LCode){3}(LMode){3}(LFrmRate){30}" +
-			"(Portrait){1}(Rotate){0}(BitRate){400}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
+			"(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
 			"(AudioSpeechDisable){0}";
 	private Button m_btntest=null;
 
