@@ -791,7 +791,7 @@ public class pgLibConference {
                 sChair = m_sChair;
             }
             ServiceStop();
-            m_bChairman = sChair.equals(m_sUser);
+                       m_bChairman = sChair.equals(m_sUser);
             m_sObjChair = "_DEV_" + sChair;
             m_sObjG = "_G_" + sName;
             m_sObjD = "_D_" + sName;
@@ -2033,7 +2033,6 @@ public class pgLibConference {
         try {
             if (m_Node.ObjectGetClass(m_sObjChair).equals("PG_CLASS_Peer")) {
                 PeerSync(m_sObjChair, "", 1);
-                //                ChairmanDel();
             } else {
                 if (!this.m_Node.ObjectAdd(this.m_sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
                     OutString("ChairmanAdd:  failed.");
@@ -2098,19 +2097,18 @@ public class pgLibConference {
                     break;
                 }
 
-                m_bServiceStart = true;
                 //开始发送心跳包
                 if (TimerStart("(Act){TimerActive}", 10, false) < 0) {
-                    return false;
+                    break;
                 }
                 m_iActiveStamp = 0;
 
                 if (TimerStart("(Act){Keep}", m_iExpire, false) < 0) {
-                    return false;
+                    break;
                 }
                 m_iKeepChainmanStamp = 0;
                 m_iKeepStamp = 0;
-
+                m_bServiceStart = true;
                 return true;
             } while (false);
             ServiceStop();
