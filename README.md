@@ -70,12 +70,12 @@
      修改PG_PEER 的列表添加位置，由加入会议添加，离开会议删除，改为视频打开或收到请求添加，视频关闭删除
      修改函数VideoOpen中对同一节点的Node和View，由新建改为继承。
      修改Keep函数中的列表的遍历方式。
-     修改ServiceStart的执行位置，使得可以在SDK Initialze 后可以在之后任意位置VideoStart 和AudioStart
+     修改结构，使得可以在SDK Initialze 后可以在之后任意位置VideoStart 和AudioStart
      函数执行打印信息
 
-     开放定时器
+     开放简易定时器
         相关接口TimerOut
-      相关函数：
+     相关函数：
         TimerOutAdd  把接口TimerOut的实现加入定时器处理
         TimerOutDel  把接口TimerOut的实现从定时器处理中删除
         TimerStart  开始一个定时器处理
