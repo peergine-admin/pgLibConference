@@ -737,7 +737,7 @@ public class pgLibConference {
         OutString("->Leave");
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.SvrRequest: Not initialize");
+                OutString("Leave Not initialize");
                 return;
             }
             if (!m_bServiceStart) {
@@ -817,7 +817,7 @@ public class pgLibConference {
      */
     public boolean VideoStart(int iFlag) {
         if (m_Node == null) {
-            OutString("pgLibConference.SvrRequest: Not initialize");
+            OutString("VideoStart: Not initialize");
             return false;
         }
         if (!this.m_bServiceStart) {
@@ -842,7 +842,7 @@ public class pgLibConference {
      */
     public boolean VideoStop() {
         if (m_Node == null) {
-            OutString("pgLibConference.SvrRequest: Not initialize");
+            OutString("VideoStop: Not initialize");
             return false;
         }
         if (!this.m_bServiceStart) {
@@ -887,7 +887,7 @@ public class pgLibConference {
         PG_PEER oPeer = null;
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.SvrRequest: Not initialize");
+                OutString("VideoOpen: Not initialize");
                 return null;
             }
             if (sPeer.equals("")) {
@@ -998,7 +998,7 @@ public class pgLibConference {
      */
     public void VideoReject(String sPeer) {
         if (m_Node == null) {
-            OutString("pgLibConference.SvrRequest: Not initialize");
+            OutString("VideoReject: Not initialize");
             return;
         }
         if (sPeer.equals("")) {
@@ -1046,7 +1046,7 @@ public class pgLibConference {
         OutString("->VideoClose");
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.SvrRequest: Not initialize");
+                OutString("VideoClose: Not initialize");
                 return;
             }
             if (!m_bServiceStart) {
@@ -1113,7 +1113,7 @@ public class pgLibConference {
      */
     public boolean VideoSource(int iCameraNo) {
         if (m_Node == null) {
-            OutString("pgLibConference.SvrRequest: Not initialize");
+            OutString("VideoSource: Not initialize");
             return false;
         }
         if (!m_bApiVideoStart) {
@@ -1152,7 +1152,7 @@ public class pgLibConference {
     public boolean VideoControl(String sPeer, boolean bEnable) {
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.SvrRequest: Not initialize");
+                OutString("VideoControl: Not initialize");
                 return false;
             }
             if (!m_bServiceStart) {
@@ -1309,7 +1309,7 @@ public class pgLibConference {
 
     public boolean AudioStart() {
         if (m_Node == null) {
-            OutString("pgLibConference.SvrRequest: Not initialize");
+            OutString("AudioStart: Not initialize");
             return false;
         }
         if (!this.m_bServiceStart) {
@@ -1334,7 +1334,7 @@ public class pgLibConference {
      */
     public void AudioStop() {
         if (m_Node == null) {
-            OutString("pgLibConference.SvrRequest: Not initialize");
+            OutString("pgLibConference.AudioStop: Not initialize");
             return;
         }
         if (!this.m_bServiceStart) {
@@ -1371,7 +1371,7 @@ public class pgLibConference {
         iVolume = iVolume > 100 ? 100 : iVolume;//大于100 取100
         String sData = "(Peer){}(Action){1}(Type){" + iType + "}(Volume){" + m_Node.omlEncode(iVolume + "")
                 + "}(Max){0}(Min){0}";
-        int iErr = m_Node.ObjectRequest(m_sObjA, 34, sData, "pgLibConference.Volume");
+        int iErr = m_Node.ObjectRequest(m_sObjA, 34, sData, "AudioCtrlVolume");
         if (iErr > 0) {
             OutString("AudioCtrlVolume:set Volume, iErr=" + iErr);
         }
@@ -1407,7 +1407,7 @@ public class pgLibConference {
     public boolean AudioSpeech(String sPeer, boolean bSendEnable, boolean bRecvEnable) {
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.SvrRequest: Not initialize");
+                OutString("SvrRequest: Not initialize");
                 return false;
             }
 
@@ -1510,7 +1510,7 @@ public class pgLibConference {
     public boolean CameraSwitch(boolean bEnable) {
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.SvrRequest: Not initialize");
+                OutString("CameraSwitch: Not initialize");
                 return false;
             }
             if (!m_bServiceStart) {
@@ -1549,7 +1549,7 @@ public class pgLibConference {
     public boolean MessageSend(String sMsg, String sPeer) {
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.SvrRequest: Not initialize");
+                OutString("MessageSend: Not initialize");
                 return false;
             }
             if (!m_bServiceStart) {
@@ -1643,13 +1643,13 @@ public class pgLibConference {
      */
     public boolean SvrRequest(String sData) {
         if (m_Node == null) {
-            OutString("pgLibConference.SvrRequest: Not initialize");
+            OutString("SvrRequest: Not initialize");
             return false;
         }
 
-        int iErr = m_Node.ObjectRequest(m_sObjSvr, 35, ("1024:" + sData), "pgLibConference.SvrRequest");
+        int iErr = m_Node.ObjectRequest(m_sObjSvr, 35, ("1024:" + sData), "SvrRequest");
         if (iErr > 0) {
-            OutString("pgLibConference.SvrRequest: iErr=" + iErr);
+            OutString("SvrRequest: iErr=" + iErr);
             return false;
         }
 
@@ -2284,9 +2284,9 @@ public class pgLibConference {
     //视频相关初始化
     private boolean VideoInit(int iFlag) {
         OutString("->VideoInit iFlag = " + iFlag);
-
-        m_iVideoInitFlag = iFlag;
+        
         this.VideoOption();
+        m_iVideoInitFlag = iFlag;
         int uFlag = 0x10000 | 0x1 | 0x10 | 0x20;
         switch (iFlag) {
         case pgVideoPutMode.OnlyInput: {
@@ -2490,12 +2490,9 @@ public class pgLibConference {
                     }
                 }
                 return 0;
-            } else if (sCmd.equals("KeepStart")) {
-                KeepAdd(sPeer);
+           
             } else if (sCmd.equals("Keep")) {
                 KeepRecv(sPeer);
-            } else if (sCmd.equals("KeepEnd")) {
-                KeepDel(sPeer);
             }
         } catch (Exception ex) {
             OutString("SelfMessage" + ex.toString());
@@ -2717,7 +2714,10 @@ public class pgLibConference {
                 }
                 return 0;
             } else if (sObj.equals(m_sObjSelf)) {
-                if (uMeth == 35) {
+                if (uMeth == 0) {
+                    SelfSync(sData, sPeer);
+                }
+                else if (uMeth == 35) {
                     return this.SelfCall(sData, sPeer, iHandle);
                 } else if (uMeth == 36) {
                     if (sPeer.equals(this.m_sObjSvr)) {
@@ -2728,9 +2728,7 @@ public class pgLibConference {
                 } else if (uMeth == 47) {
                     //ID冲突 被踢下线了
                     EventProc("Logout", "47", "");
-                } else if (uMeth == 0) {
-                    SelfSync(sData, sPeer);
-                }
+                } 
                 return 0;
             } else if (sObj.equals(this.m_sObjChair)) {
 
@@ -2850,7 +2848,8 @@ public class pgLibConference {
             if (sObj.equals(m_sObjSvr)) {
                 if (sParam.equals("NodeLogin")) {
                     NodeLoginReply(iErr, sData);
-                } else if (sParam.equals("pgLibConference.SvrRequest")) {
+                } 
+                else if (sParam.equals("SvrRequest")) {
                     SvrReply(iErr, sData);
                 }
 
@@ -2878,7 +2877,7 @@ public class pgLibConference {
             }
 
             if (sObj.equals(m_sObjA)) {
-                if (sParam.equals("pgLibConference.Volume")) { // Cancel file
+                if (sParam.equals("AudioCtrlVolume")) { // Cancel file
                     EventProc("AudioCtrlVolume", Integer.valueOf(iErr).toString(), sObj);
                 }
             }
