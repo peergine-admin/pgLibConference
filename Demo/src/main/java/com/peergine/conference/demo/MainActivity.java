@@ -7,9 +7,6 @@ import android.content.DialogInterface;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -573,25 +570,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		pgVideoOpen(sPeer);
 	}
 
-
-	Looper looper = Looper.myLooper();
-	MyHandler myHandler = new MyHandler(looper);
-	class MyHandler extends Handler {
-		public MyHandler() {}
-		public MyHandler(Looper looper) {
-			super(looper);
-		}
-		@Override
-		public void handleMessage(Message msg) {
-			if (msg.arg1 == 1) {
-				String sPeer = (String) msg.obj;
-				pgVideoOpen(sPeer);
-			} else if (msg.arg1 == 2) {
-				CharSequence xh2_msg = (CharSequence) msg.obj;
-
-			}
-		}
-	}
 	private void EventVideoLost(String sAct, String sData, final String sPeer)
 	{
 		// TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
