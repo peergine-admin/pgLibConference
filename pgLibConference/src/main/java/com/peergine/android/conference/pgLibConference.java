@@ -394,10 +394,12 @@ public class pgLibConference {
             if (sName.equals("") || sName.length() > 64) {
                 return false;
             }
-            if (sName.equals("") || sUser.length() > 64) {
+            if (sUser.equals("") || sUser.length() > 64) {
                 return false;
             }
-
+            if (sChair.equals("") || sChair.length() > 64) {
+                return false;
+            }
             // Init JNI lib.
             if (!pgLibJNINode.Initialize(oCtx)) {
                 return false;
@@ -1656,33 +1658,33 @@ public class pgLibConference {
         return true;
     }
 
-    /**
-     *  描述：指定客户端与P2P服务器的连网方式。
-     *      在手机系统上使用P2P时，如果手机休眠，则网络切换到“只使用Relay转发)”方式连接，
-     *      可增强手机APP在休眠状态下的在线能力。
-     *  阻塞方式：非阻塞，立即返回
-     *  iMode：[IN] 连网模式。0为自动选择，1为只用P2P穿透，2为只用Relay转发。
-     *  返回值： true 操作成功，false 操作失败
-     */
-    public boolean ServerNetMode(int iMode) {
-        if (iMode > 2) {
-            return false;
-        }
-        if (m_Node == null) {
-            return false;
-        }
-        String sCls = m_Node.ObjectGetClass(m_sObjSvr);
-        if (sCls.equals("")) {
-            OutString("ServerNetMode: Server peer object is invalid");
-            return false;
-        }
-        int iErr = m_Node.ObjectRequest(m_sObjSvr, 2, "(Item){4}(Value){" + iMode + "}", "");
-        if (iErr > 0) {
-            OutString("ServerNetMode: iErr=" + iErr);
-            return false;
-        }
-        return true;
-    }
+    // /**
+    //  *  描述：指定客户端与P2P服务器的连网方式。
+    //  *      在手机系统上使用P2P时，如果手机休眠，则网络切换到“只使用Relay转发)”方式连接，
+    //  *      可增强手机APP在休眠状态下的在线能力。
+    //  *  阻塞方式：非阻塞，立即返回
+    //  *  iMode：[IN] 连网模式。0为自动选择，1为只用P2P穿透，2为只用Relay转发。
+    //  *  返回值： true 操作成功，false 操作失败
+    //  */
+    // public boolean ServerNetMode(int iMode) {
+    //     if (iMode > 2) {
+    //         return false;
+    //     }
+    //     if (m_Node == null) {
+    //         return false;
+    //     }
+    //     String sCls = m_Node.ObjectGetClass(m_sObjSvr);
+    //     if (sCls.equals("")) {
+    //         OutString("ServerNetMode: Server peer object is invalid");
+    //         return false;
+    //     }
+    //     int iErr = m_Node.ObjectRequest(m_sObjSvr, 2, "(Item){4}(Value){" + iMode + "}", "");
+    //     if (iErr > 0) {
+    //         OutString("ServerNetMode: iErr=" + iErr);
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
     //    public void TimerStart(String sAct,int iDelay,boolean  bRepeat, String sSession)
     //    {
