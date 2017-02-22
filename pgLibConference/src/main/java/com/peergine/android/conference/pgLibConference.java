@@ -400,18 +400,15 @@ public class pgLibConference {
             if (sChair.equals("") || sChair.length() > 64) {
                 return false;
             }
+            // Check video parameters.
+            if (sVideoParam.equals("")) {
+                OutString("Initialize: Invalid VideoParam" + sVideoParam);
+                return false;
+            }
             // Init JNI lib.
             if (!pgLibJNINode.Initialize(oCtx)) {
                 return false;
             }
-
-            // Check video parameters.
-            if (sVideoParam.equals("")) {
-                OutString("Initialize: Invalid VideoParam" + sVideoParam);
-                Clean();
-                return false;
-            }
-
             // Create Timer message handler.
             if (!TimerInit()) {
                 Clean();
@@ -458,9 +455,11 @@ public class pgLibConference {
             if (m_iAudioSpeechDisable == 0) {
                 m_iAudioSpeechDisable = ParseInt(m_Node.omlGetContent(sVideoParam, "AudioSpeech"), 0);
             }
-
+            //初始化标记
             m_bLogined = false;
             m_bServiceStart = false;
+            m_bApiVideoStart    =   false;
+            m_bApiAudioStart    =   false;
 
             m_bChairman = m_sChair.equals(sUser);
 
@@ -756,14 +755,6 @@ public class pgLibConference {
             String sParam = "(Act){Leave}";
             TaskAdd("Leave", "");
             TimerStart(sParam, 1, false);
-            //            if(!m_sObjSelf.equals(m_sObjChair)) {
-            //                String sData = "Leave?(" + m_sObjSelf + ")";
-            //                int iErr = m_Node.ObjectRequest(m_sObjChair, 36, sData, "Leave");
-            //                if (iErr > 0) {
-            //                    OutString("Leave:ObjectRequest failed");
-            //                    //Close();
-            //                }
-            //            }
         } catch (Exception ex) {
             OutString("Leave: ex=" + ex.toString());
         }
@@ -793,7 +784,7 @@ public class pgLibConference {
                 sChair = m_sChair;
             }
             ServiceStop();
-                       m_bChairman = sChair.equals(m_sUser);
+            m_bChairman = sChair.equals(m_sUser);
             m_sObjChair = "_DEV_" + sChair;
             m_sObjG = "_G_" + sName;
             m_sObjD = "_D_" + sName;
@@ -857,32 +848,6 @@ public class pgLibConference {
         }
         return true;
     }
-
-    /**
-     *  描述：打开某一成员的视频
-     *  阻塞方式：非阻塞，立即返回
-     *   返回值： true 操作成功，false 操作失败
-     *   sPeer:成员节点名
-     *   iW: 窗口宽度
-     *   iH: 窗口高度
-     */
-    public SurfaceView VideoOpen(String sPeer, int iW, int iH) {
-        return VideoOpen(sPeer, iW, iH, false);
-    }
-
-    /**
-     *  描述：以不同流打开某一成员的视频（请求端有效）
-     *  阻塞方式：非阻塞，立即返回
-     *   返回值： true 操作成功，false 操作失败
-     *   sPeer:成员节点名
-     *   iW: 窗口宽度
-     *   iH: 窗口高度
-     */
-    public SurfaceView VideoOpenL(String sPeer, int iW, int iH) {
-        return VideoOpen(sPeer, iW, iH, true);
-    }
-
-    
 
     private SurfaceView VideoOpen(String sPeer, int iW, int iH, boolean bLarge) {
         OutString("VideoOpen :sPeer=" + sPeer + "; iW=" + iW + "; iH=" + iH);
@@ -981,7 +946,7 @@ public class pgLibConference {
             oPeer.iStamp = 0;
             oPeer.iHandle = 0;
             oPeer.bRequest = false;
-
+            OutString("VideoOpen: scussce");
             return oPeer.View;
         } catch (Exception ex) {
             OutString("VideoOpen: ex=" + ex.toString());
@@ -992,6 +957,31 @@ public class pgLibConference {
             return null;
         }
     }
+
+ /**
+     *  描述：打开某一成员的视频
+     *  阻塞方式：非阻塞，立即返回
+     *   返回值： true 操作成功，false 操作失败
+     *   sPeer:成员节点名
+     *   iW: 窗口宽度
+     *   iH: 窗口高度
+     */
+    public SurfaceView VideoOpen(String sPeer, int iW, int iH) {
+        return VideoOpen(sPeer, iW, iH, false);
+    }
+
+    /**
+     *  描述：以不同流打开某一成员的视频（请求端有效）
+     *  阻塞方式：非阻塞，立即返回
+     *   返回值： true 操作成功，false 操作失败
+     *   sPeer:成员节点名
+     *   iW: 窗口宽度
+     *   iH: 窗口高度
+     */
+    public SurfaceView VideoOpenL(String sPeer, int iW, int iH) {
+        return VideoOpen(sPeer, iW, iH, true);
+    }
+
     /**
      *  描述：拒绝打开某一成员的视频
      *  阻塞方式：非阻塞，立即返回
@@ -1382,8 +1372,6 @@ public class pgLibConference {
 
     }
    
-
-
     public void AudioSpeechDisable(int iDisableMode) {
         m_iAudioSpeechDisable = iDisableMode;
     }
@@ -1429,7 +1417,7 @@ public class pgLibConference {
             if (iErr > 0) {
                 OutString("Speech: Set Speech, iErr=" + iErr);
             }
-
+            
             return true;
         } catch (Exception ex) {
             OutString("Speech: ex=" + ex.toString());
@@ -2538,7 +2526,24 @@ public class pgLibConference {
             } else if (sError.equals("11") || sError.equals("12") || sError.equals("14")) {
                 NodeRedirectReset(0);
             }
+            if (sError.equals("8")) {
+                int iReloginDelay;
+                String sObjTemp ="_TMP_"+m_sUser;
+                if (!sObjTemp.equals("")) {
+                    m_sObjSelf = sObjTemp;
+                    OutString("NodeLoginReply: Change to templete user, sObjTemp="+sObjTemp);
+                    iReloginDelay = 1;
+                }
+                else {
+                    iReloginDelay = 30;
+                }
+
+                NodeLogout();
+                TimerStart("(Act){Relogin}",iReloginDelay,false);
+            }
         }
+
+
     }
 
     private void ServerRelogin(String sData) {
@@ -2744,10 +2749,9 @@ public class pgLibConference {
                     String sMeth = this.m_Node.omlGetContent(sData, "Meth");
                     if (sMeth.equals("34")) {
                         String sError = this.m_Node.omlGetContent(sData, "Error");
-
-                        KeepDel(sObj);
-
+                        
                         PeerOffline(sObj, sError);
+                        KeepDel(sObj);
                     }
                 }
                 return 0;
@@ -2864,7 +2868,7 @@ public class pgLibConference {
                 EventProc("CallSend", sSession + ":" + iErr, sObj);
                 return 1;
             }
-            if (sParam.indexOf("VideoJoin") == 0) {
+            if (sParam.indexOf("VideoOpen") == 0) {
                 //视频加入通知
                 this.EventProc("VideoJoin", "" + iErr, sParam.substring(10));
                 return 1;

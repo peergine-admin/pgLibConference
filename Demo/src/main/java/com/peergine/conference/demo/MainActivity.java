@@ -60,8 +60,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private String m_sChair = "";
 	private String m_sUser = "";
 	private String m_sPass = "";
-//	private String sSvr ="192.168.1.130:7781";
-	private String sSvr ="connect.peergine.com:7781";
+	private String sSvr ="192.168.1.130:7781";
+//	private String sSvr ="connect.peergine.com:7781";
 	private String m_sMemb = "";
 
 	private pgLibConference m_Conf = new pgLibConference();
