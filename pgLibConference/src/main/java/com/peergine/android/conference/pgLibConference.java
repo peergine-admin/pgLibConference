@@ -86,7 +86,7 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
     private static final String LIB_VER = "14";
-
+    private String m_sConfig_Node= "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
 
@@ -360,6 +360,54 @@ public class pgLibConference {
         m_eventListener = eventListener;
     }
 
+//  sConfig_Node 参数示例："Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
+
+    public boolean ConfigNode(String sConfig_Node){
+        if(sConfig_Node.equals("")){
+            return false;
+        }
+        m_sConfig_Node = sConfig_Node;
+        return true;
+//        boolean[] bConfigs = {false,false,false,false,false,false,false,false,false,false,false};
+//        String [] sConfigs = sConfig_Node.split(";");
+//        for(int i=0;i<sConfigs.length;i++){
+//            if(sConfigs[i].indexOf("Type")==0){
+//                bConfigs[0]=true;
+//            } else if(sConfigs[i].indexOf("Option")==0){
+//                bConfigs[1]=true;
+//            }else if(sConfigs[i].indexOf("MaxPeer")==0){
+//                bConfigs[2]=true;
+//            }else if(sConfigs[i].indexOf("MaxGroup")==0){
+//                bConfigs[3]=true;
+//            }else if(sConfigs[i].indexOf("MaxObject")==0){
+//                bConfigs[4]=true;
+//            }else if(sConfigs[i].indexOf("MaxMCast")==0){
+//                bConfigs[5]=true;
+//            }else if(sConfigs[i].indexOf("MaxHandle")==0){
+//                bConfigs[6]=true;
+//            }else if(sConfigs[i].indexOf("SKTBufSize0")==0){
+//                bConfigs[7]=true;
+//            }else if(sConfigs[i].indexOf("SKTBufSize1")==0){
+//                bConfigs[8]=true;
+//            }else if(sConfigs[i].indexOf("SKTBufSize2")==0){
+//                bConfigs[9]=true;
+//            }else if(sConfigs[i].indexOf("SKTBufSize3")==0){
+//                bConfigs[10]=true;
+//            }
+//        }
+//        for (int i=0;i<bConfigs.length;i++){
+//            if(bConfigs[i]==true){
+//               switch (i){
+//                   case 0:{
+//                       sConfig_Node = "Type=0;"+sConfig_Node;
+//                       break;
+//                   }
+//               }
+//            }
+//        }
+
+
+    }
     /**
      *  描述：P2P会议对象初始化函数
      *  阻塞方式：非阻塞，立即返回。
@@ -1831,7 +1879,7 @@ public class pgLibConference {
         m_sSvrAddr = m_sInitSvrAddr;
         // Config jni node.
         m_Node.Control = "Type=1;LogLevel0=1;LogLevel1=1";
-        m_Node.Node = "Type=0;Option=1;SKTBufSize0=128;SKTBufSize1=128;SKTBufSize2=128;SKTBufSize3=128";
+        m_Node.Node = m_sConfig_Node;
         m_Node.Class = "PG_CLASS_Data:128;PG_CLASS_Video:128;PG_CLASS_Audio:128";
         m_Node.Local = "Addr=0:0:0:127.0.0.1:0:0";
         m_Node.Server = "Name=" + m_sObjSvr + ";Addr=" + m_sSvrAddr + ";Digest=1";

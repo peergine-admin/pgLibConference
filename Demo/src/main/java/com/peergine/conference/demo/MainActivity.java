@@ -215,6 +215,9 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		//显示一些信息
 		text_info= (TextView) findViewById(R.id.text_info);
 
+
+		String sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
+		m_Conf.ConfigNode(sConfig_Node);
 		//m_listMember.setAdapter(new ArrayAdapter<String>(this, R.id.linearLayoutMain, data));
 	}
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
