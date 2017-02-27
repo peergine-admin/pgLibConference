@@ -87,18 +87,24 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
     private static final String LIB_VER = "14";
     public static class PG_NODE_CFG{
-        int Type=0;
-        int Option=1;
-        int MaxPeer=256;
-        int MaxGroup=32;
-        int MaxObject=512;
-        int MaxMCast=512;
-        int MaxHandle=256;
-        int SKTBufSize0=128;
-        int SKTBufSize1=64;
-        int SKTBufSize2=256;
-        int SKTBufSize3 = 64;
-        public PG_NODE_CFG(){
+        public int Type=0;//节点类型。不建议修改
+        public int Option=1;//不建议修改
+        /*Option：本节点实例的选项，分别为以下的掩码组合：
+            0x01：启用网络异常时自动重新尝试登录（客户端有效）
+            0x02：启用集群模式的P2P穿透握手机制（服务器端有效）
+            0x04：启用踢出重复登录的用户功能（服务器端有效）
+            0x08：启用节点协助转发功能的握手功能（服务器端有效）*/
+        public int MaxPeer=256;//节点对象的最大数目，取值范围：1 ~ 32768
+        public int MaxGroup=32;//组对象的最大数目，取值范围：1 ~ 32768
+        public int MaxObject=512;//对象的最大数目，取值范围：1 ~ 65534
+        public int MaxMCast=512;//组播句柄的最大数目，取值范围：1 ~ 65534
+        public int MaxHandle=256;//常驻接口事件队列的最大长度，取值范围：1 ~ 65534
+        public int SKTBufSize0=128;//消息流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+        public int SKTBufSize1=64;//音频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+        public int SKTBufSize2=256;//视频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+        public int SKTBufSize3 = 64;//文件流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+
+public PG_NODE_CFG(){
             Type=0;
             Option=1;
             MaxPeer=256;

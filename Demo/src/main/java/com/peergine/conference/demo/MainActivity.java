@@ -220,6 +220,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 //		String sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
 		pgLibConference.PG_NODE_CFG mNodeCfg = new pgLibConference.PG_NODE_CFG();
+		mNodeCfg.MaxMCast=512;
 		m_Conf.ConfigNode(mNodeCfg);
 		//m_listMember.setAdapter(new ArrayAdapter<String>(this, R.id.linearLayoutMain, data));
 	}
