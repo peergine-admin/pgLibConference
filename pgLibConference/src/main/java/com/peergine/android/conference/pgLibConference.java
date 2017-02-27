@@ -67,14 +67,25 @@ import java.util.TimerTask;
 *    TimerStart  开始一个定时器处理
 *    TimerStop  对定时时间长或者循环定时进行停止操作
 *
+*
+* Updata 2017/02/014 v14
+* 1、取消TimeOut事件的上报。
+*      如 ：Act="TimeOut",sData = "MemberAdd",sPeer 等不再上报。
+* 2 、取消利用临时用户登录代码
+* 3、取消bOpened的使用
+*
+*
+*
 * */
+
+
 
 public class pgLibConference {
     public static final int AUDIO_Speech = 0;
     public static final int AUDIO_NoSpeechSelf = 1;
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
-    private static final String LIB_VER = "13";
+    private static final String LIB_VER = "14";
 
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
@@ -158,7 +169,6 @@ public class pgLibConference {
             this.sTask = sTask;
             iTimeOut = m_iTaskTimeOut;
         }
-
     }
 
     private ArrayList<PG_TASK> m_listTask = new ArrayList<>();
@@ -220,7 +230,7 @@ public class pgLibConference {
         int iStamp = 0;
         int iHandle = 0;
         //防止重复加入会议
-        boolean bOpened = false;
+//        boolean bOpened = false;
         //保证Video关闭前退出会议
         boolean bRequest = false;
         boolean bLarge = false;
@@ -247,7 +257,7 @@ public class pgLibConference {
             iHandle = 0;
             bRequest = false;
             bLarge = false;
-            bOpened = false;
+//            bOpened = false;
             iActStamp = m_iActiveStamp;
             bVideoLost = false;
         }
@@ -642,9 +652,9 @@ public class pgLibConference {
                 OutString("MemberAdd: Add group member failed err=" + iErr);
                 return false;
             }
-            String sParam = "(Act){MemberAdd:" + sMember + "}";
-            TaskAdd("MemberAdd", sMember);
-            TimerStart(sParam, 1, false);
+//            String sParam = "(Act){MemberAdd:" + sMember + "}";
+//            TaskAdd("MemberAdd", sMember);
+//            TimerStart(sParam, 1, false);
 
         } catch (Exception ex) {
             OutString("MemberAdd: ex=" + ex.toString());
@@ -686,9 +696,9 @@ public class pgLibConference {
                 OutString("MemberDel: Add group member failed err=" + iErr);
             }
 
-            String sParam = "(Act){MemberDel:" + sMember + "}";
-            TaskAdd("MemberDel", sMember);
-            TimerStart(sParam, 1, false);
+//            String sParam = "(Act){MemberDel:" + sMember + "}";
+//            TaskAdd("MemberDel", sMember);
+//            TimerStart(sParam, 1, false);
 
         } catch (Exception ex) {
             OutString("MemberDel: ex=" + ex.toString());
@@ -752,9 +762,9 @@ public class pgLibConference {
                 OutString("Leave: Leave group member failed err=" + iErr);
             }
 
-            String sParam = "(Act){Leave}";
-            TaskAdd("Leave", "");
-            TimerStart(sParam, 1, false);
+//            String sParam = "(Act){Leave}";
+//            TaskAdd("Leave", "");
+//            TimerStart(sParam, 1, false);
         } catch (Exception ex) {
             OutString("Leave: ex=" + ex.toString());
         }
@@ -926,13 +936,13 @@ public class pgLibConference {
                     sObjV = m_sObjV;
                 }
                 oPeer.bLarge = bLarge;
-                if (oPeer.bOpened)
-                    return oPeer.View;
+//                if (oPeer.bOpened)
+//                    return oPeer.View;
                 String sParamTmp = "VideoOpen:" + sPeer;
                 int iErrTemp = m_Node.ObjectRequest(sObjV, 35, sData, sParamTmp);
                 if (iErrTemp <= 0) {
                     bJoinRes = true;
-                    oPeer.bOpened = true;
+//                    oPeer.bOpened = true;
                 } else {
                     OutString("pgLibConference.VideoOpen: Request, iErr=" + iErrTemp);
                 }
@@ -2526,21 +2536,21 @@ public class pgLibConference {
             } else if (sError.equals("11") || sError.equals("12") || sError.equals("14")) {
                 NodeRedirectReset(0);
             }
-            if (sError.equals("8")) {
-                int iReloginDelay;
-                String sObjTemp ="_TMP_"+m_sUser;
-                if (!sObjTemp.equals("")) {
-                    m_sObjSelf = sObjTemp;
-                    OutString("NodeLoginReply: Change to templete user, sObjTemp="+sObjTemp);
-                    iReloginDelay = 1;
-                }
-                else {
-                    iReloginDelay = 30;
-                }
-
-                NodeLogout();
-                TimerStart("(Act){Relogin}",iReloginDelay,false);
-            }
+//            if (sError.equals("8")) {
+//                int iReloginDelay;
+//                String sObjTemp ="_TMP_"+m_sUser;
+//                if (!sObjTemp.equals("")) {
+//                    m_sObjSelf = sObjTemp;
+//                    OutString("NodeLoginReply: Change to templete user, sObjTemp="+sObjTemp);
+//                    iReloginDelay = 1;
+//                }
+//                else {
+//                    iReloginDelay = 30;
+//                }
+//
+//                NodeLogout();
+//                TimerStart("(Act){Relogin}",iReloginDelay,false);
+//            }
         }
 
 
@@ -2608,7 +2618,7 @@ public class pgLibConference {
                 }
             }
         } catch (Exception ex) {
-            OutString("GroupSearch: ex=" + ex.toString());
+            OutString("VideoPeerSearch: ex=" + ex.toString());
         }
         return null;
     }
