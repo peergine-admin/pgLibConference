@@ -30,6 +30,8 @@ import com.peergine.plugin.lib.pgLibJNINode;
 import java.io.File;
 import java.util.ArrayList;
 
+import static com.peergine.android.conference.pgLibConference.*;
+
 /*
 *
 * TODO: + 说明：
@@ -135,7 +137,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 
 	//定时器例子 超时处理实现
-	pgLibConference.TimerOut timerOut =new pgLibConference.TimerOut() {
+	TimerOut timerOut =new TimerOut() {
 		@Override
 		public void TimerProc(String sParam) {
 			if(m_Node==null) {
@@ -216,8 +218,9 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		text_info= (TextView) findViewById(R.id.text_info);
 
 
-		String sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
-		m_Conf.ConfigNode(sConfig_Node);
+//		String sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
+		pgLibConference.PG_NODE_CFG mNodeCfg = new pgLibConference.PG_NODE_CFG();
+		m_Conf.ConfigNode(mNodeCfg);
 		//m_listMember.setAdapter(new ArrayAdapter<String>(this, R.id.linearLayoutMain, data));
 	}
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -616,7 +619,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	}
 
 
-	private pgLibConference.OnEventListener m_OnEvent = new pgLibConference.OnEventListener() {
+	private OnEventListener m_OnEvent = new OnEventListener() {
 
 		@Override
 		public void event(String sAct, String sData, final String sPeer) {

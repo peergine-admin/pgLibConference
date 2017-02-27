@@ -86,6 +86,32 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
     private static final String LIB_VER = "14";
+    public static class PG_NODE_CFG{
+        int Type=0;
+        int Option=1;
+        int MaxPeer=256;
+        int MaxGroup=32;
+        int MaxObject=512;
+        int MaxMCast=512;
+        int MaxHandle=256;
+        int SKTBufSize0=128;
+        int SKTBufSize1=64;
+        int SKTBufSize2=256;
+        int SKTBufSize3 = 64;
+        public PG_NODE_CFG(){
+            Type=0;
+            Option=1;
+            MaxPeer=256;
+            MaxGroup=32;
+            MaxObject=512;
+            MaxMCast=512;
+            MaxHandle=256;
+            SKTBufSize0=128;
+            SKTBufSize1=64;
+            SKTBufSize2=256;
+            SKTBufSize3 = 64;
+        }
+    }
     private String m_sConfig_Node= "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
@@ -362,11 +388,16 @@ public class pgLibConference {
 
 //  sConfig_Node 参数示例："Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
 
-    public boolean ConfigNode(String sConfig_Node){
-        if(sConfig_Node.equals("")){
+    public boolean ConfigNode(PG_NODE_CFG mNodeCfg){
+        if(mNodeCfg==null){
             return false;
         }
-        m_sConfig_Node = sConfig_Node;
+
+
+        m_sConfig_Node = "Type="+mNodeCfg.Type+";Option="+mNodeCfg.Option+
+                ";MaxPeer="+mNodeCfg.MaxPeer+";MaxGroup="+mNodeCfg.MaxGroup+
+                ";MaxObject="+mNodeCfg.MaxObject+";MaxMCast="+mNodeCfg.MaxMCast+";MaxHandle="+mNodeCfg.MaxHandle+
+                ";SKTBufSize0="+mNodeCfg.SKTBufSize0+";SKTBufSize1="+mNodeCfg.SKTBufSize1+";SKTBufSize2="+mNodeCfg.SKTBufSize2+";SKTBufSize3="+mNodeCfg.SKTBufSize3;
         return true;
 //        boolean[] bConfigs = {false,false,false,false,false,false,false,false,false,false,false};
 //        String [] sConfigs = sConfig_Node.split(";");
