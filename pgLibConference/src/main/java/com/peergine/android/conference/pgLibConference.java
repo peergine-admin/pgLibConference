@@ -183,78 +183,6 @@ public PG_NODE_CFG(){
     private boolean m_bEventEnable = true;
     private int m_iVideoInitFlag = 0;
 
-    private int m_iTaskTimeOut = 30;
-
-    public void SetTaskTimeOut(int iTimeOut) {
-        m_iTaskTimeOut = iTimeOut;
-    }
-
-    //检查超时
-    private class PG_TASK {
-        String sTask = "";
-        String sParam = "";
-        int iActTime = 0;
-        int iTimeOut = 30; //超时时间
-
-        PG_TASK(String sTask, String sParam) {
-            this.sParam = sParam;
-            this.sTask = sTask;
-            iTimeOut = m_iTaskTimeOut;
-        }
-    }
-
-    private ArrayList<PG_TASK> m_listTask = new ArrayList<>();
-
-    private void TaskAdd(String sTask, String sParam) {
-        PG_TASK oTask = new PG_TASK(sTask, sParam);
-        m_listTask.add(oTask);
-    }
-
-    private PG_TASK TaskSearch(String sTask, String sParam) {
-        for (int i = 0; i < m_listTask.size(); i++) {
-            PG_TASK oTask = m_listTask.get(i);
-            if (oTask.sTask.equals(sTask) && oTask.sParam.equals(sParam)) {
-                return oTask;
-            }
-        }
-        return null;
-    }
-
-    private void TaskTimeOut(String sTask, String sParam) {
-        PG_TASK oTask = TaskSearch(sTask, sParam);
-        if (oTask == null) {
-            return;
-        }
-        oTask.iActTime++;
-
-        if (oTask.iActTime >= oTask.iTimeOut) {
-            m_listTask.remove(oTask);
-            EventProc("TimeOut", sTask, oTask.sParam);
-            return;
-        }
-        //
-        if (sTask.equals("MemberAdd")) {
-            if (VideoPeerSearch(sParam) != null) {
-                m_listTask.remove(oTask);
-                return;
-            }
-
-        } else if (sTask.equals("MemberDel")) {
-            if (VideoPeerSearch(sParam) == null) {
-                m_listTask.remove(oTask);
-                return;
-            }
-
-        } else if (sTask.equals("Leave")) {
-            if (VideoPeerSearch(m_sObjSelf) == null) {
-                m_listTask.remove(oTask);
-                return;
-            }
-        }
-
-        TimerStart("(Act){" + sTask + ":" + sParam + "}", 1, false);
-    }
-
     //
     private class PG_PEER {
 
@@ -571,11 +499,10 @@ public PG_NODE_CFG(){
 
             m_bEventEnable = true;
             m_iVideoInitFlag = 0;
-            m_iTaskTimeOut = 45;
+
 
             m_listSyncPeer.clear();
             m_listVideoPeer.clear();
-            m_listTask.clear();
 
             if (!NodeStart()) {
                 OutString("Initialize: Node start failed.");
@@ -1810,19 +1737,6 @@ public PG_NODE_CFG(){
                 return;
             } else if (sAct.equals("Relogin")) {
                 NodeLogin();
-                return;
-            }
-
-            else if (sAct.indexOf("MemberAdd") == 0) {
-                String sPeer = sAct.substring(10);
-                TaskTimeOut("MemberAdd", sPeer);
-                return;
-            } else if (sAct.indexOf("MemberDel") == 0) {
-                String sPeer = sAct.substring(10);
-                TaskTimeOut("MemberDel", sPeer);
-                return;
-            } else if (sAct.indexOf("Leave") == 0) {
-                TaskTimeOut("Leave", "");
                 return;
             }
 
