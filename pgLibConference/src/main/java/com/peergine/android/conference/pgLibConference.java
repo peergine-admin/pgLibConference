@@ -73,7 +73,7 @@ import java.util.TimerTask;
 *      如 ：Act="TimeOut",sData = "MemberAdd",sPeer 等不再上报。
 * 2 、取消利用临时用户登录代码
 * 3、取消bOpened的使用
-*
+* 4、增加Config_Node函数，在初始化前配置初始化参数。输入参数为结构体PG_NODE_CFG,具体情况可查看该结构体的注释。
 *
 *
 * */
