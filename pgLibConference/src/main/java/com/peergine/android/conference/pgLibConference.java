@@ -75,6 +75,11 @@ import java.util.TimerTask;
 * 3、取消bOpened的使用
 * 4、增加Config_Node函数，在初始化前配置初始化参数。输入参数为结构体PG_NODE_CFG,具体情况可查看该结构体的注释。
 *
+*Updata 2017/03/01 v15 prewview
+* 1 增加关于CallSend 的log打印。
+* 2 修复CallSend偶尔收不到回执CallSend事件的异常。
+* 3 优化其他问题。
+*
 *
 * */
 
