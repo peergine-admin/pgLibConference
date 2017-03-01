@@ -478,27 +478,28 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	}
 
 	//保存初次连接 ,如果程序崩溃，
-	ArrayList<String> m_PeerLink = new ArrayList<>();
-	boolean PeerLinkSearch(String sPeer){
-		for(int i=0;i<m_PeerLink.size();i++){
-			if(m_PeerLink.get(i).equals(sPeer)){
-				return true;
-			}
-		}
-		return false;
-	}
+//	ArrayList<String> m_PeerLink = new ArrayList<>();
+//	boolean PeerLinkSearch(String sPeer){
+//		for(int i=0;i<m_PeerLink.size();i++){
+//			if(m_PeerLink.get(i).equals(sPeer)){
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
 
 	//sPeer的离线消息
 	private void EventPeerSync(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序可以和此节点相互发送消息了
 		Show(sPeer+"节点建立连接");
-		if(!PeerLinkSearch(sPeer)){
-			//第一次建立连接，防止己方程序崩溃
-			m_PeerLink.add(sPeer);
-			m_Conf.MessageSend("SyncFrist:",sPeer);
-		}
-
+//		if(!PeerLinkSearch(sPeer)){
+//			//第一次建立连接，防止己方程序崩溃
+//			m_PeerLink.add(sPeer);
+//			m_Conf.MessageSend("SyncFrist:",sPeer);
+//		}
+		m_Conf.MessageSend("MessageSend test",sPeer);
+		m_Conf.CallSend("CallSend test",sPeer,"123");
 
 	}
 	//sPeer的离线消息
@@ -514,11 +515,13 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		// TODO: 2016/11/7 提醒应用程序可以和主席发送消息了
 		Show( "主席节点建立连接 Act = "+sAct+" : "+sData + " : "+sPeer);
 		m_Conf.Join();
-		if(!PeerLinkSearch(sPeer)){
-			//第一次建立连接，防止己方程序崩溃
-			m_PeerLink.add(sPeer);
-			m_Conf.MessageSend("SyncFrist:",sPeer);
-		}
+//		if(!PeerLinkSearch(sPeer)){
+//			//第一次建立连接，防止己方程序崩溃
+//			m_PeerLink.add(sPeer);
+//
+//		}
+		m_Conf.MessageSend("MessageSend test",sPeer);
+		m_Conf.CallSend("CallSend test",sPeer,"123");
 	}
 	//sPeer的离线消息
 	private void EventChairmanOffline(String sAct,String sData,String sPeer)
@@ -704,6 +707,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	private void EventCallSend(String sAct, String sData, String sPeer) {
 		// CallSend （具有回执的信息） 最终结果
+		Show("CallSend 回执 sData = "+sData);
 	}
 
 	private void EventVideoRecord(String sAct, String sData, String sPeer) {
@@ -801,7 +805,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 		//m_Conf.PreviewDestroy();
 		m_Conf.Clean();
-		m_PeerLink.clear();
+//		m_PeerLink.clear();
 	}
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

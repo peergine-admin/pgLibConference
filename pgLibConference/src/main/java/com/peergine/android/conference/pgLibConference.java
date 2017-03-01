@@ -637,8 +637,9 @@ public PG_NODE_CFG(){
      *  返回值： true 操作成功，false 操作失败
      */
     public boolean MemberAdd(String sMember) {
+        OutString("MemberAdd");
         try {
-            OutString("MemberAdd");
+
             if (!m_bChairman) {
                 OutString("MemberAdd: no Chairman");
                 return false;
@@ -723,6 +724,7 @@ public PG_NODE_CFG(){
      *  阻塞方式：非阻塞，立即返回
      */
     public boolean Join() {
+        OutString("Join");
         try {
             if (m_Node == null) {
                 OutString("pgLibConference.Join: Not initialize");
@@ -831,6 +833,7 @@ public PG_NODE_CFG(){
      *   返回值： true 操作成功，false 操作失败
      */
     public boolean VideoStart(int iFlag) {
+        OutString("->VideoStart");
         if (m_Node == null) {
             OutString("VideoStart: Not initialize");
             return false;
@@ -856,6 +859,7 @@ public PG_NODE_CFG(){
      *  阻塞方式：非阻塞，立即返回
      */
     public boolean VideoStop() {
+        OutString("->VideoStop");
         if (m_Node == null) {
             OutString("VideoStop: Not initialize");
             return false;
@@ -1011,6 +1015,7 @@ public PG_NODE_CFG(){
      *   sPeer:成员节点名
      */
     public void VideoReject(String sPeer) {
+        OutString("->VideoReject");
         if (m_Node == null) {
             OutString("VideoReject: Not initialize");
             return;
@@ -1208,7 +1213,7 @@ public PG_NODE_CFG(){
     public boolean VideoCamera(String sPeer, String sPath) {
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.VideoCamera: Not initialize");
+                OutString("VideoCamera: Not initialize");
                 return false;
             }
             if (!m_bServiceStart) {
@@ -1480,7 +1485,7 @@ public PG_NODE_CFG(){
     public boolean AudioRecord(String sPeer, String sPath) {
         try {
             if (m_Node == null) {
-                OutString("pgLibConference.AudioRecord: Not initialize");
+                OutString("AudioRecord: Not initialize");
                 return false;
             }
             if (!m_bServiceStart) {
@@ -1559,6 +1564,7 @@ public PG_NODE_CFG(){
      *  返回值： true 操作成功，false 操作失败
      */
     public boolean MessageSend(String sMsg, String sPeer) {
+        OutString("->MessageSend :MSG="+sMsg+" :sPeer= "+sPeer);
         try {
             if (m_Node == null) {
                 OutString("MessageSend: Not initialize");
@@ -1590,9 +1596,11 @@ public PG_NODE_CFG(){
      *  阻塞方式：非阻塞，立即返回
      *  sMsg：[IN] 消息内容
      *  sPeer：[IN]节点名称
+     *  sSession:[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码
      *  返回值： true 操作成功，false 操作失败
      */
     public boolean CallSend(String sMsg, String sPeer, String sSession) {
+        OutString("->CallSend :MSG="+sMsg+" :sPeer= "+sPeer);
         try {
             if (m_Node == null) {
                 OutString("CallSend: Not initialize");
@@ -1614,7 +1622,7 @@ public PG_NODE_CFG(){
 
             return true;
         } catch (Exception ex) {
-            OutString("MessageSend: ex=" + ex.toString());
+            OutString("CallSend: ex=" + ex.toString());
             return false;
         }
     }
@@ -1758,7 +1766,7 @@ public PG_NODE_CFG(){
     // Set capture extend option.
     //摄像头参数设置
     private void VideoOption() {
-        OutString("->NodeStart");
+        OutString("->VideoOption");
 
         try {
             if (m_Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
@@ -1791,7 +1799,7 @@ public PG_NODE_CFG(){
 
     //外部采集设置
     private void NodeVideoExter() {
-        OutString("->NodeStart");
+        OutString("->NodeVideoExter");
         if (m_Node == null) {
             return;
         }
@@ -1945,7 +1953,7 @@ public PG_NODE_CFG(){
 
     //重新配置节点信息
     private void NodeRedirect(String sRedirect) {
-
+        OutString("->NodeRedirect!");
         if (m_Node == null) {
             return;
         }
@@ -1979,6 +1987,7 @@ public PG_NODE_CFG(){
     }
 
     private void NodeRedirectReset(int iDelay) {
+        OutString("->NodeRedirectReset!");
         if (!m_sSvrAddr.equals(m_sInitSvrAddr)) {
             String sRedirect = "(SvrName){" + m_sInitSvrName + "}(SvrAddr){" + m_sInitSvrAddr + "}";
             NodeRedirect(sRedirect);
@@ -2211,7 +2220,7 @@ public PG_NODE_CFG(){
 
     //收到Keep
     private void KeepRecv(String sPeer) {
-        OutString("pgLibConference ->KeepRecv sPeer=" + sPeer);
+        OutString("->KeepRecv sPeer=" + sPeer);
 
         if (m_bServiceStart) {
             if (m_bChairman) {
@@ -2556,6 +2565,7 @@ public PG_NODE_CFG(){
     }
 
     private void ServerRelogin(String sData) {
+        OutString("->ServerRelogin!");
         String sError = m_Node.omlGetContent(sData, "ErrCode");
         if (sError.equals("0")) {
             String sParam = m_Node.omlGetContent(sData, "Param");
@@ -2672,7 +2682,7 @@ public PG_NODE_CFG(){
 
     //上报发送视频帧信息
     private void VideoFrameStat(String sData, String sAct) {
-
+        OutString("->VideoFrameStat");
         String sPeerTemp = m_Node.omlGetContent(sData, "Peer");
         String sFrmTotal = m_Node.omlGetContent(sData, "Total");
         String sFrmDrop = m_Node.omlGetContent(sData, "Drop");
@@ -2681,6 +2691,7 @@ public PG_NODE_CFG(){
     }
 
     private void VideoCameraReply(String sData) {
+        OutString("->VideoCameraReply");
         if (m_Node == null) {
             return;
         }
@@ -2693,6 +2704,7 @@ public PG_NODE_CFG(){
     }
 
     private void VideoRecordReply(String sData) {
+        OutString("->VideoRecordReply");
         if (m_Node == null) {
             return;
         }
@@ -2706,6 +2718,7 @@ public PG_NODE_CFG(){
 
     //服务器下发数据
     private void SvrReply(int iErr, String sData) {
+        OutString("->SvrReply");
         if (iErr != 0) {
             EventProc("SvrReplyError", iErr + "", "");
         } else {
@@ -2872,8 +2885,7 @@ public PG_NODE_CFG(){
             }
             if (sParam.indexOf("CallSend") == 0) {
                 String sSession = "";
-                int iInd = sParam.indexOf(':');
-                sSession = sData.substring(9);
+                sSession = sParam.substring(9);
                 EventProc("CallSend", sSession + ":" + iErr, sObj);
                 return 1;
             }
@@ -2904,7 +2916,7 @@ public PG_NODE_CFG(){
 
     //VideoOpen 超时清理
     private void DropPeerHelper(String sPeer) {
-
+        OutString("->DropPeerHelper");
         if (m_bApiVideoStart) {
             EventProc("VideoClose", "", sPeer);
         }
