@@ -19,7 +19,7 @@
 	
 	2、将 pgLibConference 作为模块(Module)导入你创建的工程。
 	
-	3、将 pgPluginLib 作为模块(Module)导入你创建的工程。
+	3、将 pgPluginLib 作为模块(Module)导入你创建的工程。（Tips: 如果要导入其他带SO的库，请保持平台一致，具体做法是如果其他SO库只有32位的，就将我们的64位的SO删除。如果其他SO库只有64位的就将我们的32位的删除。也可以补全不同位数的so库）。
 
 	4、在你的 Module 中添加对 pgLibConference pgPluginLib 的依赖 (在Android Studio中选定生成 app 的 Module ，点击菜单Build->Edit Libraries and Dependencies,在弹出的对话框左上角有个绿色的+号，点击选定Module Dependency).
 	

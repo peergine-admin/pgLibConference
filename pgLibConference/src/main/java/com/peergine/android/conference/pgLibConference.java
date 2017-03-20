@@ -1601,7 +1601,7 @@ public PG_NODE_CFG(){
      *  阻塞方式：非阻塞，立即返回
      *  sMsg：[IN] 消息内容
      *  sPeer：[IN]节点名称
-     *  sSession:[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码
+     *  sSession:[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码 0表示正常成功
      *  返回值： true 操作成功，false 操作失败
      */
     public boolean CallSend(String sMsg, String sPeer, String sSession) {
