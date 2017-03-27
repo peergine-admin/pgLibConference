@@ -1,2 +1,1 @@
-include ':Demo', ':pgLibConference'
-include ':pgPluginLib'
+include ':Demo', ':pgLibConference', ':pgPluginLib'
