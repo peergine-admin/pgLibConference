@@ -79,6 +79,7 @@ import java.util.TimerTask;
 * 1 增加关于CallSend 的log打印。
 * 2 修复CallSend偶尔收不到回执CallSend事件的异常。
 * 3 优化其他问题。
+* 4 修改默认心跳时间为10 秒，超过心跳时间3倍 为超时上报离线。
 *
 *
 * */
@@ -177,11 +178,14 @@ public PG_NODE_CFG(){
     private boolean m_bApiAudioStart = false;
 
     ///------------------------------------------------------------------------
-    private int m_iExpire = 5;
+
+
     //打开视频
+    private int m_iActiveExpire=10;
     private int m_iActiveStamp = 0;
 
     //同步
+    private int m_iExpire = 10;
     private int m_iKeepStamp = 0;
     private int m_iKeepChainmanStamp = 0;
 
@@ -497,7 +501,6 @@ public PG_NODE_CFG(){
             m_sObjLV = "_LV_" + m_sName;
             m_sObjA = "_A_" + m_sName;
 
-            m_iExpire = 10;
             m_iActiveStamp = 0;
             m_iKeepStamp = 0;
             m_iKeepChainmanStamp = 0;
@@ -2111,7 +2114,7 @@ public PG_NODE_CFG(){
                 }
 
                 //开始发送心跳包
-                if (TimerStart("(Act){TimerActive}", 10, false) < 0) {
+                if (TimerStart("(Act){TimerActive}", m_iActiveExpire, false) < 0) {
                     break;
                 }
                 m_iActiveStamp = 0;
@@ -2179,7 +2182,7 @@ public PG_NODE_CFG(){
             }
 
             m_iActiveStamp += 10;
-            TimerStart("(Act){TimerActive}", 10, false);
+            TimerStart("(Act){TimerActive}", m_iActiveExpire, false);
 
             if (m_listVideoPeer == null) {
                 return;
@@ -2189,7 +2192,7 @@ public PG_NODE_CFG(){
                 PG_PEER oPeer = listVideoPeer.get(i);
                 if ((!oPeer.sPeer.equals(m_sObjSelf)) && (oPeer.Node != null)) {
                     //检测心跳超时
-                    if ((m_iActiveStamp - oPeer.iActStamp) > 30 && (!oPeer.bVideoLost)) {
+                    if ((m_iActiveStamp - oPeer.iActStamp) > m_iActiveExpire*3 && (!oPeer.bVideoLost)) {
                         EventProc("VideoLost", "", oPeer.sPeer);
                         oPeer.bVideoLost = true;
                     }
@@ -2270,7 +2273,7 @@ public PG_NODE_CFG(){
                 while (i < m_listSyncPeer.size()) {
                     PG_SYNC oSync = m_listSyncPeer.get(i);
 
-                    if ((m_iKeepStamp - oSync.iKeepStamp) > m_iExpire * 2) {
+                    if ((m_iKeepStamp - oSync.iKeepStamp) > m_iExpire * (3.5)) {
                         //超时
                         //                        PeerSync(oSync.sPeer,"",0);
                         EventProc("PeerOffline", "reason=1", oSync.sPeer);
@@ -2283,7 +2286,7 @@ public PG_NODE_CFG(){
                     i++;
                 }
             } else {
-                if ((m_iKeepStamp - m_iKeepChainmanStamp) > m_iExpire * 2) {
+                if ((m_iKeepStamp - m_iKeepChainmanStamp) > m_iExpire * (3.5)) {
 
                     ChairmanAdd();
                 }
