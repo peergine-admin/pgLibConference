@@ -406,12 +406,12 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 						//m_Conf.AudioCtrlVolume(m_sChair,0,0);
 						//m_Conf.Reset(m_sGroup,"Group_member869384011853858");
 
-//						String sPath = getSDPath()+"/record.avi";
-//						m_Conf.VideoRecord(m_sChair,sPath);
-//						m_Conf.AudioRecord(m_sChair,sPath);
-						for(int i =1 ;i<memberArray.size();i++) {
-							m_Conf.AudioSpeech(memberArray.get(i).sPeer, true,false);
-						}
+						String sPath = getSDPath()+"/record.avi";
+						m_Conf.VideoRecord(m_sChair,sPath);
+						m_Conf.AudioRecord(m_sChair,sPath);
+//						for(int i =1 ;i<memberArray.size();i++) {
+//							m_Conf.AudioSpeech(memberArray.get(i).sPeer, true,false);
+//						}
 						break;
 
 
