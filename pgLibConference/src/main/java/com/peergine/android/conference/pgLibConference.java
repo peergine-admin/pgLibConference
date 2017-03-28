@@ -87,11 +87,17 @@ import java.util.TimerTask;
 
 
 public class pgLibConference {
+
     public static final int AUDIO_Speech = 0;
     public static final int AUDIO_NoSpeechSelf = 1;
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
-    private static final String LIB_VER = "14";
+
+    private static final String LIB_VER = "15";
+
+    private static final int KEEP_TIMER_INTERVAL = 2;
+    private static final int ACTIVE_TIMER_INTERVAL = 2;
+
     public static class PG_NODE_CFG{
         public int Type=0;//节点类型。不建议修改
         public int Option=1;//不建议修改
@@ -110,7 +116,7 @@ public class pgLibConference {
         public int SKTBufSize2=256;//视频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
         public int SKTBufSize3 = 64;//文件流的Socket队列长度（报文个数），取值范围：1 ~ 32768
 
-public PG_NODE_CFG(){
+        public PG_NODE_CFG(){
             Type=0;
             Option=1;
             MaxPeer=256;
@@ -124,7 +130,8 @@ public PG_NODE_CFG(){
             SKTBufSize3 = 64;
         }
     }
-    private String m_sConfig_Node= "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
+
+    private String m_sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
 
@@ -179,15 +186,15 @@ public PG_NODE_CFG(){
 
     ///------------------------------------------------------------------------
 
-
-    //打开视频
-    private int m_iActiveExpire=10;
+    // 视频连接状态检测
+    private int m_iActiveExpire = 10;
     private int m_iActiveStamp = 0;
 
-    //同步
+    // 节点连接状态检测
     private int m_iExpire = 10;
     private int m_iKeepStamp = 0;
     private int m_iKeepChainmanStamp = 0;
+    private int m_iRequestChainmanStamp = 0;
 
     private boolean m_bEventEnable = true;
     private int m_iVideoInitFlag = 0;
@@ -205,6 +212,7 @@ public PG_NODE_CFG(){
         boolean bLarge = false;
 
         int iActStamp = 0;
+        int iRequestStamp = 0;
         Boolean bVideoLost = false;
 
         pgLibJNINode Node = null;
@@ -237,10 +245,11 @@ public PG_NODE_CFG(){
     private class PG_SYNC {
         String sPeer = "";
         int iKeepStamp = 0;
+        public int iRequestStamp = 0;
 
-        PG_SYNC(String sPeer, int iKeepStamp) {
+        PG_SYNC(String sPeer, int iCurrentStamp) {
             this.sPeer = sPeer;
-            this.iKeepStamp = iKeepStamp;
+            this.iKeepStamp = iCurrentStamp;
         }
     }
 
@@ -314,10 +323,16 @@ public PG_NODE_CFG(){
      *  iExpire：[IN] 心跳间隔。
      */
     public void SetExpire(int iExpire) {
-        if (iExpire < 0) {
+        if (iExpire <= 0) {
             return;
         }
-        m_iExpire = iExpire;
+
+        if (iExpire < (KEEP_TIMER_INTERVAL * 2)) {
+            m_iExpire = (KEEP_TIMER_INTERVAL * 2);
+        }
+        else {
+            m_iExpire = iExpire;
+        }
     }
 
     /**
@@ -342,45 +357,6 @@ public PG_NODE_CFG(){
                 ";MaxObject="+mNodeCfg.MaxObject+";MaxMCast="+mNodeCfg.MaxMCast+";MaxHandle="+mNodeCfg.MaxHandle+
                 ";SKTBufSize0="+mNodeCfg.SKTBufSize0+";SKTBufSize1="+mNodeCfg.SKTBufSize1+";SKTBufSize2="+mNodeCfg.SKTBufSize2+";SKTBufSize3="+mNodeCfg.SKTBufSize3;
         return true;
-//        boolean[] bConfigs = {false,false,false,false,false,false,false,false,false,false,false};
-//        String [] sConfigs = sConfig_Node.split(";");
-//        for(int i=0;i<sConfigs.length;i++){
-//            if(sConfigs[i].indexOf("Type")==0){
-//                bConfigs[0]=true;
-//            } else if(sConfigs[i].indexOf("Option")==0){
-//                bConfigs[1]=true;
-//            }else if(sConfigs[i].indexOf("MaxPeer")==0){
-//                bConfigs[2]=true;
-//            }else if(sConfigs[i].indexOf("MaxGroup")==0){
-//                bConfigs[3]=true;
-//            }else if(sConfigs[i].indexOf("MaxObject")==0){
-//                bConfigs[4]=true;
-//            }else if(sConfigs[i].indexOf("MaxMCast")==0){
-//                bConfigs[5]=true;
-//            }else if(sConfigs[i].indexOf("MaxHandle")==0){
-//                bConfigs[6]=true;
-//            }else if(sConfigs[i].indexOf("SKTBufSize0")==0){
-//                bConfigs[7]=true;
-//            }else if(sConfigs[i].indexOf("SKTBufSize1")==0){
-//                bConfigs[8]=true;
-//            }else if(sConfigs[i].indexOf("SKTBufSize2")==0){
-//                bConfigs[9]=true;
-//            }else if(sConfigs[i].indexOf("SKTBufSize3")==0){
-//                bConfigs[10]=true;
-//            }
-//        }
-//        for (int i=0;i<bConfigs.length;i++){
-//            if(bConfigs[i]==true){
-//               switch (i){
-//                   case 0:{
-//                       sConfig_Node = "Type=0;"+sConfig_Node;
-//                       break;
-//                   }
-//               }
-//            }
-//        }
-
-
     }
     /**
      *  描述：P2P会议对象初始化函数
@@ -416,7 +392,7 @@ public PG_NODE_CFG(){
      *  返回值：true 成功， false 失败
      */
     public boolean Initialize(String sName, String sChair, String sUser, String sPass, String sSvrAddr,
-            String sRelayAddr, String sVideoParam, Context oCtx) {
+                              String sRelayAddr, String sVideoParam, Context oCtx) {
         OutString("->Initialize start");
         try {
             if (m_bInitialized) {
@@ -501,13 +477,13 @@ public PG_NODE_CFG(){
             m_sObjLV = "_LV_" + m_sName;
             m_sObjA = "_A_" + m_sName;
 
-            m_iActiveStamp = 0;
             m_iKeepStamp = 0;
+            m_iActiveStamp = 0;
             m_iKeepChainmanStamp = 0;
+            m_iRequestChainmanStamp = 0;
 
             m_bEventEnable = true;
             m_iVideoInitFlag = 0;
-
 
             m_listSyncPeer.clear();
             m_listVideoPeer.clear();
@@ -784,9 +760,6 @@ public PG_NODE_CFG(){
                 OutString("Leave: Leave group member failed err=" + iErr);
             }
 
-//            String sParam = "(Act){Leave}";
-//            TaskAdd("Leave", "");
-//            TimerStart(sParam, 1, false);
         } catch (Exception ex) {
             OutString("Leave: ex=" + ex.toString());
         }
@@ -992,7 +965,7 @@ public PG_NODE_CFG(){
         }
     }
 
- /**
+    /**
      *  描述：打开某一成员的视频
      *  阻塞方式：非阻塞，立即返回
      *   返回值： true 操作成功，false 操作失败
@@ -1261,7 +1234,7 @@ public PG_NODE_CFG(){
         return true;
     }
 
-    
+
 
     /*
        * 描述：开始录制 sPeer 节点的视频
@@ -1406,11 +1379,11 @@ public PG_NODE_CFG(){
         return true;
 
     }
-   
+
     public void AudioSpeechDisable(int iDisableMode) {
         m_iAudioSpeechDisable = iDisableMode;
     }
-     //使指定peer端不播放本端的音频
+    //使指定peer端不播放本端的音频
     /**
      *  描述：控制某个节点是否能播放本节点的音频，本节点能播放对方的音频
      *  阻塞方式：非阻塞，立即返回
@@ -1452,7 +1425,7 @@ public PG_NODE_CFG(){
             if (iErr > 0) {
                 OutString("Speech: Set Speech, iErr=" + iErr);
             }
-            
+
             return true;
         } catch (Exception ex) {
             OutString("Speech: ex=" + ex.toString());
@@ -1931,7 +1904,7 @@ public PG_NODE_CFG(){
             OutString("NodeLogin: Login failed. iErr=" + iErr);
             return false;
         }
-       
+
         return true;
     }
 
@@ -1956,7 +1929,7 @@ public PG_NODE_CFG(){
 
         NodeLogout();
         TimerStart("(Act){Relogin}", iDelay, false);
-        
+
     }
 
     //重新配置节点信息
@@ -2113,24 +2086,33 @@ public PG_NODE_CFG(){
                     break;
                 }
 
-                //开始发送心跳包
-                if (TimerStart("(Act){TimerActive}", m_iActiveExpire, false) < 0) {
+                // 开始视频连接状态检测定时器
+                if (TimerStart("(Act){TimerActive}", ACTIVE_TIMER_INTERVAL, false) < 0) {
                     break;
                 }
                 m_iActiveStamp = 0;
 
-                if (TimerStart("(Act){Keep}", m_iExpire, false) < 0) {
+                // 开始节点连接状态检测定时器。
+                if (TimerStart("(Act){Keep}", KEEP_TIMER_INTERVAL, false) < 0) {
                     break;
                 }
-                m_iKeepChainmanStamp = 0;
                 m_iKeepStamp = 0;
+
+                // 成员端检测主席端的状态时戳
+                m_iKeepChainmanStamp = 0;
+                m_iRequestChainmanStamp = 0;
+
                 m_bServiceStart = true;
                 return true;
+
             } while (false);
+
             ServiceStop();
+
         } catch (Exception ex) {
             OutString("->ServiceStart ex = " + ex.toString());
         }
+
         return false;
     }
 
@@ -2181,25 +2163,30 @@ public PG_NODE_CFG(){
                 return;
             }
 
-            m_iActiveStamp += 10;
-            TimerStart("(Act){TimerActive}", m_iActiveExpire, false);
+            m_iActiveStamp += ACTIVE_TIMER_INTERVAL;
+            TimerStart("(Act){TimerActive}", ACTIVE_TIMER_INTERVAL, false);
 
             if (m_listVideoPeer == null) {
                 return;
             }
+
             ArrayList<PG_PEER> listVideoPeer = (ArrayList<PG_PEER>) m_listVideoPeer.clone();
             for (int i = 0; i < listVideoPeer.size(); i++) {
+
                 PG_PEER oPeer = listVideoPeer.get(i);
                 if ((!oPeer.sPeer.equals(m_sObjSelf)) && (oPeer.Node != null)) {
-                    //检测心跳超时
-                    if ((m_iActiveStamp - oPeer.iActStamp) > m_iActiveExpire*3 && (!oPeer.bVideoLost)) {
+
+                    // 超过3倍心跳周期，没有接收到对端的心跳应答，说明与对端之间连接断开了
+                    if ((m_iActiveStamp - oPeer.iActStamp) > (m_iActiveExpire * 3) && (!oPeer.bVideoLost)) {
                         EventProc("VideoLost", "", oPeer.sPeer);
                         oPeer.bVideoLost = true;
                     }
 
-                    //视频打开发送心跳
-                    //给各连接的节点发送心跳
-                    m_Node.ObjectRequest(oPeer.sPeer, 36, "Active?", "pgLibConference.MessageSend");
+                    // 每个心跳周期发送一个心跳请求给对端
+                    if ((m_iActiveStamp - oPeer.iRequestStamp) >= m_iActiveExpire) {
+                        m_Node.ObjectRequest(oPeer.sPeer, 36, "Active?", "pgLibConference.MessageSend");
+                        oPeer.iRequestStamp = m_iActiveStamp;
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -2248,7 +2235,7 @@ public PG_NODE_CFG(){
 
     //成员端登录后与主席端连接保存
     private void Keep() {
-        OutString("->Keep TimeOut");
+        //OutString("->Keep TimeOut");
 
         try {
             if (m_Node == null) {
@@ -2258,13 +2245,13 @@ public PG_NODE_CFG(){
             if (!m_bServiceStart) {
                 m_iKeepStamp = 0;
                 m_iKeepChainmanStamp = 0;
+                m_iRequestChainmanStamp = 0;
                 m_listSyncPeer.clear();
                 return;
             }
 
-            m_iKeepStamp += m_iExpire;
-
-            TimerStart("(Act){Keep}", m_iExpire, false);
+            m_iKeepStamp += KEEP_TIMER_INTERVAL;
+            TimerStart("(Act){Keep}", KEEP_TIMER_INTERVAL, false);
 
             if (m_bChairman) {
 
@@ -2273,22 +2260,32 @@ public PG_NODE_CFG(){
                 while (i < m_listSyncPeer.size()) {
                     PG_SYNC oSync = m_listSyncPeer.get(i);
 
-                    if ((m_iKeepStamp - oSync.iKeepStamp) > m_iExpire * (3.5)) {
-                        //超时
-                        //                        PeerSync(oSync.sPeer,"",0);
+                    // 超过3倍心跳周期，没有接收到成员端的心跳应答，说明成员端之间连接断开了
+                    if ((m_iKeepStamp - oSync.iKeepStamp) > (m_iExpire * 3)) {
                         EventProc("PeerOffline", "reason=1", oSync.sPeer);
                         PeerDelete(oSync.sPeer);
                         m_listSyncPeer.remove(i);
                         continue;
                     }
 
-                    m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "pgLibConference.MessageSend");
+                    // 每个心跳周期发送一个心跳请求给成员端
+                    if ((m_iKeepStamp - oSync.iRequestStamp) >= m_iExpire) {
+                        m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "pgLibConference.MessageSend");
+                        oSync.iRequestStamp = m_iKeepStamp;
+                    }
+
                     i++;
                 }
-            } else {
-                if ((m_iKeepStamp - m_iKeepChainmanStamp) > m_iExpire * (3.5)) {
+            }
+            else {
+                // 超过3倍心跳周期，没有接收到主席端的心跳请求，说明主席端之间连接断开了
+                if ((m_iKeepStamp - m_iKeepChainmanStamp) > (m_iExpire * 3)) {
 
-                    ChairmanAdd();
+                    // 每个心跳周期尝试一次连接主席端
+                    if ((m_iKeepStamp - m_iRequestChainmanStamp) >= m_iExpire) {
+                        m_iRequestChainmanStamp = m_iKeepStamp;
+                        ChairmanAdd();
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -2300,21 +2297,21 @@ public PG_NODE_CFG(){
     //视频相关初始化
     private boolean VideoInit(int iFlag) {
         OutString("->VideoInit iFlag = " + iFlag);
-        
+
         this.VideoOption();
         m_iVideoInitFlag = iFlag;
         int uFlag = 0x10000 | 0x1 | 0x10 | 0x20;
         switch (iFlag) {
-        case pgVideoPutMode.OnlyInput: {
-            uFlag = uFlag | 0x4;
-            break;
-        }
-        case pgVideoPutMode.OnlyOutput: {
-            uFlag = uFlag | 0x8;
-            break;
-        }
-        case pgVideoPutMode.Normal:
-        default:
+            case pgVideoPutMode.OnlyInput: {
+                uFlag = uFlag | 0x4;
+                break;
+            }
+            case pgVideoPutMode.OnlyOutput: {
+                uFlag = uFlag | 0x8;
+                break;
+            }
+            case pgVideoPutMode.Normal:
+            default:
         }
 
         //预览
@@ -2407,18 +2404,18 @@ public PG_NODE_CFG(){
         OutString("->AudioInit");
         int uFlag = 0x10000 | 0x01;
         switch (m_iAudioSpeechDisable) {
-        case 1:
-            uFlag = uFlag | 0x0020;
-            break;
-        case 2:
-            uFlag = uFlag | 0x0040;
-            break;
-        case 3:
-            uFlag = uFlag | 0x0020 | 0x0040;
-            break;
-        case 0:
-        default:
-            break;
+            case 1:
+                uFlag = uFlag | 0x0020;
+                break;
+            case 2:
+                uFlag = uFlag | 0x0040;
+                break;
+            case 3:
+                uFlag = uFlag | 0x0020 | 0x0040;
+                break;
+            case 0:
+            default:
+                break;
         }
 
         if (!this.m_Node.ObjectAdd(this.m_sObjA, "PG_CLASS_Audio", this.m_sObjG, uFlag)) {
@@ -2506,7 +2503,7 @@ public PG_NODE_CFG(){
                     }
                 }
                 return 0;
-           
+
             } else if (sCmd.equals("Keep")) {
                 KeepRecv(sPeer);
             }
@@ -2765,7 +2762,7 @@ public PG_NODE_CFG(){
                 } else if (uMeth == 47) {
                     //ID冲突 被踢下线了
                     EventProc("Logout", "47", "");
-                } 
+                }
                 return 0;
             } else if (sObj.equals(this.m_sObjChair)) {
 
@@ -2779,7 +2776,7 @@ public PG_NODE_CFG(){
                     String sMeth = this.m_Node.omlGetContent(sData, "Meth");
                     if (sMeth.equals("34")) {
                         String sError = this.m_Node.omlGetContent(sData, "Error");
-                        
+
                         PeerOffline(sObj, sError);
                         KeepDel(sObj);
                     }
@@ -2884,7 +2881,7 @@ public PG_NODE_CFG(){
             if (sObj.equals(m_sObjSvr)) {
                 if (sParam.equals("NodeLogin")) {
                     NodeLoginReply(iErr, sData);
-                } 
+                }
                 else if (sParam.equals("SvrRequest")) {
                     SvrReply(iErr, sData);
                 }
