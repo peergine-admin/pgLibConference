@@ -352,10 +352,17 @@ public class pgLibConference {
         }
 
 
-        m_sConfig_Node = "Type="+mNodeCfg.Type+";Option="+mNodeCfg.Option+
-                ";MaxPeer="+mNodeCfg.MaxPeer+";MaxGroup="+mNodeCfg.MaxGroup+
-                ";MaxObject="+mNodeCfg.MaxObject+";MaxMCast="+mNodeCfg.MaxMCast+";MaxHandle="+mNodeCfg.MaxHandle+
-                ";SKTBufSize0="+mNodeCfg.SKTBufSize0+";SKTBufSize1="+mNodeCfg.SKTBufSize1+";SKTBufSize2="+mNodeCfg.SKTBufSize2+";SKTBufSize3="+mNodeCfg.SKTBufSize3;
+        m_sConfig_Node = "Type="+mNodeCfg.Type+
+                ";Option="+mNodeCfg.Option+
+                ";MaxPeer="+mNodeCfg.MaxPeer+
+                ";MaxGroup="+mNodeCfg.MaxGroup+
+                ";MaxObject="+mNodeCfg.MaxObject+
+                ";MaxMCast="+mNodeCfg.MaxMCast+
+                ";MaxHandle="+mNodeCfg.MaxHandle+
+                ";SKTBufSize0="+mNodeCfg.SKTBufSize0+
+                ";SKTBufSize1="+mNodeCfg.SKTBufSize1+
+                ";SKTBufSize2="+mNodeCfg.SKTBufSize2+
+                ";SKTBufSize3="+mNodeCfg.SKTBufSize3;
         return true;
     }
     /**
