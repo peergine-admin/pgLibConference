@@ -401,27 +401,25 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 						m_Conf.SetEventListener(m_OnEvent);
 						PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
 
-						mNodeCfg.MaxPeer = 1024;
-						mNodeCfg.MaxObject = 2048;
-						mNodeCfg.MaxMCast = 2048;
-						mNodeCfg.MaxHandle= 512;
+//						mNodeCfg.MaxPeer = 1024;
+//						mNodeCfg.MaxObject = 2048;
+//						mNodeCfg.MaxMCast = 2048;
+//						mNodeCfg.MaxHandle= 512;
 
 						m_Conf.ConfigNode(mNodeCfg);
 
 					}
 					if(bChair) {
 						pgChairInit();
-						m_Conf.AudioCtrlVolume("", 1, 40);
-						SetVolumeGate(50);
-						SetAudioSuppress(1,3,4);
+//						m_Conf.AudioCtrlVolume("", 1, 40);
 					}
 					else {
 						pgMembInit();
-						m_Conf.AudioCtrlVolume("", 1, 60);
-						SetVolumeGate(50);
-						SetAudioSuppress(1,3,4);
-					}
+//						m_Conf.AudioCtrlVolume("", 1, 60);
 
+					}
+					SetVolumeGate(1);
+					SetAudioSuppress(0,0,0);
 					//初始化定时器
 					m_Node= m_Conf.GetNode();
 					m_Conf.TimerOutAdd(timerOut);
