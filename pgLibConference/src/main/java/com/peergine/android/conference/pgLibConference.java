@@ -241,6 +241,7 @@ public class pgLibConference {
     }
 
     private ArrayList<PG_PEER> m_listVideoPeer = new ArrayList<PG_PEER>();
+    private ArrayList<String> m_listLostPeer = new ArrayList<>();
 
     private class PG_SYNC {
         String sPeer = "";
@@ -2177,15 +2178,16 @@ public class pgLibConference {
                 return;
             }
 
-            ArrayList<PG_PEER> listVideoPeer = (ArrayList<PG_PEER>) m_listVideoPeer.clone();
-            for (int i = 0; i < listVideoPeer.size(); i++) {
+            m_listLostPeer.clear();
+//            ArrayList<PG_PEER> listVideoPeer = (ArrayList<PG_PEER>) m_listVideoPeer.clone();
+            for (int i = 0; i < m_listVideoPeer.size(); i++) {
 
-                PG_PEER oPeer = listVideoPeer.get(i);
+                PG_PEER oPeer = m_listVideoPeer.get(i);
                 if ((!oPeer.sPeer.equals(m_sObjSelf)) && (oPeer.Node != null)) {
 
                     // 超过3倍心跳周期，没有接收到对端的心跳应答，说明与对端之间连接断开了
                     if ((m_iActiveStamp - oPeer.iActStamp) > (m_iActiveExpire * 3) && (!oPeer.bVideoLost)) {
-                        EventProc("VideoLost", "", oPeer.sPeer);
+                        m_listLostPeer.add(oPeer.sPeer);
                         oPeer.bVideoLost = true;
                     }
 
@@ -2195,6 +2197,11 @@ public class pgLibConference {
                         oPeer.iRequestStamp = m_iActiveStamp;
                     }
                 }
+            }
+            int i=0;
+            while (i< m_listLostPeer.size()){
+                EventProc("VideoLost", "", m_listLostPeer.get(i));
+                i++;
             }
         } catch (Exception ex) {
             OutString("TimerActive: ex=" + ex.toString());

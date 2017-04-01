@@ -66,7 +66,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	private String sSvr ="connect.peergine.com:7781";
 	private String m_sMemb = "";
 
-	private pgLibConference m_Conf = new pgLibConference();
+	private pgLibConference m_Conf = null;
 	private pgLibJNINode m_Node = null;
 
 	private int RIDLaout[]={R.id.layoutVideoS1,R.id.layoutVideoS2,R.id.layoutVideoS3};
@@ -212,17 +212,14 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 		m_btntest=(Button) findViewById(R.id.button);
 		m_btntest.setOnClickListener(m_OnClink);
-		m_Conf.SetEventListener(m_OnEvent);
+
 
 		//显示一些信息
 		text_info= (TextView) findViewById(R.id.text_info);
 
 
 //		String sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
-		PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
-		mNodeCfg.MaxMCast=512;
 
-		m_Conf.ConfigNode(mNodeCfg);
 		//m_listMember.setAdapter(new ArrayAdapter<String>(this, R.id.linearLayoutMain, data));
 	}
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -399,6 +396,19 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			switch (args0.getId()) {
 				case R.id.btn_Start:
 					m_bVideoStart = false;
+					if(m_Conf==null){
+						m_Conf= new pgLibConference();
+						m_Conf.SetEventListener(m_OnEvent);
+						PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
+
+						mNodeCfg.MaxPeer = 1024;
+						mNodeCfg.MaxObject = 2048;
+						mNodeCfg.MaxMCast = 2048;
+						mNodeCfg.MaxHandle= 512;
+
+						m_Conf.ConfigNode(mNodeCfg);
+
+					}
 					if(bChair) {
 						pgChairInit();
 						m_Conf.AudioCtrlVolume("", 1, 40);
