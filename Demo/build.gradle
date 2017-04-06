@@ -1,7 +1,9 @@
 apply plugin: 'com.android.application'
+
 def releaseTime() {
     return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
 }
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
@@ -28,6 +30,7 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.3.0'
     compile project(':pgLibConference')
+    compile 'com.android.support:appcompat-v7:25.3.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
 }

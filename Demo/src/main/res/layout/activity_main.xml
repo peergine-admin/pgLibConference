@@ -84,28 +84,7 @@
         </LinearLayout>
 
         </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-           >
 
-            <CheckBox
-                android:text="@string/str_chairman"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingRight="30dp"
-                android:id="@+id/checkBox" />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Start"
-                android:id="@+id/btn_Start" />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Clean"
-                android:id="@+id/btn_Clean" />
-        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -119,27 +98,33 @@
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/editText_name"
+                android:id="@+id/editText_chair"
                 android:text=""
                 android:inputType=""
                 android:hint="请找客服申请测试ID" />
             </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:weightSum="1">
+            android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="自己ID：" />
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/editText_user"
-            android:text=""
-            android:inputType=""
-            android:hint="请找客服申请测试ID" />
+            <Button
+                android:id="@+id/btn_Start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start" />
+
+            <Button
+                android:id="@+id/btn_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stop" />
+
+            <Button
+                android:id="@+id/btn_Clean"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clean" />
         </LinearLayout>
 
         <LinearLayout

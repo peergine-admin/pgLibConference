@@ -3,6 +3,7 @@ package com.peergine.conference.demo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
@@ -14,12 +15,9 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
 import com.peergine.android.conference.pgVideoPutMode;
@@ -56,25 +54,32 @@ import static com.peergine.android.conference.pgLibConference.TimerOut;
  *
  */
 
-public class MainActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
+public class MainActivity extends Activity {
 
 	private String m_sGroup = "";
 	private String m_sChair = "";
+
 	private String m_sUser = "";
 	private String m_sPass = "";
-//	private String sSvr ="192.168.8.16:7781";
-	private String sSvr ="connect.peergine.com:7781";
+//	private String m_sSvrAddr ="192.168.8.16:7781";
+	private String m_sSvrAddr ="connect.peergine.com:7781";
+	private String m_sRelayAddr = "";
+	private String m_sVideoParam=
+			"(Code){3}(Mode){2}(FrmRate){40}" +
+					"(LCode){3}(LMode){3}(LFrmRate){30}" +
+					"(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
+					"(AudioSpeechDisable){0}";
 	private String m_sMemb = "";
 
 	private pgLibConference m_Conf = null;
 	private pgLibJNINode m_Node = null;
 
 	private int RIDLaout[]={R.id.layoutVideoS1,R.id.layoutVideoS2,R.id.layoutVideoS3};
-	EditText m_editText_name=null;
-	CheckBox m_CheckBox=null;
-	EditText m_editText_User = null;
+
+	private EditText m_editchair =null;
 
 	private Button m_btnStart = null;
+	private Button m_btnStop = null;
 	private Button m_btnClean = null;
 
 	private EditText m_editText_Notify =null;
@@ -82,16 +87,11 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	private TextView text_info = null;
 
-	private boolean bChair = false;
-	private String m_sVideoParam=
-			"(Code){3}(Mode){2}(FrmRate){40}" +
-			"(LCode){3}(LMode){3}(LFrmRate){30}" +
-			"(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
-			"(AudioSpeechDisable){0}";
 	private Button m_btntest=null;
 
 	LinearLayout PreviewLayout=null;
 	private SurfaceView m_Preview=null;
+
 	//R.id.layoutVideoS0,
 
 	class PG_MEMB{
@@ -193,13 +193,14 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //		textView.requestFocus();
 
 		//初始化控件
-		m_editText_name=(EditText)findViewById(R.id.editText_name);
-		m_editText_User = (EditText) findViewById(R.id.editText_user);
-		m_CheckBox = (CheckBox)findViewById(R.id.checkBox);
-		m_CheckBox.setOnCheckedChangeListener(this);
+
+		m_editchair = (EditText) findViewById(R.id.editText_chair);
+
 		m_btnStart = (Button) findViewById(R.id.btn_Start);
 		m_btnStart.setOnClickListener(m_OnClink);
 
+		m_btnStop = (Button) findViewById(R.id.btn_stop);
+		m_btnStop.setOnClickListener(m_OnClink);
 
 		m_btnClean =(Button) findViewById(R.id.btn_Clean);
 		m_btnClean.setOnClickListener(m_OnClink);
@@ -219,8 +220,51 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 
 //		String sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
+		Intent intent = getIntent();
+		m_sUser = 			intent.getStringExtra("User");
+		m_sPass =			intent.getStringExtra("User");
+		m_sSvrAddr = 		intent.getStringExtra("SvrAddr");
+		m_sRelayAddr = 	intent.getStringExtra("RelayAddr");
+		m_sVideoParam = 	intent.getStringExtra("VideoParam");
 
-		//m_listMember.setAdapter(new ArrayAdapter<String>(this, R.id.linearLayoutMain, data));
+		int iExpire = 		ParseInt(intent.getStringExtra("Expire"),10);
+		int iMaxPeer = 		ParseInt(intent.getStringExtra("MaxPeer"),256);
+		int iMaxObject = 	ParseInt(intent.getStringExtra("MaxObject"),512);
+		int iMaxMCast = 	ParseInt(intent.getStringExtra("MaxMCast"),512);
+		int iMaxHandle = 	ParseInt(intent.getStringExtra("MaxHandle"),256);
+
+		if(m_Conf==null){
+			m_Conf= new pgLibConference();
+			m_Conf.SetEventListener(m_OnEvent);
+
+			m_Conf.SetExpire(iExpire);
+			PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
+
+				mNodeCfg.MaxPeer = iMaxPeer;
+				mNodeCfg.MaxObject = iMaxObject;
+				mNodeCfg.MaxMCast = iMaxMCast;
+				mNodeCfg.MaxHandle= iMaxHandle;
+
+			m_Conf.ConfigNode(mNodeCfg);
+
+		}
+		if(!m_Conf.Initialize(m_sUser,m_sPass,m_sSvrAddr,m_sRelayAddr,m_sVideoParam,this)) {
+			Log.d("pgConference", "Init failed");
+			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
+			finish();
+			return;
+		};
+
+		m_Preview= m_Conf.PreviewCreate(160, 120);
+		PreviewLayout.removeAllViews();
+		PreviewLayout.addView(m_Preview);
+
+
+		SetVolumeGate(1);
+		SetAudioSuppress(0,0,0);
+		//初始化定时器
+		m_Node= m_Conf.GetNode();
+		m_Conf.TimerOutAdd(timerOut);
 	}
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
@@ -301,18 +345,6 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-
-		//清理会议模块，先关闭视频 再关闭预览 然后Clean
-		for(int i=3;i>=0;i--)
-		{
-			PG_MEMB oMemb=memberArray.get(i);
-			if(!oMemb.sPeer.equals(""))
-			{
-				m_Conf.VideoClose(oMemb.sPeer);
-			}
-		}
-		m_Conf.PreviewDestroy();
-		m_Conf.Clean();
 	}
 
 	// 设置设备的麦克风的采样率。
@@ -346,7 +378,8 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		{
 			sdDir = Environment.getExternalStorageDirectory();//获取跟目录
 		}
-		return sdDir.toString();
+
+		return (sdDir==null)?"":sdDir.toString();
 
 	}
 	private void Show(String s){
@@ -396,38 +429,27 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 			switch (args0.getId()) {
 				case R.id.btn_Start:
 					m_bVideoStart = false;
-					if(m_Conf==null){
-						m_Conf= new pgLibConference();
-						m_Conf.SetEventListener(m_OnEvent);
-						PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
 
-//						mNodeCfg.MaxPeer = 1024;
-//						mNodeCfg.MaxObject = 2048;
-//						mNodeCfg.MaxMCast = 2048;
-//						mNodeCfg.MaxHandle= 512;
-
-						m_Conf.ConfigNode(mNodeCfg);
-
-					}
-					if(bChair) {
-						pgChairInit();
+//					if(bChair) {
+//						pgChairInit();
 //						m_Conf.AudioCtrlVolume("", 1, 40);
-					}
-					else {
-						pgMembInit();
-//						m_Conf.AudioCtrlVolume("", 1, 60);
+//					}
+//					else {
+//						pgMembInit();
+////						m_Conf.AudioCtrlVolume("", 1, 60);
+//
+//					}
 
-					}
-					SetVolumeGate(1);
-					SetAudioSuppress(0,0,0);
-					//初始化定时器
-					m_Node= m_Conf.GetNode();
-					m_Conf.TimerOutAdd(timerOut);
 
+					pgStart();
 					m_btnStart.setEnabled(false);
 					Log.d("OnClink", "init button");
 					break;
-
+				case R.id.btn_stop:
+					pgStop();
+					m_btnStart.setEnabled(true);
+					Log.d("OnClink", "MemberAdd button");
+					break;
 				case R.id.btn_Clean:
 					pgClean();
 					m_btnStart.setEnabled(true);
@@ -770,12 +792,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	//选择成为主席端的初始化方式
 	private void pgChairInit() {
-		if(m_editText_name.getText().toString().equals(""))
-		{
-			Toast.makeText(this,"请在“主席ID”处输入一个测试ID",Toast.LENGTH_SHORT).show();
-		}
-		m_sGroup=m_editText_name.getText().toString().trim();
-		m_editText_User.setText(m_sGroup);
+
 		m_sChair=m_sGroup;
 		m_sUser = m_sChair;
 		//m_sUser = "";
@@ -785,7 +802,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 		}
 
 		if (!m_Conf.Initialize( m_sGroup, m_sChair, m_sUser, "",
-				sSvr, "", m_sVideoParam, this)) {
+				m_sSvrAddr, "", m_sVideoParam, this)) {
 			Log.d("pgConference", "Init failed");
 			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
 			return;
@@ -801,17 +818,7 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 
 	//选择成为成员端的初始化方式
 	private void pgMembInit() {
-		if(m_editText_name.getText().toString().equals(""))
-		{
-			Toast.makeText(this,"请在“主席ID”处输入一个测试ID",Toast.LENGTH_SHORT).show();
-			return;
-		}
-		if(m_editText_User.getText().toString().equals(""))
-		{
-			Toast.makeText(this,"请在“自己ID”处输入另一个测试ID",Toast.LENGTH_SHORT).show();
-			return;
-		}
-		m_sGroup=m_editText_name.getText().toString().trim();
+
 		m_sChair=m_sGroup;
 
 		//为了方便演示以及 避免ID重复，做了随机数
@@ -820,14 +827,13 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //		TelephonyManager tm = (TelephonyManager) this.getSystemService(TELEPHONY_SERVICE);
 
 //		@SuppressLint("HardwareIds") String IMEI =tm.getDeviceId();;
-		m_sUser = m_editText_User.getText().toString().trim();
 		if ( m_sUser.equals("")||m_sChair.equals("")) {
 			Log.e("Init", "Param Err");
 			return;
 		}
 
 		if (!m_Conf.Initialize( m_sGroup, m_sChair, m_sUser, "",
-				sSvr, "", m_sVideoParam, this)) {
+				m_sSvrAddr, "", m_sVideoParam, this)) {
 			Log.d("pgConference", "Init failed");
 			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
 			return;
@@ -840,11 +846,31 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 //        m_Conf.AudioCtrlVolume("_DEV_"+m_sUser,0,80);
 
 	}
-	//结束会议模块
-	private void pgClean()
-	{
-		m_Conf.TimerOutDel(timerOut);
-		m_Node=null;
+
+	private static int ParseInt(String sInt, int iDef) {
+		try {
+			if (sInt.equals("")) {
+				return 0;
+			}
+			return Integer.parseInt(sInt);
+		} catch (Exception ex) {
+			return iDef;
+		}
+	}
+
+	private void pgStart(){
+		m_sChair = m_editchair.getText().toString().trim();
+		if(m_sChair.equals("")){
+			Alert("错误","主席端ID不能为空。");
+		}
+		String sName = m_sChair;
+		m_Conf.Start(sName,m_sChair);
+		m_Conf.VideoStart(pgVideoPutMode.Normal);
+		m_Conf.AudioStart();
+	}
+
+	private void pgStop(){
+
 		for(int i=0;i<memberArray.size();i++)
 		{
 			PG_MEMB oMemb=memberArray.get(i);
@@ -852,25 +878,27 @@ public class MainActivity extends Activity implements CompoundButton.OnCheckedCh
 				pgVideoClose(oMemb.sPeer);
 			}
 		}
+		m_Conf.AudioStop();
+		m_Conf.VideoStop();
+		m_Conf.Stop();
+
+	}
+
+
+	//结束会议模块
+	private void pgClean()
+	{
+		pgStop();
+		m_Conf.TimerOutDel(timerOut);
+		m_Node=null;
+
 		m_Conf.VideoStop();
 		m_Conf.AudioStop();
 
 		//m_Conf.PreviewDestroy();
 		m_Conf.Clean();
+		finish();
 //		m_PeerLink.clear();
-	}
-	@Override
-	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		if(isChecked)
-		{
-			bChair=true;
-			m_editText_User.setEnabled(false);
-		}
-		else
-		{
-			bChair=false;
-			m_editText_User.setEnabled(true);
-		}
 	}
 
 	//搜索成员列表
