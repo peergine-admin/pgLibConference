@@ -18,13 +18,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
 import com.peergine.android.conference.pgVideoPutMode;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
@@ -84,6 +87,9 @@ public class MainActivity extends Activity {
 	private Button m_btnNotifySend= null;
 	private TextView text_info = null;
 	private Button m_btntest=null;
+    private Button m_btn_recordstart=null;
+    private Button m_btn_recordstop=null;
+
 	private LinearLayout PreviewLayout=null;
 	private SurfaceView m_Preview=null;
 
@@ -209,7 +215,11 @@ public class MainActivity extends Activity {
 		m_btntest=(Button) findViewById(R.id.button);
 		m_btntest.setOnClickListener(m_OnClink);
 
+        m_btn_recordstart=(Button) findViewById(R.id.btn_recordstart);
+        m_btn_recordstart.setOnClickListener(m_OnClink);
 
+        m_btn_recordstop=(Button) findViewById(R.id.btn_recordstop);
+        m_btn_recordstop.setOnClickListener(m_OnClink);
 		//显示一些信息
 		text_info= (TextView) findViewById(R.id.text_info);
 
@@ -470,24 +480,35 @@ public class MainActivity extends Activity {
 						//		+ "}(Msg){" + m_Conf.GetNode().omlEncode("hello chairman") + "}");
 						//m_Conf.AudioCtrlVolume(m_sChair,0,0);
 						//m_Conf.Reset(m_sGroup,"Group_member869384011853858");
+                        Date currentTime = new Date();
+                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                        String sDate = formatter.format(currentTime);
+						String sPath = getSDPath()+"/record"+sDate+".avi";
+						m_Conf.VideoRecordStart(m_sChair,sPath);
+						m_Conf.AudioRecordStart(m_sChair,sPath);
 
-						String sPath = getSDPath()+"/record.avi";
-						m_Conf.VideoRecord(m_sChair,sPath);
-						m_Conf.AudioRecord(m_sChair,sPath);
-//						for(int i =1 ;i<memberArray.size();i++) {
-//							m_Conf.AudioSpeech(memberArray.get(i).sPeer, true,false);
-//						}
 						break;
 
-
-//						if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
-//							setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-//						}
-//						else if(getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-//						{
-//							setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-//						}
 					}
+                case R.id.btn_recordstart:{
+                    Date currentTime = new Date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                    String sDate = formatter.format(currentTime);
+                    String sPath = getSDPath()+"/record"+sDate+".avi";
+                    if((!m_Conf.VideoRecordStart(m_sChair,sPath))|| (!m_Conf.AudioRecordStart(m_sChair,sPath))){
+						Toast.makeText(getApplication(),"录像失败。 已经关闭",Toast.LENGTH_SHORT).show();
+						m_Conf.VideoRecordStop(m_sChair);
+						m_Conf.AudioRecordStop(m_sChair);
+                    }
+
+                   ;
+                    break;
+                }
+                case R.id.btn_recordstop:{
+                    m_Conf.VideoRecordStop(m_sChair);
+                    m_Conf.AudioRecordStop(m_sChair);
+                    break;
+                }
 				default:
 
 					break;

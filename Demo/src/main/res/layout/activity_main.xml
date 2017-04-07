@@ -128,7 +128,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="387dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
             <TextView
@@ -148,10 +148,28 @@
                 android:id="@+id/btn_notifysend" />
 
             <Button
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:id="@+id/button"
-                android:layout_weight="1" />
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="test" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="recordstart"
+                android:id="@+id/btn_recordstart" />
+
+            <Button
+                android:id="@+id/btn_recordstop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="recordstop" />
         </LinearLayout>
         <ScrollView
             android:layout_width="match_parent"

@@ -1323,7 +1323,7 @@ public class pgLibConference {
                 sPeer = "_DEV_" + sPeer;
             }
             String sPathTemp = sPath;
-            if (sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
+            if ((!sPathTemp.equals(""))&&sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
                 sPathTemp += ".avi";
             }
 
@@ -1535,7 +1535,7 @@ public class pgLibConference {
                 sPeer = "_DEV_" + sPeer;
             }
             String sPathTemp = sPath;
-            if (sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
+            if ((!sPathTemp.equals(""))&&sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
                 sPathTemp += ".avi";
             }
 
