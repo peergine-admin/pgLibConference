@@ -75,11 +75,25 @@ import java.util.TimerTask;
 * 3、取消bOpened的使用
 * 4、增加Config_Node函数，在初始化前配置初始化参数。输入参数为结构体PG_NODE_CFG,具体情况可查看该结构体的注释。
 *
-*Updata 2017/03/01 v15 prewview
+* Updata 2017/03/01 v15
 * 1 增加关于CallSend 的log打印。
 * 2 修复CallSend偶尔收不到回执CallSend事件的异常。
 * 3 优化其他问题。
 * 4 修改默认心跳时间为10 秒，超过心跳时间3倍 为超时上报离线。
+* 5 修改心跳定时器的启动频率。
+*
+*  updata 2017/4/7 v16 prewview
+*  添加功能：
+*       添加重载Initialze方法，增加一种初始化方式，初始化后只登陆，而不开始会议。原有Initialze 初始化登陆的同时开始会议。
+*       增加Start 方法，会议没有开始时，开始会议。初始化会议相关的视音频数据通道。
+*       增加Stop 方法，会议的相关逻辑，停止会议。清理会议视音频，消息发送等相关数据。
+*  升级功能：
+*       升级SetExpire 方法 设置心跳间隔，当设置为0时 关闭心跳。 请保持各端心跳设置一致，如果不同可能导致误报离线状态。
+*
+*  其他升级：
+*       对SDK进行了数据结构的优化。
+*
+*  已知问题：
 *
 *
 * */
@@ -93,7 +107,7 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
 
-    private static final String LIB_VER = "15";
+    private static final String LIB_VER = "16";
 
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
@@ -132,7 +146,6 @@ public class pgLibConference {
     }
     private class PG_SELF{
         String sObjSelf = "";
-
 
         String sUser = "";
         String sPass = "";
@@ -229,7 +242,7 @@ public class pgLibConference {
     }
 
     private class PG_STATUS{
-
+        boolean bInitialized = false;
         boolean bLogined = false;
         boolean bServiceStart = false;
         boolean bApiVideoStart = false;
@@ -237,6 +250,7 @@ public class pgLibConference {
         boolean bEventEnable = true;
         int iVideoInitFlag = 0;
         void restore(){
+            boolean m_bInitialized = false;
             this.bLogined = false;
             this.bServiceStart = false;
             this.bApiVideoStart = false;
@@ -255,6 +269,13 @@ public class pgLibConference {
         private int iKeepStamp = 0;
         private int iKeepChainmanStamp = 0;
         private int iRequestChainmanStamp = 0;
+
+        void restore(){
+            iActiveStamp = 0;
+            iKeepStamp = 0;
+            iKeepChainmanStamp = 0;
+            iRequestChainmanStamp = 0;
+        }
     }
     private String m_sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
     // Randomer.
@@ -265,7 +286,6 @@ public class pgLibConference {
     private pgLibJNINode m_Node = null;
     private pgLibNodeProc m_NodeProc = null;
     private String m_sInitSvrName = "pgConnectSvr";
-    private boolean m_bInitialized = false;
     private PG_SELF m_Self = null;
     private PG_SVR m_InitSvr= null;
     private PG_SVR m_Svr= null;
@@ -390,7 +410,7 @@ public class pgLibConference {
      *  返回值：自身的P2P节点名
      */
     public String GetSelfPeer() {
-        return m_Self.sObjSelf;
+        return m_Self==null?"":m_Self.sObjSelf;
     }
 
     /**
@@ -399,6 +419,7 @@ public class pgLibConference {
      *  iExpire：[IN] 心跳间隔。
      */
     public void SetExpire(int iExpire) {
+
 
         if (iExpire < (KEEP_TIMER_INTERVAL * 2)) {
             m_Stamp.iExpire = 0;
@@ -423,8 +444,6 @@ public class pgLibConference {
         if(mNodeCfg==null){
             return false;
         }
-
-
         m_sConfig_Node = "Type="+mNodeCfg.Type+
                 ";Option="+mNodeCfg.Option+
                 ";MaxPeer="+mNodeCfg.MaxPeer+
@@ -487,7 +506,7 @@ public class pgLibConference {
                               String sRelayAddr, String sVideoParam, Context oCtx) {
         OutString("->Initialize start");
         try {
-            if (m_bInitialized) {
+            if (m_Status.bInitialized) {
                 OutString("->Initialize :Initialized = true");
                 return true;
             }
@@ -536,8 +555,7 @@ public class pgLibConference {
             Clean();
             return false;
         }
-        m_bInitialized = true;
-
+        m_Status.bInitialized = true;
         return true;
     }
 
@@ -559,7 +577,7 @@ public class pgLibConference {
             m_NodeProc = null;
 
             //pgLibJNINode.Clean();
-            m_bInitialized = false;
+            m_Status.restore();
         } catch (Exception ex) {
             OutString("Clean: ex=" + ex.toString());
         }
@@ -603,25 +621,25 @@ public class pgLibConference {
 
     /*
 
-
-
-
+     *  描述：开始会议，初始化视音频等会议相关数据。
+     *  阻塞方式：非阻塞
+     *  返回值：true 成功  false 失败
      */
     public boolean Start(String sName, String sChair){
         m_Group = new PG_GROUP(sName,sChair,m_Self.sUser);
-
-        if(!ServiceStart()){
-            return false;
-        }
-
-
-        return true;
+        m_Stamp.restore();
+        return ServiceStart();
     }
 
-
+    /*
+        *  描述：停止会议，初始化视音频等会议相关数据。
+        *  阻塞方式：非阻塞
+        *  返回值：true 成功  false 失败
+    */
     public void Stop(){
         ServiceStop();
         m_Group = null;
+
     }
     /*
     * 描述：通过节点名与其他节点建立联系 （节点名在我们P2P网络的功能类似英特网的IP地址）
@@ -828,6 +846,7 @@ public class pgLibConference {
 
             ServiceStop();
             m_Group = new PG_GROUP(sName,sChair,m_Self.sUser);
+            m_Stamp.restore();
             if(!m_Group.bEmpty) {
                 if (ServiceStart()) {
                     return true;
@@ -1195,7 +1214,7 @@ public class pgLibConference {
             }
 
             if (!m_Status.bApiVideoStart) {
-                this.OutString("VideoControl: Service no start");
+                OutString("VideoControl: Service no start");
                 return false;
             }
 
@@ -1763,16 +1782,12 @@ public class pgLibConference {
             String sAct = m_Node.omlGetContent(sParam, "Act");
             if (sAct.equals("Keep")) {
                 Keep();
-                return;
             } else if (sAct.equals("TimerActive")) {
                 TimerActive();
-                return;
             } else if (sAct.equals("ChairmanAdd")) {
                 ChairmanAdd();
-                return;
             } else if (sAct.equals("Relogin")) {
                 NodeLogin();
-                return;
             }
 
         }
@@ -1898,6 +1913,7 @@ public class pgLibConference {
 
         if(!m_InitGroup.bEmpty) {
             m_Group = m_InitGroup;
+            m_Stamp.restore();
             if (!ServiceStart()) {
                 OutString("ServiceStart: failed.");
                 ServiceStop();
@@ -1927,6 +1943,7 @@ public class pgLibConference {
         }
 
         ServiceStop();
+        m_Group = null;
         NodeLogout();
 
         m_Status.bEventEnable = false;
@@ -2073,7 +2090,6 @@ public class pgLibConference {
             } else {
                 if (!this.m_Node.ObjectAdd(this.m_Group.sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
                     OutString("ChairmanAdd:  failed.");
-                    return;
                 }
             }
         } catch (Exception ex) {
@@ -2169,7 +2185,7 @@ public class pgLibConference {
     private void ServiceStop() {
         OutString(" ->ServiceStop");
         try {
-            if (m_Node == null) {
+            if (m_Node == null||m_Group==null) {
                 return;
             }
             m_Status.bServiceStart = false;

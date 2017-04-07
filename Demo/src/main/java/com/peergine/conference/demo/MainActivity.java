@@ -77,19 +77,14 @@ public class MainActivity extends Activity {
 	private int RIDLaout[]={R.id.layoutVideoS1,R.id.layoutVideoS2,R.id.layoutVideoS3};
 
 	private EditText m_editchair =null;
-
 	private Button m_btnStart = null;
 	private Button m_btnStop = null;
 	private Button m_btnClean = null;
-
 	private EditText m_editText_Notify =null;
 	private Button m_btnNotifySend= null;
-
 	private TextView text_info = null;
-
 	private Button m_btntest=null;
-
-	LinearLayout PreviewLayout=null;
+	private LinearLayout PreviewLayout=null;
 	private SurfaceView m_Preview=null;
 
 	//R.id.layoutVideoS0,
@@ -891,9 +886,6 @@ public class MainActivity extends Activity {
 		pgStop();
 		m_Conf.TimerOutDel(timerOut);
 		m_Node=null;
-
-		m_Conf.VideoStop();
-		m_Conf.AudioStop();
 
 		//m_Conf.PreviewDestroy();
 		m_Conf.Clean();
