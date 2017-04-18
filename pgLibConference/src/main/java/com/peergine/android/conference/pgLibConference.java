@@ -92,6 +92,8 @@ import java.util.TimerTask;
 *
 *  其他升级：
 *       对SDK进行了数据结构的优化。
+*       现在会议没有Start也能发消息
+*
 *
 *  已知问题：
 *
@@ -1604,10 +1606,6 @@ public class pgLibConference {
                 OutString("MessageSend: Not initialize");
                 return false;
             }
-            if (!m_Status.bServiceStart) {
-                OutString("MessageSend: Service no start");
-                return false;
-            }
             if (sPeer.indexOf("_DEV_") != 0) {
                 sPeer = "_DEV_" + sPeer;
             }
@@ -1638,10 +1636,6 @@ public class pgLibConference {
         try {
             if (m_Node == null) {
                 OutString("CallSend: Not initialize");
-                return false;
-            }
-            if (!m_Status.bServiceStart) {
-                OutString("CallSend: Service no start");
                 return false;
             }
             if (sPeer.indexOf("_DEV_") != 0) {
