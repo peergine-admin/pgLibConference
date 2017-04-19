@@ -170,6 +170,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="recordstop" />
+
+            <Button
+                android:id="@+id/btn_clearlog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="clearlog" />
         </LinearLayout>
         <ScrollView
             android:layout_width="match_parent"

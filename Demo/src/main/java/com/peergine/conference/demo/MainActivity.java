@@ -92,6 +92,7 @@ public class MainActivity extends Activity {
 
 	private LinearLayout PreviewLayout=null;
 	private SurfaceView m_Preview=null;
+	private Button m_BtnClearlog = null;
 
 	//R.id.layoutVideoS0,
 
@@ -220,6 +221,9 @@ public class MainActivity extends Activity {
 
         m_btn_recordstop=(Button) findViewById(R.id.btn_recordstop);
         m_btn_recordstop.setOnClickListener(m_OnClink);
+
+		m_BtnClearlog = (Button) findViewById(R.id.btn_clearlog);
+		m_BtnClearlog.setOnClickListener(m_OnClink);
 		//显示一些信息
 		text_info= (TextView) findViewById(R.id.text_info);
 
@@ -509,6 +513,9 @@ public class MainActivity extends Activity {
                     m_Conf.AudioRecordStop(m_sChair);
                     break;
                 }
+				case R.id.btn_clearlog:{
+					text_info.setText("");
+				}
 				default:
 
 					break;
