@@ -628,6 +628,7 @@ public class pgLibConference {
      *  返回值：true 成功  false 失败
      */
     public boolean Start(String sName, String sChair){
+
         m_Group = new PG_GROUP(sName,sChair,m_Self.sUser);
         m_Stamp.restore();
         return ServiceStart();
@@ -861,7 +862,7 @@ public class pgLibConference {
      */
     public boolean VideoStart(int iFlag) {
         OutString("->VideoStart");
-        if(m_Node==null||m_Group==null||m_Status==null) {
+        if(m_Node == null || m_Group == null) {
             OutString(" Not initialize");
             return false;
         }
@@ -888,7 +889,7 @@ public class pgLibConference {
      */
     public boolean VideoStop() {
         OutString("->VideoStop");
-        if(m_Node==null||m_Group==null||m_Status==null) {
+        if(m_Node == null || m_Group == null) {
             OutString(" Not initialize");
             return false;
         }
@@ -907,7 +908,7 @@ public class pgLibConference {
         OutString("VideoOpen :sPeer=" + sPeer + "; iW=" + iW + "; iH=" + iH);
         PG_PEER oPeer = null;
         try {
-            if(m_Node==null||m_Group==null||m_Status==null) {
+            if(m_Node == null || m_Group == null) {
                 OutString(" Not initialize");
                 return null;
             }
@@ -1048,7 +1049,7 @@ public class pgLibConference {
      */
     public void VideoReject(String sPeer) {
         OutString("->VideoReject");
-        if(m_Node==null||m_Group==null||m_Status==null) {
+        if(m_Node == null || m_Group == null) {
             OutString(" Not initialize");
             return;
         }
@@ -1096,7 +1097,7 @@ public class pgLibConference {
     public void VideoClose(String sPeer) {
         OutString("->VideoClose");
         try {
-            if(m_Node==null||m_Group==null||m_Status==null) {
+            if(m_Node == null || m_Group == null) {
                 OutString(" Not initialize");
                 return;
             }
@@ -1129,7 +1130,7 @@ public class pgLibConference {
     public SurfaceView VideoGetView(String sPeer) {
         SurfaceView view = null;
         try {
-            if(m_Node==null||m_Group==null||m_Status==null) {
+            if(m_Node == null || m_Group == null) {
                 OutString(" Not initialize");
                 return null;
             }
