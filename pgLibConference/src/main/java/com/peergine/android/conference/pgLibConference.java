@@ -98,6 +98,9 @@ import java.util.TimerTask;
 *       修改会议没有Start不能发消息的问题。
 *       修复录音录像不能停止的问题
 *
+*  updata 2017/4/24 v17
+*  修复一些空指针错误。
+*
 * */
 
 
@@ -109,7 +112,7 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
 
-    private static final String LIB_VER = "16";
+    private static final String LIB_VER = "17";
 
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
