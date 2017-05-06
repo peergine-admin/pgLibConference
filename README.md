@@ -106,3 +106,18 @@
         修复录音录像不能停止的问题。
         升级中间件。
     已知问题：
+
+
+## updata 2017/4/24 v17
+     fix：
+
+     修复一些空指针错误。
+
+     修改：
+          VideoRecordStart 改成只能录制视频，
+          AudioRecordStart 改成只能录制音频，
+          VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不在公开
+          AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不在公开
+     添加：
+          RecordStart 为开始录制视音频
+          RecordStop 为停止录制视音频
