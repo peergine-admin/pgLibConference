@@ -99,7 +99,19 @@ import java.util.TimerTask;
 *       修复录音录像不能停止的问题
 *
 *  updata 2017/4/24 v17
+*
+*  fix：
+*
 *  修复一些空指针错误。
+*
+*  修改：
+*       VideoRecordStart 改成只能录制视频，
+*       AudioRecordStart 改成只能录制音频，
+*       VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不在公开
+*       AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不在公开
+*  添加：
+*       RecordStart 为开始录制视音频
+*       RecordStop 为停止录制视音频
 *
 * */
 
@@ -1278,13 +1290,13 @@ public class pgLibConference {
 
 
     /*
-       * 描述：开始录制 sPeer 节点的视频
+       * 描述：开始录制 sPeer 节点的视频，注意：调用此函数后，再调用AudioRecordStart 将无效
        * 阻塞方式：非阻塞，立即返回
        * 参数：sPeer 节点名  sPath 路径
        *
        * */
     public boolean VideoRecordStart(String sPeer, String sPath) {
-        return VideoRecord(sPeer, sPath);
+        return VideoRecord(sPeer, sPath,false);
     }
 
     /*
@@ -1294,10 +1306,10 @@ public class pgLibConference {
       *
       * */
     public boolean VideoRecordStop(String sPeer) {
-        return VideoRecord(sPeer, "");
+        return VideoRecord(sPeer, "",false);
     }
 
-    public boolean VideoRecord(String sPeer, String sPath) {
+    public boolean VideoRecord(String sPeer, String sPath,boolean bHasAudio) {
         try {
             if (m_Node == null || m_Group.bEmpty) {
                 OutString("VideoRecord: Not initialize");
@@ -1327,7 +1339,10 @@ public class pgLibConference {
             } else {
                 sObjV =  m_Group.sObjV;
             }
-            String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}";
+
+            int iHasAudio = bHasAudio?1:0;
+
+            String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasAudio)("+iHasAudio+"}";
             int iErr = m_Node.ObjectRequest(sObjV, 38, sIn, "VideoRecord:" + sPeer);
             if (iErr > 0) {
                 OutString("VideoRecord Error  = " + iErr);
@@ -1489,26 +1504,27 @@ public class pgLibConference {
     }
 
     /*
-           * 描述：开始录制 sPeer 节点的音频
-           * 阻塞方式：非阻塞，立即返回
-           * 参数：sPeer 节点名  sPath 路径
-           *
-           * */
+   * 描述：开始录制 sPeer 节点的音频 注意：调用此函数后再调用VideoRecordStart 是无效的
+   * 阻塞方式：非阻塞，立即返回
+   * 参数：sPeer 节点名  sPath 路径
+   *
+   * */
     public boolean AudioRecordStart(String sPeer, String sPath) {
-        return AudioRecord(sPeer, sPath);
+        return AudioRecord(sPeer, sPath,false);
     }
 
     /*
-         * 描述：开始录制 sPeer 节点的音频
-         * 阻塞方式：非阻塞，立即返回
-         * 参数：sPeer 节点名  sPath 路径
-         *
-         * */
+     * 描述：停止录制 sPeer 节点的音频
+     * 阻塞方式：非阻塞，立即返回
+     * 参数：sPeer 节点名
+     *
+     * */
     public boolean AudioRecordStop(String sPeer) {
-        return AudioRecord(sPeer, "");
+        return AudioRecord(sPeer, "",false);
     }
 
-    public boolean AudioRecord(String sPeer, String sPath) {
+
+    public boolean AudioRecord(String sPeer, String sPath,boolean bHasVideo) {
         try {
             if (m_Node == null || m_Group.bEmpty) {
                 OutString("AudioRecord: Not initialize");
@@ -1530,8 +1546,8 @@ public class pgLibConference {
             if ((!sPathTemp.equals(""))&&sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
                 sPathTemp += ".avi";
             }
-
-            String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}";
+            int iHasVideo = bHasVideo?1:0;
+            String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasVideo){"+iHasVideo+"}";
             int iErr = m_Node.ObjectRequest(m_Group.sObjA, 37, sIn, "AudioRecord:" + sPeer);
             if (iErr > 0) {
                 OutString("AudioRecord Error  = " + iErr);
@@ -1542,6 +1558,36 @@ public class pgLibConference {
             OutString("VideoRecord: ex=" + ex.toString());
             return false;
         }
+        return true;
+    }
+
+
+    /*
+     * 描述：开始录制 sPeer 节点的音频
+     * 阻塞方式：非阻塞，立即返回
+     * 参数：sPeer 节点名  sPath 路径
+     *
+     * */
+    public boolean RecordStart(String sPeer, String sPath){
+        if(VideoRecord(sPeer,sPath,true)&&AudioRecord(sPeer,sPath,true)){
+            return true;
+        }
+        else {
+            RecordStop(sPeer);
+            return false;
+        }
+    }
+
+
+    /*
+     * 描述：停止录制 sPeer 节点的视音频
+     * 阻塞方式：非阻塞，立即返回
+     * 参数：sPeer 节点名
+     *
+     * */
+    public boolean RecordStop(String sPeer){
+        VideoRecord(sPeer,"",true);
+        AudioRecord(sPeer,"",true);
         return true;
     }
 
