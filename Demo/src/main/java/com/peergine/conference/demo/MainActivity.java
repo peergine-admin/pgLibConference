@@ -488,8 +488,8 @@ public class MainActivity extends Activity {
                         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                         String sDate = formatter.format(currentTime);
 						String sPath = getSDPath()+"/record"+sDate+".avi";
-						m_Conf.VideoRecordStart(m_sChair,sPath);
-						m_Conf.AudioRecordStart(m_sChair,sPath);
+						m_Conf.RecordStart(m_sChair,sPath);
+//						m_Conf.AudioRecordStart(m_sChair,sPath);
 
 						break;
 
@@ -501,8 +501,8 @@ public class MainActivity extends Activity {
                     String sPath = getSDPath()+"/record"+sDate+".avi";
                     if((!m_Conf.VideoRecordStart(m_sChair,sPath))|| (!m_Conf.AudioRecordStart(m_sChair,sPath))){
 						Toast.makeText(getApplication(),"录像失败。 已经关闭",Toast.LENGTH_SHORT).show();
-						m_Conf.VideoRecordStop(m_sChair);
-						m_Conf.AudioRecordStop(m_sChair);
+						m_Conf.RecordStop(m_sChair);
+//						m_Conf.AudioRecordStop(m_sChair);
                     }
 
                    ;

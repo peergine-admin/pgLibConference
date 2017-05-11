@@ -2440,6 +2440,8 @@ public class pgLibConference {
         String sData = "(Code){" + m_Self.iVideoCode + "}(Mode){" + m_Self.iVideoMode + "}(Rate){"
                 + m_Self.iVideoFrmRate + "}";
 
+        OutString("VideoInit -> sObjV sData = "+sData);
+
         iErr = this.m_Node.ObjectRequest(this.m_Group.sObjV, 32, sData, "pgLibConference.VideoStart");
         if (iErr > 0) {
             OutString("pgLibConference.m_VideoInit: Open live failed. iErr=" + iErr);
@@ -2453,7 +2455,7 @@ public class pgLibConference {
 
         sData = "(Code){" + m_Self.iLVideoCode + "}(Mode){" + m_Self.iLVideoMode + "}(Rate){" + m_Self.iLVideoFrmRate
                 + "}";
-
+        OutString("VideoInit -> sObjLV sData = "+sData);
         iErr = this.m_Node.ObjectRequest(this.m_Group.sObjLV, 32, sData, "pgLibConference.VideoStart");
         if (iErr > 0) {
             OutString("pgLibConference.m_VideoInit: Open live failed. iErr=" + iErr);
