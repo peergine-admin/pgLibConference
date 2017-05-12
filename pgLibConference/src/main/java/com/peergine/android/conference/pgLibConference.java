@@ -102,7 +102,7 @@ import java.util.TimerTask;
 *
 *  fix：
 *
-*  修复一些空指针错误。
+*  修复一些空指针错误。以及其他已知问题。
 *
 *  修改：
 *       VideoRecordStart 改成只能录制视频，
@@ -110,9 +110,20 @@ import java.util.TimerTask;
 *       VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不在公开
 *       AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不在公开
 *  添加：
-*       RecordStart 为开始录制视音频
-*       RecordStop 为停止录制视音频
+*       函数 RecordStart 为开始录制视音频
+*       函数 RecordStop 为停止录制视音频
+*       函数 LanScanStart 检测局域网中的会议设备，通过LanScanResult 事件上报局域网中的会议设备及其地址。
+*       功能：如果在路由器没有接入公网的情况下，Start后可以使用LanScanStart 成员端可以连上主席端进行对讲。
+*       如果主席端和成员端在同一局域网的，并且成员端通过LanScanStart扫描到了主席端，当外网断开的情况下，主席端和成员端处于Start状态下。
+*       主席端和成员端可以保持连接。可以继续对讲和通信
 *
+*  updata 2017/5/12 v18
+*  修复一些已知问题。
+*    添加：
+*  函数 LanScanStart 检测局域网中的会议设备，通过LanScanResult 事件上报局域网中的会议设备及其地址。
+*       功能：如果在路由器没有接入公网的情况下，Start后可以使用LanScanStart 成员端可以连上主席端进行对讲。
+*       如果主席端和成员端在同一局域网的，并且成员端通过LanScanStart扫描到了主席端，当外网断开的情况下，主席端和成员端处于Start状态下。
+*       主席端和成员端可以保持连接。可以继续对讲和通信
 *
 * */
 
@@ -125,7 +136,7 @@ public class pgLibConference {
     public static final int AUDIO_NoSpeechPeer = 2;
     public static final int AUDIO_NoSpeechSelfAndPeer = 3;
 
-    private static final String LIB_VER = "17";
+    private static final String LIB_VER = "18";
 
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
@@ -234,6 +245,7 @@ public class pgLibConference {
 
         boolean bChairman = false;
         String sObjChair = "";
+
         String sObjG = "";
         String sObjD = "";
         String sObjV = "";
@@ -267,6 +279,9 @@ public class pgLibConference {
         boolean bApiAudioStart = false;
         boolean bEventEnable = true;
         int iVideoInitFlag = 0;
+
+
+
         void restore(){
             this.bInitialized = false;
             this.bLogined = false;
@@ -275,6 +290,8 @@ public class pgLibConference {
             this.bApiAudioStart = false;
             this.bEventEnable = true;
             this.iVideoInitFlag = 0;
+
+
         }
     }
     private class PG_STAMP {
@@ -295,6 +312,21 @@ public class pgLibConference {
             iRequestChainmanStamp = 0;
         }
     }
+
+    private class PG_LANSCAN{
+        boolean bApiLanScan = false;
+        String sLanScanRes="";
+        String sLanAddr;
+        boolean bPeerCheckTimer=false;
+
+
+        PG_LANSCAN(){
+            this.bApiLanScan = false;
+            this.sLanScanRes="";
+            this.sLanAddr="";
+            this.bPeerCheckTimer=false;
+        }
+    }
     private String m_sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
@@ -311,7 +343,7 @@ public class pgLibConference {
     private final PG_GROUP m_Group = new PG_GROUP();
     private final PG_STATUS m_Status = new PG_STATUS();
     private final PG_STAMP m_Stamp = new PG_STAMP();
-
+    private final PG_LANSCAN m_LanScan = new PG_LANSCAN();
     //
     private class PG_PEER {
 
@@ -1649,6 +1681,9 @@ public class pgLibConference {
             String sData = "Msg?" + sMsg;
             int iErr = m_Node.ObjectRequest(sPeer, 36, sData, "MessageSend:" + m_Self.sObjSelf);
             if (iErr > 0) {
+                if(iErr==5&&!m_Group.bEmpty&&!m_Group.bChairman){
+                    ChairPeerCheck();
+                }
                 OutString("MessageSend: iErr=" + iErr);
                 return false;
             }
@@ -1745,6 +1780,29 @@ public class pgLibConference {
         return true;
     }
 
+
+    // Scan the captures in the same lan.
+    public boolean LanScanStart() {
+        if (m_Node == null) {
+            OutString("LanScanStart: Node object is null!");
+            return false;
+        }
+        if(m_Group.bEmpty||m_Group.bChairman){
+            return false;
+        }
+        if (m_LanScan.bApiLanScan) {
+            return true;
+        }
+
+        int iErr = m_Node.ObjectRequest(m_Svr.sSvrName, 42, "(Timeout){5}", "LanScan");
+        if (iErr > 0) {
+            OutString("LanScanStart: iErr=" + iErr);
+            return false;
+        }
+
+        m_LanScan.bApiLanScan = true;
+        return true;
+    }
     // /**
     //  *  描述：指定客户端与P2P服务器的连网方式。
     //  *      在手机系统上使用P2P时，如果手机休眠，则网络切换到“只使用Relay转发)”方式连接，
@@ -1816,7 +1874,11 @@ public class pgLibConference {
                 Keep();
             } else if (sAct.equals("TimerActive")) {
                 TimerActive();
-            } else if (sAct.equals("ChairmanAdd")) {
+            }
+            else if (sAct.equals("ChairPeerCheck")) {
+                ChairPeerCheckTimeout();
+            }
+            else if (sAct.equals("ChairmanAdd")) {
                 ChairmanAdd();
             } else if (sAct.equals("Relogin")) {
                 NodeLogin();
@@ -1942,6 +2004,16 @@ public class pgLibConference {
             NodeStop();
             return false;
         }
+
+        // Enable LAN scan.
+        String sValue = "(Enable){1}(Peer){" + m_Node.omlEncode(m_Svr.sSvrName) + "}(Label){pgConf}";
+        String sData = "(Item){1}(Value){" + m_Node.omlEncode(sValue) + "}";
+        int iErr = m_Node.ObjectRequest(m_Svr.sSvrName, 2, sData, "EnableLanScan");
+        if (iErr > 0) {
+            OutString("NodeStart: Enable lan scan failed. iErr=" + iErr);
+        }
+
+
         m_Group.Init(m_InitGroup.sName,m_InitGroup.sChair,m_InitGroup.sUser);
         if(!m_InitGroup.bEmpty) {
             m_Stamp.restore();
@@ -2085,7 +2157,7 @@ public class pgLibConference {
             }
 
             if (iErr != 0) {
-                OutString("pgLibLive.NodeLoginReply: Login failed. uErr=" + iErr);
+                OutString("NodeLoginReply: Login failed. uErr=" + iErr);
 
                 EventProc("Login", String.valueOf(iErr), "");
                 if (iErr == 11 || iErr == 12 || iErr == 14) {
@@ -2104,6 +2176,7 @@ public class pgLibConference {
             }
 
             m_Status.bLogined = true;
+            ChairPeerCheck();
             EventProc("Login", "0", m_Svr.sSvrName);
 
         } catch (Exception ex) {
@@ -2118,6 +2191,7 @@ public class pgLibConference {
         try {
             if (m_Node.ObjectGetClass(m_Group.sObjChair).equals("PG_CLASS_Peer")) {
                 PeerSync(m_Group.sObjChair, "", 1);
+                ChairPeerCheck();
             } else {
                 if (!this.m_Node.ObjectAdd(this.m_Group.sObjChair, "PG_CLASS_Peer", "", (0x10000))) {
                     OutString("ChairmanAdd:  failed.");
@@ -2320,7 +2394,7 @@ public class pgLibConference {
         OutString("->KeepRecv sPeer=" + sPeer);
 
         if (m_Status.bServiceStart) {
-            if(m_Group!=null) {
+            if(!m_Group.bEmpty) {
                 if (m_Group.bChairman) {
                     PG_SYNC oSync = SyncPeerSearch(sPeer);
                     if (oSync != null) {
@@ -2361,7 +2435,7 @@ public class pgLibConference {
             if(m_Stamp.iExpire==0) {
                 return;
             }
-            if(m_Group!=null) {
+            if(!m_Group.bEmpty) {
                 if (m_Group.bChairman) {
 
                     //如果是主席，主动给所有成员发心跳
@@ -2379,7 +2453,7 @@ public class pgLibConference {
 
                         // 每个心跳周期发送一个心跳请求给成员端
                         if ((m_Stamp.iKeepStamp - oSync.iRequestStamp) >= m_Stamp.iExpire) {
-                            m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "pgLibConference.MessageSend");
+                            m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "MessageSend");
                             oSync.iRequestStamp = m_Stamp.iKeepStamp;
                         }
 
@@ -2408,6 +2482,11 @@ public class pgLibConference {
         OutString("->VideoInit iFlag = " + iFlag);
 
         this.VideoOption();
+
+        if(!m_Group.bEmpty&&!m_Group.bChairman){
+             ChairPeerCheck();
+        }
+
         m_Status.iVideoInitFlag = iFlag;
         int uFlag = 0x10000 | 0x1 | 0x10 | 0x20;
         switch (iFlag) {
@@ -2691,6 +2770,7 @@ public class pgLibConference {
             }
 
             m_Status.bLogined = true;
+            ChairPeerCheck();
             EventProc("Login", "0", m_Svr.sSvrName);
         }
     }
@@ -2784,12 +2864,20 @@ public class pgLibConference {
         OutString("->PeerOffline");
         try {
             String sAct;
-            if (m_Group!=null&&sPeer.equals(m_Group.sObjChair)) {
+            if (!m_Group.bEmpty&&sPeer.equals(m_Group.sObjChair)) {
                 sAct = "ChairmanOffline";
+                this.EventProc(sAct, sError, sPeer);
+                ChairPeerStatic();
+                if (!m_LanScan.bPeerCheckTimer) {
+                    if (TimerStart("(Act){CapPeerCheck}", 3, false) >= 0) {
+                        m_LanScan.bPeerCheckTimer = true;
+                    }
+                }
             } else {
                 sAct = "PeerOffline";
+                this.EventProc(sAct, sError, sPeer);
             }
-            this.EventProc(sAct, sError, sPeer);
+
         } catch (Exception ex) {
             OutString("PeerOffline :" + ex.toString());
         }
@@ -2845,6 +2933,148 @@ public class pgLibConference {
         EventProc("VideoRecord", sPath, sPeer);
     }
 
+
+    private boolean ChairPeerAdd(boolean bStatic) {
+        if (m_Node == null) {
+            return false;
+        }
+        if(m_Group.bEmpty||m_Group.bChairman){
+            return false;
+        }
+        if (m_Group.sObjChair.equals("")) {
+            return false;
+        }
+
+        m_LanScan.sLanAddr = "";
+        m_Node.ObjectDelete(m_Group.sObjChair);
+
+        boolean bAddSuccess = false;
+        if (!m_Status.bLogined || bStatic) {
+            String sEle = m_Node.omlGetEle(m_LanScan.sLanScanRes, m_Group.sObjChair, 1, 0);
+            if (!sEle.equals("")) {
+                if (m_Node.ObjectAdd( m_Group.sObjChair, "PG_CLASS_Peer", "", (0x10000 | 0x4))) {
+                    // Set static peer's address.
+                    String sAddr = m_Node.omlGetContent(sEle, "");
+                    String sData = "(Type){0}(Addr){0:0:0:" + sAddr + ":0}(Proxy){}";
+                    if (m_Node.ObjectRequest( m_Group.sObjChair, 37, sData, "pgLibLive.SetAddr") <= 0) {
+                        OutString("PeerAdd: Set '" +  m_Group.sObjChair + "' in static.");
+                        m_LanScan.sLanAddr = sAddr;
+                        bAddSuccess = true;
+                    }
+                    else {
+                        OutString("PeerAdd: Set '" + m_Group.sObjChair + "' address failed.");
+                    }
+                }
+                else {
+                    OutString("PeerAdd: Add '" + m_Group.sObjChair + "' with static flag failed.");
+                }
+            }
+        }
+
+        if (!bAddSuccess) {
+            if (m_Node.ObjectAdd(m_Group.sObjChair, "PG_CLASS_Peer", "", 0x10000)) {
+                OutString("PeerAdd: Add '" + m_Group.sObjChair + "' without static flag.");
+                bAddSuccess = true;
+            }
+            else {
+                OutString("PeerAdd: Add '" + m_Group.sObjChair + "' failed.");
+            }
+        }
+
+        return bAddSuccess;
+    }
+
+    private void ChairPeerCheck() {
+        if (m_Node == null) {
+            return;
+        }
+
+        if(m_Group.bEmpty||m_Group.bChairman){
+            return;
+        }
+
+        int iErr = m_Node.ObjectRequest(m_Group.sObjChair, 41, "(Check){1}(Value){3}(Option){}", "");
+        if (iErr <= 0) {
+            m_Node.ObjectRequest(m_Group.sObjChair, 36, "Keep?", "MessageSend");
+            return;
+        }
+        if (iErr == 5) {
+            ChairPeerAdd(false);
+        }
+        else {
+            m_Node.ObjectSync(m_Group.sObjChair, "", 1);
+        }
+    }
+
+    private void ChairPeerCheckTimeout() {
+        ChairPeerCheck();
+        if (m_LanScan.bPeerCheckTimer) {
+            TimerStart("(Act){ChairPeerCheck}", 5, false);
+        }
+        OutString("ChairPeerCheckTimeout: sObjChair = " + m_Group.sObjChair);
+    }
+
+    private void ChairPeerStatic() {
+        if (m_Node == null) {
+            return;
+        }
+
+        if (!m_Status.bServiceStart) {
+            return;
+        }
+
+        if(m_Group.bChairman){
+            return;
+        }
+
+        String sEle = m_Node.omlGetEle(m_LanScan.sLanScanRes, m_Group.sObjChair, 1, 0);
+        if (!sEle.equals("")) {
+            String sAddr = m_Node.omlGetContent(sEle, "");
+            if (!sAddr.equals(m_LanScan.sLanAddr)) {
+                ChairPeerAdd(true);
+            }
+        }
+    }
+
+    private void LanScanResult(String sData) {
+        if (m_Node == null) {
+            return;
+        }
+
+        m_LanScan.sLanScanRes = "";
+
+        int iInd = 0;
+        while (true) {
+            String sEle = m_Node.omlGetEle(sData, "PeerList.", 1, iInd);
+            if (sEle.equals("")) {
+                break;
+            }
+
+            String sPeer = m_Node.omlGetName(sEle, "");
+            int iPos = sPeer.indexOf("_DEV_");
+            if (iPos == 0) {
+                String sAddr = m_Node.omlGetContent(sEle, ".Addr");
+                if ( m_LanScan.bApiLanScan) {
+                    String sID = sPeer.substring(5);
+                    String sDataTemp = "id=" + sID + "&addr=" + sAddr;
+                    EventProc("LanScanResult", sDataTemp, "");
+                }
+                m_LanScan.sLanScanRes += "(" + sPeer + "){" + sAddr + "}";
+            }
+
+            iInd++;
+        }
+
+        if (!m_Status.bLogined) {
+               ChairPeerStatic();
+        }
+
+        m_LanScan.bApiLanScan = false;
+    }
+
+
+
+
     private int NodeOnExtRequest(String sObj, int uMeth, String sData, int iHandle, String sPeer) {
         OutString("NodeOnExtRequest: " + sObj + ", " + uMeth + ", " + sData + ", " + sPeer);
         if(m_Node == null){
@@ -2889,6 +3119,7 @@ public class pgLibConference {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
                     if (sAct.equals("1")) {
                         KeepAdd(sObj);
+                        m_LanScan.bPeerCheckTimer = false;
                         this.EventProc("ChairmanSync", sAct, sObj);
                     }
                 } else if (uMeth == 1) {
@@ -2927,7 +3158,7 @@ public class pgLibConference {
                 return 0;
             }
 
-            if(m_Group==null){
+            if(m_Group.bEmpty){
                 OutString("Group Not Init");
                 return 0;
             }
@@ -3003,13 +3234,16 @@ public class pgLibConference {
     private int NodeOnReply(String sObj, int iErr, String sData, String sParam) {
         OutString("NodeOnReply: " + sObj + ", " + iErr + ", " + sData + ", " + sParam);
         try {
-            if(m_Svr==null||m_Self==null||m_Node==null){
+            if(m_Node == null){
                 OutString("NodeOnReply:Init faile");
                 return 1;
             }
             if (sObj.equals(m_Svr.sSvrName)) {
                 if (sParam.equals("NodeLogin")) {
                     NodeLoginReply(iErr, sData);
+                }
+                else if (sParam.equals("LanScan")) {
+                    LanScanResult(sData);
                 }
                 else if (sParam.equals("SvrRequest")) {
                     SvrReply(iErr, sData);
@@ -3024,7 +3258,7 @@ public class pgLibConference {
                 return 1;
             }
 
-            if(m_Group==null){
+            if(m_Group.bEmpty){
                 OutString("NodeOnReply: Group Init faile");
                 return 1;
             }

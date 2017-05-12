@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
 
 	private String m_sUser = "";
 	private String m_sPass = "";
-//	private String m_sSvrAddr ="192.168.8.16:7781";
+
 	private String m_sSvrAddr ="connect.peergine.com:7781";
 	private String m_sRelayAddr = "";
 	private String m_sVideoParam=
@@ -83,6 +83,8 @@ public class MainActivity extends Activity {
 	private Button m_btnStart = null;
 	private Button m_btnStop = null;
 	private Button m_btnClean = null;
+	private Button m_btnLanScan = null;
+
 	private EditText m_editText_Notify =null;
 	private Button m_btnNotifySend= null;
 	private TextView text_info = null;
@@ -207,6 +209,8 @@ public class MainActivity extends Activity {
 		m_btnClean =(Button) findViewById(R.id.btn_Clean);
 		m_btnClean.setOnClickListener(m_OnClink);
 
+		m_btnLanScan = (Button)findViewById(R.id.btn_LanScan);
+		m_btnLanScan.setOnClickListener(m_OnClink);
 
 		m_editText_Notify =(EditText)findViewById(R.id.editText_notify);
 
@@ -464,6 +468,10 @@ public class MainActivity extends Activity {
 					m_btnStart.setEnabled(true);
 					Log.d("OnClink", "MemberAdd button");
 					break;
+				case R.id.btn_LanScan:
+					m_Conf.LanScanStart();
+					break;
+
 				case R.id.btn_notifysend:
 //					//Group_member869384011853858
 //					m_Conf.MessageSend("hellllllo","Group_member869384011853858");
@@ -796,6 +804,9 @@ public class MainActivity extends Activity {
 			else if(sAct.equals("SvrReplyError")) {
 				EventSvrReplyError(sAct,sData,sPeer);
 			}
+			else if(sAct.equals("LanScanResult")){
+				EventLanScanResult(sAct,sData,sPeer);
+			}
 		}
 	};
 
@@ -811,7 +822,9 @@ public class MainActivity extends Activity {
 	private void EventVideoCamera(String sAct, String sData, String sPeer) {
 		// VideoCamera 视频拍照的结果
 	}
-
+	private void EventLanScanResult(String sAct,String sData,String sPeer){
+		Show("Act : LanScanResult  -- sData: "+sData + "  sPeer  : "+sPeer);
+	}
 
 	//选择成为主席端的初始化方式
 	private void pgChairInit() {
