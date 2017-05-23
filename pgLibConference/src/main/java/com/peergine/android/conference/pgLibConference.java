@@ -1370,7 +1370,7 @@ public class pgLibConference {
             if (oPeer.bLarge) {
                 sObjV = m_Group.sObjLV;
             } else {
-                sObjV =  m_Group.sObjV;
+                sObjV = m_Group.sObjV;
             }
 
             int iHasAudio = bHasAudio?1:0;
@@ -2393,21 +2393,21 @@ public class pgLibConference {
     private void KeepRecv(String sPeer) {
         OutString("->KeepRecv sPeer=" + sPeer);
 
-        if (m_Status.bServiceStart) {
-            if(!m_Group.bEmpty) {
-                if (m_Group.bChairman) {
-                    PG_SYNC oSync = SyncPeerSearch(sPeer);
-                    if (oSync != null) {
-                        oSync.iKeepStamp = m_Stamp.iKeepStamp;
-                    } else {
-                        KeepAdd(sPeer);
-                        EventProc("PeerSync", "reason=1", sPeer);
-                    }
+        if (m_Status.bServiceStart&&!m_Group.bEmpty) {
+           
+            if (m_Group.bChairman) {
+                PG_SYNC oSync = SyncPeerSearch(sPeer);
+                if (oSync != null) {
+                    oSync.iKeepStamp = m_Stamp.iKeepStamp;
                 } else {
-                    m_Node.ObjectRequest(sPeer, 36, "Keep?", "pgLibConference.MessageSend");
-                    m_Stamp.iKeepChainmanStamp = m_Stamp.iKeepStamp;
+                    KeepAdd(sPeer);
+                    EventProc("PeerSync", "reason=1", sPeer);
                 }
+            } else {
+                m_Node.ObjectRequest(sPeer, 36, "Keep?", "pgLibConference.MessageSend");
+                m_Stamp.iKeepChainmanStamp = m_Stamp.iKeepStamp;
             }
+            
         }
     }
 
@@ -2482,8 +2482,11 @@ public class pgLibConference {
         OutString("->VideoInit iFlag = " + iFlag);
 
         this.VideoOption();
-
-        if(!m_Group.bEmpty&&!m_Group.bChairman){
+        if(m_Group.bEmpty)
+        {
+            return false;
+        }
+        if(!m_Group.bChairman){
              ChairPeerCheck();
         }
 
@@ -2512,7 +2515,7 @@ public class pgLibConference {
         }
 
         if (!this.m_Node.ObjectAdd(this.m_Group.sObjV, "PG_CLASS_Video", this.m_Group.sObjG, uFlag)) {
-            OutString("pgLibConference.m_VideoInit: Add 'Video' failed.");
+            OutString("pgLibConference.VideoInit: Add 'Video' failed.");
             return false;
         }
 
@@ -2523,12 +2526,12 @@ public class pgLibConference {
 
         iErr = this.m_Node.ObjectRequest(this.m_Group.sObjV, 32, sData, "pgLibConference.VideoStart");
         if (iErr > 0) {
-            OutString("pgLibConference.m_VideoInit: Open live failed. iErr=" + iErr);
+            OutString("pgLibConference.VideoInit: Open live failed. iErr=" + iErr);
             return false;
         }
 
         if (!this.m_Node.ObjectAdd(this.m_Group.sObjLV, "PG_CLASS_Video", this.m_Group.sObjG, uFlag)) {
-            OutString("pgLibConference.m_VideoInit: Add 'Video' failed.");
+            OutString("pgLibConference.VideoInit: Add 'Video' failed.");
             return false;
         }
 
@@ -2537,7 +2540,7 @@ public class pgLibConference {
         OutString("VideoInit -> sObjLV sData = "+sData);
         iErr = this.m_Node.ObjectRequest(this.m_Group.sObjLV, 32, sData, "pgLibConference.VideoStart");
         if (iErr > 0) {
-            OutString("pgLibConference.m_VideoInit: Open live failed. iErr=" + iErr);
+            OutString("pgLibConference.VideoInit: Open live failed. iErr=" + iErr);
             return false;
         }
 
@@ -2890,7 +2893,7 @@ public class pgLibConference {
         String sFrmTotal = m_Node.omlGetContent(sData, "Total");
         String sFrmDrop = m_Node.omlGetContent(sData, "Drop");
 
-        EventProc(sAct, (sFrmTotal + ":" + sFrmDrop), sPeerTemp);
+        EventProc(sAct, ("total="+sFrmTotal + "&drop=" + sFrmDrop), sPeerTemp);
     }
 
     private void VideoCameraReply(String sData) {
@@ -2921,16 +2924,12 @@ public class pgLibConference {
 
     //服务器下发数据
     private void SvrReply(int iErr, String sData) {
-        OutString("->VideoRecordReply");
-        if (m_Node == null) {
-            return;
+        if (iErr != 0) {
+            EventProc("SvrReplyError" ,""+iErr, m_Svr.sSvrName);
         }
-        if (!m_Status.bApiVideoStart) {
-            return;
+        else {
+            EventProc("SvrReply" ,sData, m_Svr.sSvrName);
         }
-        String sPeer = m_Node.omlGetContent(sData, "Peer");
-        String sPath = m_Node.omlGetContent(sData, "Path");
-        EventProc("VideoRecord", sPath, sPeer);
     }
 
 
