@@ -107,8 +107,8 @@ import java.util.TimerTask;
 *  修改：
 *       VideoRecordStart 改成只能录制视频，
 *       AudioRecordStart 改成只能录制音频，
-*       VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不在公开
-*       AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不在公开
+*       VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不再公开
+*       AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不再公开
 *  添加：
 *       函数 RecordStart 为开始录制视音频
 *       函数 RecordStop 为停止录制视音频

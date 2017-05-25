@@ -273,8 +273,8 @@ public class MainActivity extends Activity {
 		PreviewLayout.addView(m_Preview);
 
 
-		SetVolumeGate(1);
-		SetAudioSuppress(0,0,0);
+//		SetVolumeGate(1);
+//		SetAudioSuppress(0,0,0);
 		//初始化定时器
 		m_Node= m_Conf.GetNode();
 		m_Conf.TimerOutAdd(timerOut);
