@@ -2,7 +2,7 @@
     package="com.peergine.android.conference">
 
     <uses-sdk
-        android:minSdkVersion="15"
+        android:minSdkVersion="10"
         android:targetSdkVersion="20" />
     <application
         android:label="@string/app_name"

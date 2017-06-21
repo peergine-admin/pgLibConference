@@ -15,10 +15,10 @@ android {
     }
     defaultConfig {
         applicationId "com.peergine.conference.demo"
-        minSdkVersion 15
+        minSdkVersion 10
         targetSdkVersion 25
-        versionCode 16
-        versionName "1.28.0.17"
+        versionCode 18
+        versionName "1.28.0.18"
     }
     buildTypes {
         release {

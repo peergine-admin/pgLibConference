@@ -239,6 +239,9 @@ public class pgLibConference {
     private class PG_GROUP{
         boolean bEmpty = true;
 
+        int iKeepTimer = -1;
+        int iActiveTimer = -1;
+
         String sName = "";
         String sChair = "";
         String sUser = "";
@@ -260,6 +263,10 @@ public class pgLibConference {
             }
             else {
                 bEmpty=false;
+
+                iKeepTimer = -1;
+                iActiveTimer = -1;
+
                 bChairman = this.sChair.equals(this.sUser);
                 sObjChair = "_DEV_" + sChair;
                 sObjG = "_G_" + sName;
@@ -2256,16 +2263,8 @@ public class pgLibConference {
                     break;
                 }
 
-                // 开始视频连接状态检测定时器
-                if (TimerStart("(Act){TimerActive}", ACTIVE_TIMER_INTERVAL, false) < 0) {
-                    break;
-                }
-                m_Stamp.iActiveStamp = 0;
-
                 // 开始节点连接状态检测定时器。
-                if (TimerStart("(Act){Keep}", KEEP_TIMER_INTERVAL, false) < 0) {
-                    break;
-                }
+                m_Group.iKeepTimer = TimerStart("(Act){Keep}", KEEP_TIMER_INTERVAL, false);
                 m_Stamp.iKeepStamp = 0;
 
                 // 成员端检测主席端的状态时戳
@@ -2293,17 +2292,21 @@ public class pgLibConference {
             if (m_Node == null||m_Group.bEmpty) {
                 return;
             }
+
+            if(m_Group.iKeepTimer>0){
+                TimerStop(m_Group.iKeepTimer);
+            }
+
             m_Status.bServiceStart = false;
             //停止心跳包发送
 
             if (this.m_Status.bApiVideoStart) {
                 this.VideoClean();
-
             }
             if (this.m_Status.bApiAudioStart) {
                 this.AudioClean();
-
             }
+
             this.m_Status.bApiVideoStart = false;
             this.m_Status.bApiAudioStart = false;
 
@@ -2324,21 +2327,14 @@ public class pgLibConference {
     private void TimerActive() {
 //        OutString(" ->TimerActive TimeOut");
         try {
-            if (m_Node == null) {
-                return;
-            }
 
-            if (!m_Status.bServiceStart) {
+            if (m_Node == null||!m_Status.bApiVideoStart||m_listVideoPeer == null) {
                 m_Stamp.iActiveStamp = 0;
                 return;
             }
 
             m_Stamp.iActiveStamp += ACTIVE_TIMER_INTERVAL;
-            TimerStart("(Act){TimerActive}", ACTIVE_TIMER_INTERVAL, false);
-
-            if (m_listVideoPeer == null) {
-                return;
-            }
+            m_Group.iActiveTimer = TimerStart("(Act){TimerActive}", ACTIVE_TIMER_INTERVAL, false);
 
             m_listLostPeer.clear();
 //            ArrayList<PG_PEER> listVideoPeer = (ArrayList<PG_PEER>) m_listVideoPeer.clone();
@@ -2389,7 +2385,7 @@ public class pgLibConference {
         }
     }
 
-    //收到Keep
+    //收到Keep 处理
     private void KeepRecv(String sPeer) {
         OutString("->KeepRecv sPeer=" + sPeer);
 
@@ -2420,7 +2416,7 @@ public class pgLibConference {
                 return;
             }
 
-            if (!m_Status.bServiceStart) {
+            if (!m_Status.bServiceStart||m_Stamp.iExpire==0||m_Group.bEmpty) {
                 m_Stamp.iKeepStamp = 0;
                 m_Stamp.iKeepChainmanStamp = 0;
                 m_Stamp.iRequestChainmanStamp = 0;
@@ -2429,48 +2425,44 @@ public class pgLibConference {
             }
 
             m_Stamp.iKeepStamp += KEEP_TIMER_INTERVAL;
-            TimerStart("(Act){Keep}", KEEP_TIMER_INTERVAL, false);
+            m_Group.iKeepTimer = TimerStart("(Act){Keep}", KEEP_TIMER_INTERVAL, false);
 
             //取消心跳的接收和发送
-            if(m_Stamp.iExpire==0) {
-                return;
-            }
-            if(!m_Group.bEmpty) {
-                if (m_Group.bChairman) {
+            if (m_Group.bChairman) {
 
-                    //如果是主席，主动给所有成员发心跳
-                    int i = 0;
-                    while (i < m_listSyncPeer.size()) {
-                        PG_SYNC oSync = m_listSyncPeer.get(i);
+                //如果是主席，主动给所有成员发心跳
+                int i = 0;
+                while (i < m_listSyncPeer.size()) {
+                    PG_SYNC oSync = m_listSyncPeer.get(i);
 
-                        // 超过3倍心跳周期，没有接收到成员端的心跳应答，说明成员端之间连接断开了
-                        if ((m_Stamp.iKeepStamp - oSync.iKeepStamp) > (m_Stamp.iExpire * 3)) {
-                            EventProc("PeerOffline", "reason=1", oSync.sPeer);
-                            PeerDelete(oSync.sPeer);
-                            m_listSyncPeer.remove(i);
-                            continue;
-                        }
-
-                        // 每个心跳周期发送一个心跳请求给成员端
-                        if ((m_Stamp.iKeepStamp - oSync.iRequestStamp) >= m_Stamp.iExpire) {
-                            m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "MessageSend");
-                            oSync.iRequestStamp = m_Stamp.iKeepStamp;
-                        }
-
-                        i++;
+                    // 超过3倍心跳周期，没有接收到成员端的心跳应答，说明成员端之间连接断开了
+                    if ((m_Stamp.iKeepStamp - oSync.iKeepStamp) > (m_Stamp.iExpire * 3)) {
+                        EventProc("PeerOffline", "reason=1", oSync.sPeer);
+                        PeerDelete(oSync.sPeer);
+                        m_listSyncPeer.remove(i);
+                        continue;
                     }
-                } else {
-                    // 超过3倍心跳周期，没有接收到主席端的心跳请求，说明主席端之间连接断开了
-                    if ((m_Stamp.iKeepStamp - m_Stamp.iKeepChainmanStamp) > (m_Stamp.iExpire * 3)) {
 
-                        // 每个心跳周期尝试一次连接主席端
-                        if ((m_Stamp.iKeepStamp - m_Stamp.iRequestChainmanStamp) >= m_Stamp.iExpire) {
-                            m_Stamp.iRequestChainmanStamp = m_Stamp.iKeepStamp;
-                            ChairmanAdd();
-                        }
+                    // 每个心跳周期发送一个心跳请求给成员端
+                    if ((m_Stamp.iKeepStamp - oSync.iRequestStamp) >= m_Stamp.iExpire) {
+                        m_Node.ObjectRequest(oSync.sPeer, 36, "Keep?", "MessageSend");
+                        oSync.iRequestStamp = m_Stamp.iKeepStamp;
+                    }
+
+                    i++;
+                }
+            } else {
+                // 超过3倍心跳周期，没有接收到主席端的心跳请求，说明主席端之间连接断开了
+                if ((m_Stamp.iKeepStamp - m_Stamp.iKeepChainmanStamp) > (m_Stamp.iExpire * 3)) {
+
+                    // 每个心跳周期尝试一次连接主席端
+                    if ((m_Stamp.iKeepStamp - m_Stamp.iRequestChainmanStamp) >= m_Stamp.iExpire) {
+                        m_Stamp.iRequestChainmanStamp = m_Stamp.iKeepStamp;
+                        ChairmanAdd();
                     }
                 }
             }
+
         } catch (Exception ex) {
             OutString("Keep: ex=" + ex.toString());
         }
@@ -2544,12 +2536,19 @@ public class pgLibConference {
             return false;
         }
 
+        // 开始视频连接状态检测定时器
+        m_Group.iActiveTimer = TimerStart("(Act){TimerActive}", ACTIVE_TIMER_INTERVAL, false);
+        m_Stamp.iActiveStamp = 0;
         return true;
     }
 
     private boolean VideoClose(PG_PEER oPeer) {
         OutString("->VideoClose : oPeer.sPeer" + oPeer.sPeer);
         try {
+            if(m_Group.iActiveTimer>0){
+                TimerStop(m_Group.iActiveTimer);
+            }
+
             if (oPeer.Node != null || oPeer.iHandle > 0) {
                 String sObjV;
                 if (oPeer.bLarge) {
