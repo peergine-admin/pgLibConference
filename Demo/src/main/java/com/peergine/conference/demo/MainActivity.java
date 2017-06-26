@@ -70,7 +70,7 @@ public class MainActivity extends Activity {
 	private String m_sVideoParam=
 			"(Code){3}(Mode){2}(FrmRate){40}" +
 					"(LCode){3}(LMode){3}(LFrmRate){30}" +
-					"(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
+					"(Portrait){0}(Rotate){0}(BitRate){300}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
 					"(AudioSpeechDisable){0}";
 	private String m_sMemb = "";
 
@@ -725,7 +725,7 @@ public class MainActivity extends Activity {
 		public void event(String sAct, String sData, final String sPeer) {
 			// TODO Auto-generated method stub
 
-			Log.d("pgLibConference", "OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sPeer);
+			Log.d("ConferenceDemo", "OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sPeer);
 			if (sAct.equals("VideoFrameStat")) {
 				EventVideoFrameStat(sAct,sData,sPeer);
 			}

@@ -1,6 +1,6 @@
 
 /* ***********************************************************************
- copyright   : Copyright (C) 2014, chenbichao, All rights reserved.
+ copyright   : Copyright (C) 2016, ctkj, All rights reserved.
  : www.peergine.com, www.pptun.com
  :
  filename    : pgLibConference.java
@@ -30,7 +30,7 @@ import java.util.TimerTask;
  * Update 2016/11/1 v1.0.3
  * 添加SvrRequest API函数：给服务器发送扩展消息
  * 包含事件：SvrReplyError  Data为错误代码 和 SvrReply Data为服务器回复消息
- *
+ * <p>
  * Updata 2016/11/17 v1.0.6
  * 添加视频的抓拍和录制功能
  * 做了一个超时检测 在执行MemberAdd MemberDel Leave 操作是 如果45秒内没有退出和加入会议   。就产生TimeOut 的回调    sData 数操作名   sPeer是参数
@@ -39,13 +39,13 @@ import java.util.TimerTask;
  * CallSend函数的最后一个参数自定义
  * CallSend回调事件的sData 是错误代码 0是正常 ，sPeer是CallSend的最后一个参数
  * 新增函数 AudioCtrlVolume 控制sPeer 的扬声器和麦克风是否播放或采集声音数据，sPeer为空时
- *
+ * <p>
  * Updata 2016/12/30 v9
  * 1、升级产品版本规则，版本号前3位是中间件版本，后一位是SDK版本
  * 2、升级打包规则，不同平台分别打包
  * 3、updata增加一些视音频操作函数，节点操作函数 ，Reset 函数 等
  * 4、增加音频初始化选项
- *
+ * <p>
  * Updata 2016/12/30 v10
  * 1、升级AudioSpeech函数，增加一个参数，同时兼容之前的函数。
  */
@@ -786,7 +786,7 @@ public class pgLibConference {
             int iErr = m_Node.ObjectRequest(m_Group.sObjG, 32, sDataMdf, "");
             if (iErr > 0) {
                 OutString("MemberAdd: Add group member failed err=" + iErr);
-            }else {
+            } else {
                 bRet = true;
             }
         }
@@ -1328,7 +1328,7 @@ public class pgLibConference {
 
             iVolume = iVolume < 0 ? 0 : iVolume;//iVolume防止参数小于0
             iVolume = iVolume > 100 ? 100 : iVolume;//大于100 取100
-            String sData = "(Peer){"+sPeerTemp+"}(Action){1}(Type){" + iType + "}(Volume){" + m_Node.omlEncode(iVolume + "")
+            String sData = "(Peer){" + sPeerTemp + "}(Action){1}(Type){" + iType + "}(Volume){" + m_Node.omlEncode(iVolume + "")
                     + "}(Max){0}(Min){0}";
             int iErr = m_Node.ObjectRequest(m_Group.sObjA, 34, sData, "AudioCtrlVolume");
             if (iErr > 0) {
@@ -1631,7 +1631,9 @@ public class pgLibConference {
 
     //log 打印
     private static void OutString(String sOut) {
-        Log.d("pgLibConference", sOut);
+        if(BuildConfig.DEBUG) {
+            Log.d("pgLibConference", sOut);
+        }
     }
 
     //定时器处理程序
@@ -1680,7 +1682,7 @@ public class pgLibConference {
                 }
                 if (m_Self.bVideoPortrait != 0) {
                     int angle = m_Self.bVideoPortrait * 90;
-                    m_Node.ObjectRequest("_vTemp", 2, "(Item){2}(Value){" + 90 + "}", "");
+                    m_Node.ObjectRequest("_vTemp", 2, "(Item){2}(Value){" + angle + "}", "");
                 } else if (m_Self.bVideoRotate != 0) {
                     m_Node.ObjectRequest("_vTemp", 2, "(Item){2}(Value){" + m_Self.bVideoRotate + "}", "");
                 }
