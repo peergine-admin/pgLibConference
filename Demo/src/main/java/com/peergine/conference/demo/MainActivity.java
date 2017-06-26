@@ -184,14 +184,13 @@ public class MainActivity extends Activity {
 
 //		Camera camera=null;
 //		setCameraDisplayOrientation(this,Camera.CameraInfo.CAMERA_FACING_FRONT,camera);
-
+		memberArray.clear();
 		//todo 4个窗口初始化
 		PreviewLayout = (LinearLayout) findViewById(R.id.layoutVideoS0);
-		for(int i=0;i<RIDLaout.length;i++)
-		{
-				PG_MEMB oMemb = new PG_MEMB();
-				oMemb.pLayout = (LinearLayout) findViewById(RIDLaout[i]);
-				memberArray.add(oMemb);
+		for (int aRIDLaout : RIDLaout) {
+			PG_MEMB oMemb = new PG_MEMB();
+			oMemb.pLayout = (LinearLayout) findViewById(aRIDLaout);
+			memberArray.add(oMemb);
 		}
 //		TextView textView = (TextView)findViewById(R.id.text_notuse);
 //		textView.requestFocus();
@@ -266,7 +265,7 @@ public class MainActivity extends Activity {
 			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
 			finish();
 			return;
-		};
+		}
 
 		m_Preview= m_Conf.PreviewCreate(160, 120);
 		PreviewLayout.removeAllViews();
@@ -349,10 +348,7 @@ public class MainActivity extends Activity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
+		return id == R.id.action_settings || super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -492,11 +488,11 @@ public class MainActivity extends Activity {
 						//		+ "}(Msg){" + m_Conf.GetNode().omlEncode("hello chairman") + "}");
 						//m_Conf.AudioCtrlVolume(m_sChair,0,0);
 						//m_Conf.Reset(m_sGroup,"Group_member869384011853858");
-                        Date currentTime = new Date();
-                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                        String sDate = formatter.format(currentTime);
-						String sPath = getSDPath()+"/record"+sDate+".avi";
-						m_Conf.RecordStart(m_sChair,sPath);
+//                        Date currentTime = new Date();
+//                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+//                        String sDate = formatter.format(currentTime);
+//						String sPath = getSDPath()+"/record"+sDate+".avi";
+//						m_Conf.RecordStart(m_sChair,sPath);
 //						m_Conf.AudioRecordStart(m_sChair,sPath);
 
 						break;
@@ -507,18 +503,16 @@ public class MainActivity extends Activity {
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                     String sDate = formatter.format(currentTime);
                     String sPath = getSDPath()+"/record"+sDate+".avi";
-                    if((!m_Conf.VideoRecordStart(m_sChair,sPath))|| (!m_Conf.AudioRecordStart(m_sChair,sPath))){
+                    if((!m_Conf.RecordStart(m_sChair,sPath))){
 						Toast.makeText(getApplication(),"录像失败。 已经关闭",Toast.LENGTH_SHORT).show();
 						m_Conf.RecordStop(m_sChair);
 //						m_Conf.AudioRecordStop(m_sChair);
                     }
-
-                   ;
-                    break;
+					break;
                 }
                 case R.id.btn_recordstop:{
-                    m_Conf.VideoRecordStop(m_sChair);
-                    m_Conf.AudioRecordStop(m_sChair);
+                    m_Conf.RecordStop(m_sChair);
+                    //m_Conf.AudioRecordStop(m_sChair);
                     break;
                 }
 				case R.id.btn_clearlog:{
@@ -1045,11 +1039,7 @@ public class MainActivity extends Activity {
 		if (!m_Conf.AudioSpeech(m_sMemb,m_bSpeechEnable)) {
 			Log.d("pgRobotClient", "Enable speech failed");
 		} else {
-			if (m_bSpeechEnable) {
-				m_bSpeechEnable = false;
-			} else {
-				m_bSpeechEnable = true;
-			}
+			m_bSpeechEnable = !m_bSpeechEnable;
 		}
 	}
 
