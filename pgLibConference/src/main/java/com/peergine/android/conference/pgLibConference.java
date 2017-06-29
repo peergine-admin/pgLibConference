@@ -2492,11 +2492,9 @@ public class pgLibConference {
 
         oCtrl.iStamp = m_iCurStamp;
         oCtrl.iHandle = iHandle;
-        //oCtrl.bRequest = true;
         if (sObj.indexOf("_LV_") == 0) {
             oCtrl.bLarge = true;
         }
-        //OutString("Video _VideoJoin iHandle=" + oCtrl.iHandle);
         EventProc(sAct, sData, sPeer);
     }
 
@@ -2705,7 +2703,9 @@ public class pgLibConference {
 
 
     private int NodeOnExtRequest(String sObj, int uMeth, String sData, int iHandle, String sPeer) {
-        //OutString("NodeOnExtRequest: " + sObj + ", " + uMeth + ", " + sData + ", " + sPeer);
+        if(!((!m_Group.bEmpty)&&uMeth == 40 &&(sObj.equals(m_Group.sObjV)||sObj.equals(m_Group.sObjLV)))){
+            OutString("NodeOnExtRequest: " + sObj + ", " + uMeth + ", " + sData + ", " + sPeer);
+        }
 
         if (m_Node != null) {
             //Peer类相关

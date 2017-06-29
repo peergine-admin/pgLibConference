@@ -17,8 +17,8 @@ android {
         applicationId "com.peergine.conference.demo"
         minSdkVersion 15
         targetSdkVersion 26
-        versionCode 18
-        versionName "1.28.0.18"
+        versionCode 19
+        versionName "1.29.5.19"
     }
     buildTypes {
         release {
