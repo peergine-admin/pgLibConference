@@ -1234,17 +1234,14 @@ public class pgLibConference {
     public boolean VideoRecord(String sPeer, String sPath, boolean bHasAudio) {
         boolean bRet = false;
         if (m_Status.bApiVideoStart) {
-
-            if (sPeer.indexOf("_DEV_") != 0) {
-                sPeer = "_DEV_" + sPeer;
+            String sPeerTemp = sPeer;
+            if (sPeerTemp.indexOf("_DEV_") != 0) {
+                sPeerTemp = "_DEV_" + sPeer;
             }
             String sPathTemp = sPath;
-            if ((!sPathTemp.equals("")) && sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
-                sPathTemp += ".avi";
-            }
 
             String sObjV;
-            PG_PEER oPeer = VideoPeerSearch(sPeer);
+            PG_PEER oPeer = VideoPeerSearch(sPeerTemp);
             if (oPeer != null) {
                 if (oPeer.bLarge) {
                     sObjV = m_Group.sObjLV;
@@ -1254,8 +1251,8 @@ public class pgLibConference {
 
                 int iHasAudio = bHasAudio ? 1 : 0;
 
-                String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasAudio)(" + iHasAudio + "}";
-                int iErr = m_Node.ObjectRequest(sObjV, 38, sIn, "VideoRecord:" + sPeer);
+                String sIn = "(Peer){" + sPeerTemp + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasAudio)(" + iHasAudio + "}";
+                int iErr = m_Node.ObjectRequest(sObjV, 38, sIn, "VideoRecord:" + sPeerTemp);
                 if (iErr > 0) {
                     OutString("VideoRecord Error  = " + iErr);
                 } else {
@@ -1415,9 +1412,9 @@ public class pgLibConference {
                     sPeer = "_DEV_" + sPeer;
                 }
                 String sPathTemp = sPath;
-                if ((!sPathTemp.equals("")) && sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
-                    sPathTemp += ".avi";
-                }
+//                if ((!sPathTemp.equals("")) && sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
+//                    sPathTemp += ".avi";
+//                }
                 int iHasVideo = bHasVideo ? 1 : 0;
                 String sIn = "(Peer){" + sPeer + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasVideo){" + iHasVideo + "}";
                 int iErr = m_Node.ObjectRequest(m_Group.sObjA, 37, sIn, "AudioRecord:" + sPeer);
@@ -1443,7 +1440,7 @@ public class pgLibConference {
      *
      * */
     public boolean RecordStart(String sPeer, String sPath) {
-        if (VideoRecord(sPeer, sPath, true) && AudioRecord(sPeer, sPath, true)) {
+        if (AudioRecord(sPeer, sPath, true)&&VideoRecord(sPeer, sPath, true)) {
             return true;
         } else {
             RecordStop(sPeer);
