@@ -326,7 +326,6 @@ public class pgLibConference {
         boolean bEventEnable = true;
         int iVideoInitFlag = 0;
 
-
         void restore() {
             this.bInitialized = false;
             this.bLogined = false;
@@ -335,8 +334,6 @@ public class pgLibConference {
             this.bApiAudioStart = false;
             this.bEventEnable = true;
             this.iVideoInitFlag = 0;
-
-
         }
     }
 
@@ -364,7 +361,6 @@ public class pgLibConference {
         String sLanScanRes = "";
         String sLanAddr;
         boolean bPeerCheckTimer = false;
-
 
         PG_LANSCAN() {
             this.bApiLanScan = false;
@@ -659,15 +655,11 @@ public class pgLibConference {
      * 阻塞方式：非阻塞，立即返回。
      */
     public void Clean() {
-
         NodeStop();
-
         TimerOutDel(timerOut);
         TimerClean();
-
         //pgLibJNINode.Clean();
         m_Status.restore();
-
     }
 
     // Create preview for node.
@@ -1123,15 +1115,12 @@ public class pgLibConference {
      * iCameraNo：摄像头编号
      */
     public boolean VideoSource(int iCameraNo) {
-        if (m_Node == null) {
-            OutString(" Not initialize");
-            return false;
-        }
-
-        if (m_Node.ObjectAdd("_vTemp_1", "PG_CLASS_Video", "", 0x2)) {
-            m_Node.ObjectRequest("_vTemp_1", 2, "(Item){0}(Value){" + iCameraNo + "}", "");
-            m_Node.ObjectDelete("_vTemp_1");
-            return true;
+        if (m_Node != null) {
+            if (m_Node.ObjectAdd("_vTemp_1", "PG_CLASS_Video", "", 0x2)) {
+                m_Node.ObjectRequest("_vTemp_1", 2, "(Item){0}(Value){" + iCameraNo + "}", "");
+                m_Node.ObjectDelete("_vTemp_1");
+                return true;
+            }
         }
         return false;
     }
