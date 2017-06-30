@@ -178,6 +178,7 @@ public class pgLibConference {
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
+
     public static class PG_NODE_CFG {
         public int Type = 0;//节点类型。不建议修改
         public int Option = 1;//不建议修改
@@ -373,7 +374,7 @@ public class pgLibConference {
     private String m_sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
-
+    private boolean m_bJNILibInited = false;
     // Event listen interface object.
     private OnEventListener m_eventListener = null;
     private pgLibJNINode m_Node = null;
@@ -483,6 +484,48 @@ public class pgLibConference {
 
         public int OnExtRequest(String sObj, int uMeth, String sData, int uHandle, String sPeer) {
             return NodeOnExtRequest(sObj, uMeth, sData, uHandle, sPeer);
+        }
+    }
+
+    ///------------------------------------------------------------------------
+    // Private methods.
+    private static Integer s_iNodeLibInitCount = 0;
+    private static boolean NodeLibInit(Context oCtx) {
+        try {
+            boolean bResult = false;
+            synchronized(s_iNodeLibInitCount) {
+                if (s_iNodeLibInitCount > 0) {
+                    s_iNodeLibInitCount++;
+                    bResult = true;
+                }
+                else {
+                    if (pgLibJNINode.Initialize(oCtx)) {
+                        s_iNodeLibInitCount++;
+                        bResult = true;
+                    }
+                }
+            }
+            return bResult;
+        }
+        catch (Exception e) {
+            OutString("pgLibLive.NodeLibInit: e=" + e.toString());
+            return false;
+        }
+    }
+
+    private static void NodeLibClean() {
+        try {
+            synchronized(s_iNodeLibInitCount) {
+                if (s_iNodeLibInitCount > 0) {
+                    s_iNodeLibInitCount--;
+                    if (s_iNodeLibInitCount == 0) {
+                        pgLibJNINode.Clean();
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            OutString("pgLibLive.NodeLibClean: e=" + e.toString());
         }
     }
 
@@ -608,10 +651,11 @@ public class pgLibConference {
         if (!m_Status.bInitialized) {
             if ((!"".equals(sUser)) && sUser.length() < 100) {
                 // Init JNI lib.
-                if (!pgLibJNINode.Initialize(oCtx)) {
+                if (!NodeLibInit(oCtx)) {
+                    OutString("Initialize: Peergine plugin invalid.");
                     return false;
                 }
-
+                m_bJNILibInited = true;
                 // Create Timer message handler.
                 if (!TimerInit()) {
                     TimerClean();
@@ -659,6 +703,11 @@ public class pgLibConference {
         TimerOutDel(timerOut);
         TimerClean();
         //pgLibJNINode.Clean();
+
+        if (m_bJNILibInited) {
+            NodeLibClean();
+            m_bJNILibInited = false;
+        }
         m_Status.restore();
     }
 
