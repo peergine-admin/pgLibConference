@@ -249,7 +249,7 @@ public class MainActivity extends Activity {
 		if(m_Conf==null){
 			m_Conf= new pgLibConference();
 			RefWatcher refWatcher = DemoApplication.getRefWatcher(this);
-			refWatcher.watch(this);
+			refWatcher.watch(m_Conf);
 			m_Conf.SetEventListener(m_OnEvent);
 
 			m_Conf.SetExpire(iExpire);
