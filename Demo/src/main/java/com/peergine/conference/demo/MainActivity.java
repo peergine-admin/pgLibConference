@@ -23,7 +23,6 @@ import android.widget.Toast;
 import com.peergine.android.conference.pgLibConference;
 import com.peergine.android.conference.pgVideoPutMode;
 import com.peergine.plugin.lib.pgLibJNINode;
-import com.squareup.leakcanary.RefWatcher;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -248,8 +247,6 @@ public class MainActivity extends Activity {
 
 		if(m_Conf==null){
 			m_Conf= new pgLibConference();
-			RefWatcher refWatcher = DemoApplication.getRefWatcher(this);
-			refWatcher.watch(m_Conf);
 			m_Conf.SetEventListener(m_OnEvent);
 
 			m_Conf.SetExpire(iExpire);

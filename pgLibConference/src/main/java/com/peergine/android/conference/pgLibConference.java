@@ -371,6 +371,7 @@ public class pgLibConference {
         }
     }
 
+    private String m_sConfig_Control = "Type=1;LogLevel0=1;LogLevel1=1";
     private String m_sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
@@ -581,6 +582,10 @@ public class pgLibConference {
     }
 
 //  sConfig_Node 参数示例："Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
+    public boolean ConfigControl(String m_sConfig_Control){
+        this.m_sConfig_Control=m_sConfig_Control;
+        return true;
+    }
 
     public boolean ConfigNode(PG_NODE_CFG mNodeCfg) {
         if (mNodeCfg == null) {
