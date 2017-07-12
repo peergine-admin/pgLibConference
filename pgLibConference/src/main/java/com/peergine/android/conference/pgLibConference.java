@@ -196,7 +196,7 @@ public class pgLibConference {
         public int SKTBufSize1 = 64;//音频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
         public int SKTBufSize2 = 256;//视频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
         public int SKTBufSize3 = 64;//文件流的Socket队列长度（报文个数），取值范围：1 ~ 32768
-
+        public int P2PTryTime= 1;
         public PG_NODE_CFG() {
             Type = 0;
             Option = 1;
@@ -372,7 +372,7 @@ public class pgLibConference {
     }
 
     private String m_sConfig_Control = "Type=1;LogLevel0=1;LogLevel1=1";
-    private String m_sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
+    private String m_sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64;P2PTryTime=1";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();
     private boolean m_bJNILibInited = false;
@@ -601,7 +601,8 @@ public class pgLibConference {
                 ";SKTBufSize0=" + mNodeCfg.SKTBufSize0 +
                 ";SKTBufSize1=" + mNodeCfg.SKTBufSize1 +
                 ";SKTBufSize2=" + mNodeCfg.SKTBufSize2 +
-                ";SKTBufSize3=" + mNodeCfg.SKTBufSize3;
+                ";SKTBufSize3=" + mNodeCfg.SKTBufSize3 +
+                ";P2PTryTime=" +mNodeCfg.P2PTryTime;
         return true;
     }
 
