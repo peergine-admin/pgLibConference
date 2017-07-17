@@ -243,6 +243,7 @@ public class MainActivity extends Activity {
 	private DialogInterface.OnClickListener m_DlgClick = new DialogInterface.OnClickListener() {
 		public void onClick(DialogInterface dialog, int which) {
 			if (which == AlertDialog.BUTTON_POSITIVE) {
+				pgStop();
 				m_Conf.Clean();
 				android.os.Process.killProcess(android.os.Process.myPid());
 			}
