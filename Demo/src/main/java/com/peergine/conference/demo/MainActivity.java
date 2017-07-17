@@ -21,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
-import com.peergine.android.conference.pgVideoPutMode;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
@@ -29,9 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static com.peergine.android.conference.pgLibConference.OnEventListener;
-import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
-import static com.peergine.android.conference.pgLibConference.TimerOut;
+import static com.peergine.android.conference.pgLibConference.*;
 
 /*
 *
@@ -726,79 +723,79 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated method stub
 
 			Log.d("ConferenceDemo", "OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sPeer);
-			if (sAct.equals("VideoFrameStat")) {
+			if (sAct.equals(EVENT_VIDEO_FRAME_STAT)) {
 				EventVideoFrameStat(sAct,sData,sPeer);
 			}
-			else if (sAct.equals("Login")) {
+			else if (sAct.equals(EVENT_LOGIN)) {
 				EventLogin(sAct,sData,sPeer);
 			}
-			else if (sAct.equals("Logout")) {
+			else if (sAct.equals(EVENT_LOGOUT)) {
 				EventLogout(sAct,sData,sPeer);
 			}
-			else if (sAct .equals("PeerOffline")) {
+			else if (sAct .equals(EVENT_PEER_OFFLINE)) {
 				EventPeerOffline(sAct,sData,sPeer);
 			}
-			else if (sAct.equals("PeerSync")) {
+			else if (sAct.equals(EVENT_PEER_SYNC)) {
 				EventPeerSync(sAct,sData,sPeer);
 			}
-			else if (sAct .equals("ChairmanOffline")) {
+			else if (sAct .equals(EVENT_CHAIRMAN_OFFLINE)) {
 				EventChairmanOffline(sAct,sData,sPeer);
 			}
-			else if (sAct.equals("ChairmanSync")) {
+			else if (sAct.equals(EVENT_CHAIRMAN_SYNC)) {
 				EventChairmanSync(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("AskJoin")) {
+			else if(sAct.equals(EVENT_ASK_JOIN)) {
 				EventAskJoin(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("Join")){
+			else if(sAct.equals(EVENT_JOIN)){
 				EventJoin(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("Leave")){
-                EventLeave(sAct,sData,sPeer);
+			else if(sAct.equals(EVENT_LEAVE)){
+				EventLeave(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("VideoSync")) {
+			else if(sAct.equals(EVENT_VIDEO_SYNC)) {
 				EventVideoSync(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("VideoSyncL")) {
+			else if(sAct.equals(EVENT_VIDEO_SYNC_1)) {
 				EventVideoSyncL(sAct,sData,sPeer);
 			}
-			else if (sAct.equals("VideoOpen")) {
+			else if (sAct.equals(EVENT_VIDEO_OPEN)) {
 				EventVideoOpen(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("VideoLost")){
+			else if(sAct.equals(EVENT_VIDEO_LOST)){
 				EventVideoLost(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("VideoClose")){
+			else if(sAct.equals(EVENT_VIDEO_CLOSE)){
 				EventVideoClose(sAct,sData,sPeer);
 			}
-			else if (sAct .equals( "VideoJoin")) {
+			else if (sAct .equals(EVENT_VIDEO_JOIN)) {
 				EventVideoJoin(sAct,sData,sPeer);
 			}
-			else if (sAct .equals( "VideoCamera")) {
+			else if (sAct .equals(EVENT_VIDEO_CAMERA)) {
 				EventVideoCamera(sAct,sData,sPeer);
 			}
-			else if (sAct .equals( "VideoRecord")) {
+			else if (sAct .equals( EVENT_VIDEO_RECORD)) {
 				EventVideoRecord(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("Message")) {
+			else if(sAct.equals(EVENT_MESSAGE)) {
 				EventMessage(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("CallSend")) {
+			else if(sAct.equals(EVENT_CALLSEND_RESULT)) {
 				EventCallSend(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("Notify")) {
+			else if(sAct.equals(EVENT_NOTIFY)) {
 				EventNotify(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("SvrNotify")) {
+			else if(sAct.equals(EVENT_SVR_NOTIFY)) {
 				EventSvrNotify(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("SvrReply")) {
+			else if(sAct.equals(EVENT_SVR_RELAY)) {
 				EventSvrReply(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("SvrReplyError")) {
+			else if(sAct.equals(EVENT_SVR_REPLYR_ERROR)) {
 				EventSvrReplyError(sAct,sData,sPeer);
 			}
-			else if(sAct.equals("LanScanResult")){
+			else if(sAct.equals(EVENT_LAN_SCAN_RESULT)){
 				EventLanScanResult(sAct,sData,sPeer);
 			}
 		}
@@ -840,7 +837,7 @@ public class MainActivity extends Activity {
 		m_Preview= m_Conf.PreviewCreate(160, 120);
 		PreviewLayout.removeAllViews();
 		PreviewLayout.addView(m_Preview);
-		m_Conf.VideoStart(pgVideoPutMode.Normal);
+		m_Conf.VideoStart(VIDEO_Normal);
 		m_Conf.AudioStart();
 
 	}
@@ -871,7 +868,7 @@ public class MainActivity extends Activity {
 		m_Preview= m_Conf.PreviewCreate(160, 120);
 		PreviewLayout.removeAllViews();
 		PreviewLayout.addView(m_Preview);
-		m_Conf.VideoStart(pgVideoPutMode.Normal);
+		m_Conf.VideoStart(VIDEO_Normal);
 		m_Conf.AudioStart();
 //        m_Conf.AudioCtrlVolume("_DEV_"+m_sUser,0,80);
 
@@ -895,7 +892,7 @@ public class MainActivity extends Activity {
 		}
 		String sName = m_sChair;
 		m_Conf.Start(sName,m_sChair);
-		m_Conf.VideoStart(pgVideoPutMode.Normal);
+		m_Conf.VideoStart(VIDEO_Normal);
 		m_Conf.AudioStart();
 	}
 
@@ -983,7 +980,7 @@ public class MainActivity extends Activity {
 //		if(m_IsVideoStart){
 //			pgVideoStop();
 //		}
-//		m_Conf.VideoStart(pgVideoPutMode.Normal);
+//		m_Conf.VideoStart(pgVideoPutMode.VIDEO_Normal);
 //		m_Conf.AudioStart();
 //		m_IsVideoStart= true;
 //	}
