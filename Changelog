@@ -1,0 +1,4 @@
+2017/07/17-16:31	8 files committed: 
+			1、将 事件 处理 接口函数中的Action 改成常量的方式。
+			2、将Video 相关的3个常量数据移动到pgLibConference 类中，并加上VIDEO_的前缀。
+			3、修复Demo2中存在的问题。
