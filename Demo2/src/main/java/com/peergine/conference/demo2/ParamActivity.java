@@ -1,8 +1,12 @@
 package com.peergine.conference.demo2;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,6 +29,25 @@ public class ParamActivity extends Activity {
 
 
     Button m_btn_Init = null;
+
+    public static boolean checkCameraPermission(Context context) {
+        boolean canUse = true;
+        Camera mCamera = null;
+        try {
+            mCamera = Camera.open(0);
+            mCamera.setDisplayOrientation(90);
+        } catch (Exception e) {
+            Log.getStackTraceString(e);
+            //Log.e(TAG, );
+            canUse = false;
+        }
+        if (canUse) {
+            mCamera.release();
+            mCamera = null;
+        }
+        return canUse;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +71,8 @@ public class ParamActivity extends Activity {
             public void onClick(View v) {
                 switch (v.getId()){
                     case R.id.btn_init:{
+                        if(checkCameraPermission(ParamActivity.this)) {
+
                         String sUser = m_edit_user.getText().toString().trim();
                         String sPass = m_edit_pass.getText().toString().trim();
                         String sSvrAddr = m_edit_svraddr.getText().toString().trim();
@@ -79,7 +104,18 @@ public class ParamActivity extends Activity {
 
                         intent.setClass(ParamActivity.this,MainActivity.class);
                         startActivity(intent);
+                        }
+                        else {
 
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ParamActivity.this);
+                            builder.setTitle("错误！");
+                            builder.setMessage("没有获取到摄像头权限。");
+                            builder.setPositiveButton("OK", null);
+                            builder.setNegativeButton("返回",null);
+                            builder.show();
+
+
+                        }
                         break;
                     }
                     default:break;

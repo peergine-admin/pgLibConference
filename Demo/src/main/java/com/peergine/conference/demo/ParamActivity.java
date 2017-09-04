@@ -1,8 +1,12 @@
 package com.peergine.conference.demo;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,6 +29,25 @@ public class ParamActivity extends Activity {
 
 
     Button m_btn_Init = null;
+
+    public static boolean checkCameraPermission(Context context) {
+        boolean canUse = true;
+        Camera mCamera = null;
+        try {
+            mCamera = Camera.open(0);
+            mCamera.setDisplayOrientation(90);
+        } catch (Exception e) {
+            Log.getStackTraceString(e);
+            //Log.e(TAG, );
+            canUse = false;
+        }
+        if (canUse) {
+            mCamera.release();
+            mCamera = null;
+        }
+        return canUse;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,43 +66,59 @@ public class ParamActivity extends Activity {
         m_edit_MaxHandle =  (EditText) findViewById(R.id.editText_MaxHandle);
 
         m_btn_Init = (Button) findViewById(R.id.btn_init);
+
+
         m_btn_Init.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 switch (v.getId()){
                     case R.id.btn_init:{
-                        String sUser = m_edit_user.getText().toString().trim();
-                        String sPass = m_edit_pass.getText().toString().trim();
-                        String sSvrAddr = m_edit_svraddr.getText().toString().trim();
-                        String sRelayAddr = m_edit_relayaddr.getText().toString().trim();
-                        String sVideoParam = m_edit_videoparam.getText().toString().trim();
-                        if(sUser.equals("")||sSvrAddr.equals("")||sVideoParam.equals("")){
-                            Toast.makeText(getApplicationContext(),"部分参数为空。请检查。",Toast.LENGTH_SHORT).show();
-                            break;
+
+                        if(checkCameraPermission(ParamActivity.this)) {
+
+                            String sUser = m_edit_user.getText().toString().trim();
+                            String sPass = m_edit_pass.getText().toString().trim();
+                            String sSvrAddr = m_edit_svraddr.getText().toString().trim();
+                            String sRelayAddr = m_edit_relayaddr.getText().toString().trim();
+                            String sVideoParam = m_edit_videoparam.getText().toString().trim();
+                            if (sUser.equals("") || sSvrAddr.equals("") || sVideoParam.equals("")) {
+                                Toast.makeText(getApplicationContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+
+                            String sExpire = m_edit_Expire.getText().toString().trim();
+                            String sMaxPeer = m_edit_MaxPeer.getText().toString().trim();
+                            String sMaxObject = m_edit_MaxObject.getText().toString().trim();
+                            String sMaxMCast = m_edit_MaxMCast.getText().toString().trim();
+                            String sMaxHandle = m_edit_MaxHandle.getText().toString().trim();
+
+                            Intent intent = new Intent();
+
+                            intent.putExtra("User", sUser);
+                            intent.putExtra("Pass", sPass);
+                            intent.putExtra("SvrAddr", sSvrAddr);
+                            intent.putExtra("RelayAddr", sRelayAddr);
+                            intent.putExtra("VideoParam", sVideoParam);
+                            intent.putExtra("Expire", sExpire);
+                            intent.putExtra("MaxPeer", sMaxPeer);
+                            intent.putExtra("MaxObject", sMaxObject);
+                            intent.putExtra("MaxMCast", sMaxMCast);
+                            intent.putExtra("MaxHandle", sMaxHandle);
+
+                            intent.setClass(ParamActivity.this, MainActivity.class);
+                            startActivity(intent);
                         }
+                        else {
 
-                        String sExpire =     m_edit_Expire.getText().toString().trim();
-                        String sMaxPeer =    m_edit_MaxPeer.getText().toString().trim();
-                        String sMaxObject =     m_edit_MaxObject.getText().toString().trim();
-                        String sMaxMCast =    m_edit_MaxMCast.getText().toString().trim();
-                        String sMaxHandle =     m_edit_MaxHandle.getText().toString().trim();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ParamActivity.this);
+                            builder.setTitle("错误！");
+                            builder.setMessage("没有获取到摄像头权限。");
+                            builder.setPositiveButton("OK", null);
+                            builder.setNegativeButton("返回",null);
+                            builder.show();
 
-                        Intent intent = new Intent();
 
-                        intent.putExtra("User",sUser);
-                        intent.putExtra("Pass",sPass);
-                        intent.putExtra("SvrAddr",sSvrAddr);
-                        intent.putExtra("RelayAddr",sRelayAddr);
-                        intent.putExtra("VideoParam",sVideoParam);
-                        intent.putExtra("Expire",sExpire);
-                        intent.putExtra("MaxPeer",sMaxPeer);
-                        intent.putExtra("MaxObject",sMaxObject);
-                        intent.putExtra("MaxMCast",sMaxMCast);
-                        intent.putExtra("MaxHandle",sMaxHandle);
-
-                        intent.setClass(ParamActivity.this,MainActivity.class);
-                        startActivity(intent);
-
+                        }
                         break;
                     }
                     default:break;
