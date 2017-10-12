@@ -115,6 +115,7 @@ public class ParamActivity extends Activity {
                                     startActivity(intent);
                                 }
                             });
+                            builder.show();
 
                         }
                         else {
