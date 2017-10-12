@@ -3,6 +3,7 @@ package com.peergine.conference.demo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -75,38 +76,46 @@ public class ParamActivity extends Activity {
                     case R.id.btn_init:{
 
                         if(checkCameraPermission(ParamActivity.this)) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ParamActivity.this);
+                            builder.setTitle("信息");
+                            builder.setMessage("本Demo可以设置一个主席端，和多个成员端。");
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String sUser = m_edit_user.getText().toString().trim();
+                                    String sPass = m_edit_pass.getText().toString().trim();
+                                    String sSvrAddr = m_edit_svraddr.getText().toString().trim();
+                                    String sRelayAddr = m_edit_relayaddr.getText().toString().trim();
+                                    String sVideoParam = m_edit_videoparam.getText().toString().trim();
+                                    if (sUser.equals("") || sSvrAddr.equals("") || sVideoParam.equals("")) {
+                                        Toast.makeText(getApplicationContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
 
-                            String sUser = m_edit_user.getText().toString().trim();
-                            String sPass = m_edit_pass.getText().toString().trim();
-                            String sSvrAddr = m_edit_svraddr.getText().toString().trim();
-                            String sRelayAddr = m_edit_relayaddr.getText().toString().trim();
-                            String sVideoParam = m_edit_videoparam.getText().toString().trim();
-                            if (sUser.equals("") || sSvrAddr.equals("") || sVideoParam.equals("")) {
-                                Toast.makeText(getApplicationContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
-                                break;
-                            }
+                                    String sExpire = m_edit_Expire.getText().toString().trim();
+                                    String sMaxPeer = m_edit_MaxPeer.getText().toString().trim();
+                                    String sMaxObject = m_edit_MaxObject.getText().toString().trim();
+                                    String sMaxMCast = m_edit_MaxMCast.getText().toString().trim();
+                                    String sMaxHandle = m_edit_MaxHandle.getText().toString().trim();
 
-                            String sExpire = m_edit_Expire.getText().toString().trim();
-                            String sMaxPeer = m_edit_MaxPeer.getText().toString().trim();
-                            String sMaxObject = m_edit_MaxObject.getText().toString().trim();
-                            String sMaxMCast = m_edit_MaxMCast.getText().toString().trim();
-                            String sMaxHandle = m_edit_MaxHandle.getText().toString().trim();
+                                    Intent intent = new Intent();
 
-                            Intent intent = new Intent();
+                                    intent.putExtra("User", sUser);
+                                    intent.putExtra("Pass", sPass);
+                                    intent.putExtra("SvrAddr", sSvrAddr);
+                                    intent.putExtra("RelayAddr", sRelayAddr);
+                                    intent.putExtra("VideoParam", sVideoParam);
+                                    intent.putExtra("Expire", sExpire);
+                                    intent.putExtra("MaxPeer", sMaxPeer);
+                                    intent.putExtra("MaxObject", sMaxObject);
+                                    intent.putExtra("MaxMCast", sMaxMCast);
+                                    intent.putExtra("MaxHandle", sMaxHandle);
 
-                            intent.putExtra("User", sUser);
-                            intent.putExtra("Pass", sPass);
-                            intent.putExtra("SvrAddr", sSvrAddr);
-                            intent.putExtra("RelayAddr", sRelayAddr);
-                            intent.putExtra("VideoParam", sVideoParam);
-                            intent.putExtra("Expire", sExpire);
-                            intent.putExtra("MaxPeer", sMaxPeer);
-                            intent.putExtra("MaxObject", sMaxObject);
-                            intent.putExtra("MaxMCast", sMaxMCast);
-                            intent.putExtra("MaxHandle", sMaxHandle);
+                                    intent.setClass(ParamActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
 
-                            intent.setClass(ParamActivity.this, MainActivity.class);
-                            startActivity(intent);
                         }
                         else {
 

@@ -102,11 +102,11 @@
             android:text="(Code){3}(Mode){2}(FrmRate){40}(LCode){3}(LMode){3}(LFrmRate){30}(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){1}(AudioSpeechDisable){0}" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btn_init"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Initialize" />
+        <Button
+            android:id="@+id/btn_init"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="调整参数后点击（Initialize）" />
 
     <TextView
         android:layout_width="wrap_content"

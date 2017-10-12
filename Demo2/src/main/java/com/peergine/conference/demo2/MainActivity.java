@@ -217,8 +217,15 @@ public class MainActivity extends Activity {
 		}
 		if(!m_Conf.Initialize(m_sUser,m_sPass,m_sSvrAddr,m_sRelayAddr,m_sVideoParam,this)) {
 			Log.d("pgConference", "Init failed");
-			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
-			finish();
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Error");
+			builder.setMessage("请安装pgPlugin xx.APK 或者检查网络状况!");
+			builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					finish();
+				}
+			});
 			return;
 		}
 		m_bInited = true;
