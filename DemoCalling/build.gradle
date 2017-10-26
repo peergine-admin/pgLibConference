@@ -23,17 +23,22 @@ static def CleanDemo(rootDir) {
 }
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.0'
+    buildToolsVersion '26.0.2'
     android.applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            def fileName = "${rootDir}/DemoApp/DemoCalling_v${defaultConfig.versionName}_${releaseTime()}.apk"
-            output.outputFile = new File(fileName);
+        variant.outputs.all {
+            outputFileName = "DemoCalling_v${defaultConfig.versionName}_${releaseTime()}.apk"
         }
     }
+//    android.applicationVariants.all { variant ->
+//        variant.outputs.each { output ->
+//            def fileName = "${rootDir}/DemoApp/DemoCalling_v${defaultConfig.versionName}_${releaseTime()}.apk"
+//            output.outputFile = new File(fileName);
+//        }
+//    }
     defaultConfig {
         applicationId "com.peergine.conference.demo2"
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 20
         versionName "1.31.3.20"
     }
@@ -48,6 +53,6 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':pgLibConference')
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:appcompat-v7:26.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
 }

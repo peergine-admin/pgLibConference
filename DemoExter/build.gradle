@@ -6,13 +6,18 @@ static def releaseTime() {
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.0'
+    buildToolsVersion '26.0.2'
     android.applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            def fileName = "${rootDir}/DemoApp/DemoExter_v${defaultConfig.versionName}_${releaseTime()}.apk"
-            output.outputFile = new File(fileName);
+        variant.outputs.all {
+            outputFileName = "DemoExter_v${defaultConfig.versionName}_${releaseTime()}.apk"
         }
     }
+//    android.applicationVariants.all { variant ->
+//        variant.outputs.each { output ->
+//            def fileName = "${rootDir}/DemoApp/DemoExter_v${defaultConfig.versionName}_${releaseTime()}.apk"
+//            output.outputFile = new File(fileName);
+//        }
+//    }
     defaultConfig {
         applicationId "com.peergine.conference.demoexter"
         minSdkVersion 15
@@ -31,7 +36,7 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':pgLibConference')
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:appcompat-v7:26.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile project(path: ':pgPluginLibExter')
 }
