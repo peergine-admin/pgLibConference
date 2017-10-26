@@ -823,7 +823,7 @@ public class MainActivity extends Activity {
 		}
 		String sName = sChair;
 		m_Conf.Start(sName,sChair);
-		m_Conf.VideoStart(VIDEO_Normal);
+		m_Conf.VideoStart(VIDEO_NORMAL);
 		m_Conf.AudioStart();
 		bStarted = true;
 	}

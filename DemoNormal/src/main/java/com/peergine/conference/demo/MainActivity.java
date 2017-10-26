@@ -2,7 +2,6 @@ package com.peergine.conference.demo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Camera;
@@ -849,7 +848,7 @@ public class MainActivity extends Activity {
 		m_Preview= m_Conf.PreviewCreate(160, 120);
 		PreviewLayout.removeAllViews();
 		PreviewLayout.addView(m_Preview);
-		m_Conf.VideoStart(VIDEO_Normal);
+		m_Conf.VideoStart(VIDEO_NORMAL);
 		m_Conf.AudioStart();
 
 	}
@@ -880,7 +879,7 @@ public class MainActivity extends Activity {
 		m_Preview= m_Conf.PreviewCreate(160, 120);
 		PreviewLayout.removeAllViews();
 		PreviewLayout.addView(m_Preview);
-		m_Conf.VideoStart(VIDEO_Normal);
+		m_Conf.VideoStart(VIDEO_NORMAL);
 		m_Conf.AudioStart();
 //        m_Conf.AudioCtrlVolume("_DEV_"+m_sUser,0,80);
 
@@ -904,7 +903,7 @@ public class MainActivity extends Activity {
 		}
 		String sName = m_sChair;
 		m_Conf.Start(sName,m_sChair);
-		m_Conf.VideoStart(VIDEO_Normal);
+		m_Conf.VideoStart(VIDEO_NORMAL);
 		m_Conf.AudioStart();
 	}
 
@@ -992,7 +991,7 @@ public class MainActivity extends Activity {
 //		if(m_IsVideoStart){
 //			pgVideoStop();
 //		}
-//		m_Conf.VideoStart(pgVideoPutMode.VIDEO_Normal);
+//		m_Conf.VideoStart(pgVideoPutMode.VIDEO_NORMAL);
 //		m_Conf.AudioStart();
 //		m_IsVideoStart= true;
 //	}

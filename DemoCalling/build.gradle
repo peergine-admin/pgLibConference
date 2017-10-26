@@ -3,10 +3,27 @@ apply plugin: 'com.android.application'
 static def releaseTime() {
     return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
 }
+static def CleanDemo(rootDir) {
+    File filedir = new File("${rootDir}/DemoApp")
+    File[] files = filedir.listFiles(new FileFilter() {
+        @Override
+        boolean accept(File pathname) {
+            String filename = pathname.getName().toLowerCase();
+            if(filename.contains(".apk")){
+                return false;
+            }else{
+                return true;
+            }
+        }
+    })
+    for(File filetmp in files){
+        filetmp.delete();
+    }
 
+}
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion '26.0.0'
     android.applicationVariants.all { variant ->
         variant.outputs.each { output ->
             def fileName = "${rootDir}/DemoApp/DemoCalling_v${defaultConfig.versionName}_${releaseTime()}.apk"
@@ -16,9 +33,9 @@ android {
     defaultConfig {
         applicationId "com.peergine.conference.demo2"
         minSdkVersion 15
-        targetSdkVersion 26
-        versionCode 19
-        versionName "1.31.0.19"
+        targetSdkVersion 25
+        versionCode 20
+        versionName "1.31.3.20"
     }
     buildTypes {
         release {

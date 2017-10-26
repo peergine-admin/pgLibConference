@@ -5,8 +5,8 @@ static def releaseTime() {
 }
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion '26.0.0'
     android.applicationVariants.all { variant ->
         variant.outputs.each { output ->
             def fileName = "${rootDir}/DemoApp/DemoExter_v${defaultConfig.versionName}_${releaseTime()}.apk"

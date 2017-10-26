@@ -21,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
-import com.peergine.conference.demoexter.R;
 import com.peergine.plugin.exter.VideoAudioInputExternal;
 import com.peergine.plugin.lib.pgLibJNINode;
 
@@ -824,7 +823,7 @@ public class MainActivity extends Activity {
 		}
 		String sName = m_sChair;
 		m_Conf.Start(sName,m_sChair);
-		m_Conf.VideoStart(VIDEO_Normal);
+		m_Conf.VideoStart(VIDEO_NORMAL);
 		m_Conf.AudioStart();
 	}
 
