@@ -140,110 +140,334 @@ import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 * */
 
 
-
+/**
+ * @author ctkj
+ * @version 20
+ */
 public class pgLibConference {
-    public static final int PG_ERR_Normal = 0;
-    public static final int PG_ERR_System = 1;
-    public static final int PG_ERR_BadParam = 2;
-    public static final int PG_ERR_BadClass = 3;
-    public static final int PG_ERR_BadMethod = 4;
-    public static final int PG_ERR_BadObject = 5;
-    public static final int PG_ERR_BadStatus = 6;
-    public static final int PG_ERR_BadFile = 7;
-    public static final int PG_ERR_BadUser = 8;
-    public static final int PG_ERR_BadPass = 9;
-    public static final int PG_ERR_NoLogin = 10;
-    public static final int PG_ERR_Network = 11;
-    public static final int PG_ERR_Timeout = 12;
-    public static final int PG_ERR_Reject = 13;
-    public static final int PG_ERR_Busy = 14;
-    public static final int PG_ERR_Opened = 15;
-    public static final int PG_ERR_Closed = 16;
-    public static final int PG_ERR_Exist = 17;
-    public static final int PG_ERR_NoExist = 18;
-    public static final int PG_ERR_NoSpace = 19;
-    public static final int PG_ERR_BadType = 20;
-    public static final int PG_ERR_CheckErr = 21;
-    public static final int PG_ERR_BadServer = 22;
-    public static final int PG_ERR_BadDomain = 23;
-    public static final int PG_ERR_NoData = 24;
-    public static final int PG_ERR_Unknown = 0xff;
-
-
-    public static final String EVENT_LOGIN = "Login";
-    public static final String EVENT_LOGOUT = "Logout";
-    public static final String EVENT_VIDEO_LOST = "VideoLost";
-
-    public static final String EVENT_AUDIO_SYNC = "AudioSync";
-    public static final String EVENT_AUDIO_CTRL_VOLUME = "AudioCtrlVolume";
-    public static final String EVENT_VIDEO_SYNC = "VideoSync";
-    public static final String EVENT_VIDEO_SYNC_1 = "VideoSyncL";
-    public static final String EVENT_VIDEO_OPEN = "VideoOpen";
-    public static final String EVENT_VIDEO_OPEN_1 = "VideoOpenL";
-    public static final String EVENT_VIDEO_CLOSE = "VideoClose";
-    public static final String EVENT_VIDEO_CLOSE_1 = "VideoCloseL";
-    public static final String EVENT_VIDEO_FRAME_STAT = "VideoFrameStat";
-    public static final String EVENT_VIDEO_FRAME_STAT_1 = "VideoFrameStatL";
-    public static final String EVENT_VIDEO_JOIN = "VideoJoin";
-    public static final String EVENT_VIDEO_CAMERA = "VideoCamera";
-    public static final String EVENT_VIDEO_RECORD = "VideoRecord";
-
-    public static final String EVENT_CHAIRMAN_SYNC = "ChairmanSync";
-    public static final String EVENT_CHAIRMAN_OFFLINE = "ChairmanOffline";
-    public static final String EVENT_PEER_SYNC = "PeerSync";
-    public static final String EVENT_PEER_OFFLINE = "PeerOffline";
-
-
-    public static final String EVENT_ASK_JOIN = "AskJoin";
-    public static final String EVENT_ASK_LEAVE = "AskLeave";
-    public static final String EVENT_JOIN = "Join";
-    public static final String EVENT_LEAVE = "Leave";
-
-    public static final String EVENT_MESSAGE = "Message";
-    public static final String EVENT_NOTIFY = "Notify";
-    public static final String EVENT_SVR_NOTIFY = "SvrNotify";
-    public static final String EVENT_SVR_REPLYR_ERROR = "SvrReplyError";
-    public static final String EVENT_SVR_RELAY = "SvrReply";
-    public static final String EVENT_CALLSEND_RESULT = "CallSend";
-
-    public static final String EVENT_LAN_SCAN_RESULT = "LanScanResult";
-
-
-    public static final int AUDIO_SPEECH = 0;
-    public static final int AUDIO_NO_SPEECH_SELF = 1;
-    public static final int AUDIO_NO_SPEECH_PEER = 2;
-    public static final int AUDIO_NO_SPEECH_SELF_AND_PEER = 3;
-
-    public static final int VIDEO_NORMAL = 0;
-    public static final int VIDEO_ONLY_INPUT = 1;
-    public static final int VIDEO_ONLY_OUTPUT = 2;
-
     private static final String ID_PREFIX = "_DEV_";
-
-
-    private static final String LIB_VER = "19";
-
+    private static final String LIB_VER = "20";
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
+    /**
+     * 正常
+     */
+    public static final int PG_ERR_Normal = 0;
+    /**
+     * 系统错误
+     */
+    public static final int PG_ERR_System = 1;
+    /**
+     * 错误的参数
+     */
+    public static final int PG_ERR_BadParam = 2;
+    /**
+     * 错误的类
+     */
+    public static final int PG_ERR_BadClass = 3;
+    /**
+     * 错误的方法
+     */
+    public static final int PG_ERR_BadMethod = 4;
+    /**
+     * 错误的对象
+     */
+    public static final int PG_ERR_BadObject = 5;
+    /**
+     * 错误的状态
+     */
+    public static final int PG_ERR_BadStatus = 6;
+    /**
+     * 错误的文件
+     */
+    public static final int PG_ERR_BadFile = 7;
+    /**
+     * 错误的ID
+     */
+    public static final int PG_ERR_BadUser = 8;
+    /**
+     * 错误的密码
+     */
+    public static final int PG_ERR_BadPass = 9;
+    /**
+     * 还没有登录
+     */
+    public static final int PG_ERR_NoLogin = 10;
+    /**
+     * 没有网络
+     */
+    public static final int PG_ERR_Network = 11;
+    /**
+     * 超时，网络不通
+     */
+    public static final int PG_ERR_Timeout = 12;
+    /**
+     * 拒绝
+     */
+    public static final int PG_ERR_Reject = 13;
+    /**
+     * 系统正忙
+     */
+    public static final int PG_ERR_Busy = 14;
+    /**
+     * 已经打开
+     */
+    public static final int PG_ERR_Opened = 15;
+    /**
+     * 已经关闭
+     */
+    public static final int PG_ERR_Closed = 16;
+    /**
+     * 已经存在
+     */
+    public static final int PG_ERR_Exist = 17;
+    /**
+     * 不存在
+     */
+    public static final int PG_ERR_NoExist = 18;
+    /**
+     * 没有空间
+     */
+    public static final int PG_ERR_NoSpace = 19;
+    /**
+     * 错误的结构
+     */
+    public static final int PG_ERR_BadType = 20;
+    /**
+     * 检查错误
+     */
+    public static final int PG_ERR_CheckErr = 21;
+    /**
+     * 错误的服务
+     */
+    public static final int PG_ERR_BadServer = 22;
+    /**
+     * 错误的域
+     */
+    public static final int PG_ERR_BadDomain = 23;
+    /**
+     * 没有数据
+     */
+    public static final int PG_ERR_NoData = 24;
+    /**
+     * 不知道
+     */
+    public static final int PG_ERR_Unknown = 0xff;
 
+    /**
+     * 登录事件
+     */
+    public static final String EVENT_LOGIN = "Login";
+    /**
+     * 登出事件
+     */
+    public static final String EVENT_LOGOUT = "Logout";
+    /**
+     * 视频丢失事件
+     */
+    public static final String EVENT_VIDEO_LOST = "VideoLost";
+    /**
+     * 音频通道同步事件
+     */
+    public static final String EVENT_AUDIO_SYNC = "AudioSync";
+    /**
+     * 音频控制声音事件
+     */
+    public static final String EVENT_AUDIO_CTRL_VOLUME = "AudioCtrlVolume";
+    /**
+     * 视频通道同步事件
+     */
+    public static final String EVENT_VIDEO_SYNC = "VideoSync";
+    /**
+     * 第二个视频通道同步事件
+     */
+    public static final String EVENT_VIDEO_SYNC_1 = "VideoSyncL";
+    /**
+     * 请求视频通话
+     */
+    public static final String EVENT_VIDEO_OPEN = "VideoOpen";
+    /**
+     * 第二个视频通道请求视频通话
+     */
+    public static final String EVENT_VIDEO_OPEN_1 = "VideoOpenL";
+    /**
+     * 视频关闭事件
+     */
+    public static final String EVENT_VIDEO_CLOSE = "VideoClose";
+    /**
+     * 第二个视频关闭事件
+     */
+    public static final String EVENT_VIDEO_CLOSE_1 = "VideoCloseL";
+    /**
+     * 视频状态信息上报
+     */
+    public static final String EVENT_VIDEO_FRAME_STAT = "VideoFrameStat";
+    /**
+     * 视频状态信息上报2
+     */
+    public static final String EVENT_VIDEO_FRAME_STAT_1 = "VideoFrameStatL";
+
+    /**
+     * 请求视频通话结果上报事件
+     */
+    public static final String EVENT_VIDEO_JOIN = "VideoJoin";
+    /**
+     * 拍照结果事件
+     */
+    public static final String EVENT_VIDEO_CAMERA = "VideoCamera";
+    /**
+     * 视频录像结果事件
+     */
+    public static final String EVENT_VIDEO_RECORD = "VideoRecord";
+    /**
+     * 主席端同步
+     */
+    public static final String EVENT_CHAIRMAN_SYNC = "ChairmanSync";
+    /**
+     * 主席端离线消息
+     */
+    public static final String EVENT_CHAIRMAN_OFFLINE = "ChairmanOffline";
+    /**
+     * 节点同步
+     */
+    public static final String EVENT_PEER_SYNC = "PeerSync";
+    /**
+     * 节点离线消息
+     */
+    public static final String EVENT_PEER_OFFLINE = "PeerOffline";
+    /**
+     * 成员端请求加入会议事件（主席端上报）
+     */
+    public static final String EVENT_ASK_JOIN = "AskJoin";
+    /**
+     * 成员请求离开会议事件(主席端上报)
+     */
+    public static final String EVENT_ASK_LEAVE = "AskLeave";
+    /**
+     * 成员加入组事件
+     */
+    public static final String EVENT_JOIN = "Join";
+    /**
+     * 成员离开会议事件
+     */
+    public static final String EVENT_LEAVE = "Leave";
+    /**
+     * 节点消息事件
+     */
+    public static final String EVENT_MESSAGE = "Message";
+    /**
+     * 广播消息事件
+     */
+    public static final String EVENT_NOTIFY = "Notify";
+    /**
+     * 服务器下发消息事件
+     */
+    public static final String EVENT_SVR_NOTIFY = "SvrNotify";
+    /**
+     * 服务器回复消息错误事件
+     */
+    public static final String EVENT_SVR_REPLYR_ERROR = "SvrReplyError";
+    /**
+     * 服务器回复消息事件
+     */
+    public static final String EVENT_SVR_RELAY = "SvrReply";
+    /**
+     * 上报CallSend的结果
+     */
+    public static final String EVENT_CALLSEND_RESULT = "CallSend";
+    /**
+     * 上报局域网节点信息
+     */
+    public static final String EVENT_LAN_SCAN_RESULT = "LanScanResult";
+
+    /**
+     * 初始化音频控制正常对讲
+     */
+    public static final int AUDIO_SPEECH = 0;
+    /**
+     * 初始化音频控制自己静音
+     */
+    public static final int AUDIO_NO_SPEECH_SELF = 1;
+    /**
+     * 初始化音频控制静音其他成员
+     */
+    public static final int AUDIO_NO_SPEECH_PEER = 2;
+    /**
+     * 初始化音频控制不接收音频也不发送音频
+     */
+    public static final int AUDIO_NO_SPEECH_SELF_AND_PEER = 3;
+
+    /**
+     * 初始化视频正常
+     */
+    public static final int VIDEO_NORMAL = 0;
+    /**
+     * 初始化视频只接收视频不发送视频
+     */
+    public static final int VIDEO_ONLY_INPUT = 1;
+    /**
+     * 初始化视频只发送视频不接收视频
+     */
+    public static final int VIDEO_ONLY_OUTPUT = 2;
+
+    /**
+     * @author ctkj
+     * 中间件初始化参数结构类
+     */
     public static class PG_NODE_CFG {
-        public int Type = 0;//节点类型。不建议修改
-        public int Option = 1;//不建议修改
-        /*Option：本节点实例的选项，分别为以下的掩码组合：
-            0x01：启用网络异常时自动重新尝试登录（客户端有效）
-            0x02：启用集群模式的P2P穿透握手机制（服务器端有效）
-            0x04：启用踢出重复登录的用户功能（服务器端有效）
-            0x08：启用节点协助转发功能的握手功能（服务器端有效）*/
-        public int MaxPeer = 256;//节点对象的最大数目，取值范围：1 ~ 32768
-        public int MaxGroup = 32;//组对象的最大数目，取值范围：1 ~ 32768
-        public int MaxObject = 512;//对象的最大数目，取值范围：1 ~ 65534
-        public int MaxMCast = 512;//组播句柄的最大数目，取值范围：1 ~ 65534
-        public int MaxHandle = 256;//常驻接口事件队列的最大长度，取值范围：1 ~ 65534
-        public int SKTBufSize0 = 128;//消息流的Socket队列长度（报文个数），取值范围：1 ~ 32768
-        public int SKTBufSize1 = 64;//音频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
-        public int SKTBufSize2 = 256;//视频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
-        public int SKTBufSize3 = 64;//文件流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+        /**
+         * 节点类型。不建议修改
+         */
+        public int Type = 0;
+        /**
+         * 不建议修改
+         * Option：本节点实例的选项，分别为以下的掩码组合：
+         * 0x01：启用网络异常时自动重新尝试登录（客户端有效）
+         * 0x02：启用集群模式的P2P穿透握手机制（服务器端有效）
+         * 0x04：启用踢出重复登录的用户功能（服务器端有效）
+         * 0x08：启用节点协助转发功能的握手功能（服务器端有效）
+         */
+        public int Option = 1;
+        /**
+         * 节点对象的最大数目，取值范围：1 ~ 32768
+         */
+        public int MaxPeer = 256;
+        /**
+         * 组对象的最大数目，取值范围：1 ~ 32768
+         */
+        public int MaxGroup = 32;
+        /**
+         * 对象的最大数目，取值范围：1 ~ 65534
+         */
+        public int MaxObject = 512;
+        /**
+         * 组播句柄的最大数目，取值范围：1 ~ 65534
+         */
+        public int MaxMCast = 512;
+        /**
+         * 常驻接口事件队列的最大长度，取值范围：1 ~ 65534
+         */
+        public int MaxHandle = 256;
+        /**
+         * 消息流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+         */
+        public int SKTBufSize0 = 128;
+        /**
+         * 音频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+         */
+        public int SKTBufSize1 = 64;
+        /**
+         * 视频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+         */
+        public int SKTBufSize2 = 256;
+        /**
+         * 文件流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+         */
+        public int SKTBufSize3 = 64;
+        /**
+         * P2P尝试时间。
+         */
         public int P2PTryTime= 1;
         public PG_NODE_CFG() {
             Type = 0;
@@ -260,28 +484,73 @@ public class pgLibConference {
         }
     }
 
+    /**
+     * 本节点和自身有关的参数类
+     * @author ctkj
+     */
     private class PG_SELF {
+        /**
+         * 自身对象名
+         */
         String sObjSelf = "";
 
+        /**
+         * 自身ID
+         */
         String sUser = "";
+        /**
+         * 自身密码
+         */
         String sPass = "";
-
+        /**
+         * 视频参数保存
+         */
         String sVideoParam = "";
-        //Video 默认参数
+        /**
+         * 视频帧格式类型
+         */
         int iVideoCode = 0;
+        /**
+         * 视频常见分辨率类型
+         */
         int iVideoMode = 0;
+        /**
+         * 视频期望帧率
+         */
         int iVideoFrmRate = 0;
-
+        /**
+         * 视频帧格式类型2
+         */
         int iLVideoCode = 0;
+        /**
+         * 视频常见分辨率类型2
+         */
         int iLVideoMode = 0;
+        /**
+         * 视频期望帧率2
+         */
         int iLVideoFrmRate = 0;
 
+        /**
+         * 视频比特率
+         */
         int iVideoBitRate = 0;
+        /**
+         * 视频横向或正向
+         */
         int bVideoPortrait = 0;
+        /**
+         * 视频旋转角度
+         */
         int bVideoRotate = 0;
+        /**
+         * 视频摄像头编号
+         */
         int iCameraNo = 0;
 
-        //Audio 默认参数
+        /**
+         * 音频初始化参数
+         */
         int iAudioSpeechDisable = 0;
 
         void init(String sUser, String sPass, String sVideoParam, pgLibJNINode mNode) {
@@ -312,6 +581,9 @@ public class pgLibConference {
         }
     }
 
+    /**
+     *
+     */
     private class PG_SVR {
         String sSvrName = "";
         String sSvrAddr = "";
@@ -1504,7 +1776,7 @@ public class pgLibConference {
 //                    sPathTemp += ".avi";
 //                }
                 int iHasVideo = bHasVideo ? 1 : 0;
-                String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasVideo){" + iHasVideo + "}";
+                String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasVideo){" + iHasVideo + "}(Direct){";
                 int iErr = m_Node.ObjectRequest(m_Group.sObjA, 37, sIn, "AudioRecord:" + sPeer);
                 if (iErr > 0) {
                     _OutString("AudioRecord Error  = " + iErr);

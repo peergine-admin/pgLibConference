@@ -16,4 +16,5 @@
     <string name="group">Group</string>
     <string name="btnchair">我是主席</string>
     <string name="str_chairman">Chairman</string>
+    <string name="id_str_Other">对方ID：</string>
 </resources>

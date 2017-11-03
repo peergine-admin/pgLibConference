@@ -278,13 +278,10 @@ public class MainActivity extends Activity {
 		PreviewLayout.removeAllViews();
 		PreviewLayout.addView(m_Preview);
 
-
-//		SetVolumeGate(1);
-//		SetAudioSuppress(0,0,0);
-		//初始化定时器
 		m_Node= m_Conf.GetNode();
 		m_Conf.TimerOutAdd(timerOut);
 	}
+	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
 			Log.d("pgLiveCapture", "onKeyDown, KEYCODE_BACK");
