@@ -1,0 +1,199 @@
+<!-- 
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.pgrobotclient.MainActivity" >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hello_world" />
+
+</RelativeLayout>
+ -->
+ 
+  
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:scrollbars="vertical"
+    android:screenOrientation="portrait">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="322dp"
+            android:layout_height="486dp"
+            android:paddingLeft="1dip"
+            android:paddingRight="1dip"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                android:id="@+id/layoutVideoS0"
+                android:layout_width="320dp"
+                android:layout_height="240dip"
+                android:layout_marginBottom="1dip"
+                android:background="#ff000000"
+                android:orientation="horizontal"></LinearLayout>
+            <LinearLayout android:id="@+id/layoutVideoS2"
+                android:layout_width="320dip"
+                android:layout_height="240dip"
+                android:layout_marginBottom="1dip"
+                android:background="#ff000000"
+                android:orientation="horizontal" >
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="325dp"
+            android:layout_height="match_parent"
+            android:paddingLeft="1dip"
+            android:paddingRight="1dip"
+            android:orientation="vertical" >
+
+            <LinearLayout android:id="@+id/layoutVideoS1"
+                android:layout_width="320dip"
+                android:layout_height="240dip"
+                android:layout_marginBottom="1dip"
+                android:background="#ff000000"
+                android:orientation="horizontal" >
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/layoutVideoS3"
+                android:layout_width="320dip"
+                android:layout_height="240dip"
+                android:layout_marginBottom="1dip"
+                android:background="#ff000000"
+                android:orientation="horizontal">
+            </LinearLayout>
+        </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="主席ID："/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/editText_chair"
+                android:text=""
+                android:inputType=""
+                android:hint="请找客服申请测试ID" />
+            </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btn_Start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start" />
+
+            <Button
+                android:id="@+id/btn_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stop" />
+
+            <Button
+                android:id="@+id/btn_Clean"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clean" />
+
+            <Button
+                android:id="@+id/btn_LanScan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LanScan" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notify"/>
+            <EditText
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/editText_notify"
+                android:text="hello"
+                android:inputType="" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NotifySend"
+                android:id="@+id/btn_notifysend" />
+
+            <Button
+                android:id="@+id/button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="test" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="recordstart"
+                android:id="@+id/btn_recordstart" />
+
+            <Button
+                android:id="@+id/btn_recordstop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="recordstop" />
+
+            <Button
+                android:id="@+id/btn_clearlog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="clearlog" />
+        </LinearLayout>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/text_info"
+                android:autoText="true" />
+        </ScrollView>
+    </LinearLayout>
+
+</ScrollView>
+

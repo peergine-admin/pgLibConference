@@ -34,9 +34,12 @@ android {
 }
 
 dependencies {
+    implementation 'com.android.support:support-v4:26.1.0'
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':pgLibConference')
     compile 'com.android.support:appcompat-v7:26.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile project(path: ':pgPluginLibExter')
+    implementation project(':pgPluginLib')
+    implementation 'com.android.support:mediarouter-v7:26.1.0'
 }

@@ -17,4 +17,30 @@
     <string name="btnchair">我是主席</string>
     <string name="str_chairman">Chairman</string>
     <string name="id_str_Other">对方ID：</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="id_chainman">主席ID：</string>
+    <string name="id_start">Start</string>
+    <string name="user">User :</string>
+    <string name="id_needID">请找客服申请测试ID</string>
+    <string name="p_a_s_s">P a s s :</string>
+    <string name="enable_empty">可以为空</string>
+    <string name="svraddr">SvrAddr :</string>
+    <string name="connect_peergine_com_7781">connect.peergine.com:7781</string>
+    <string name="relayaddr">RelayAddr:</string>
+    <string name="videoparam">VideoParam:</string>
+    <string name="code_3_mode_2_frmrate_40_lcode_3_lmode_3_lfrmrate_30_portrait_1_rotate_0_bitrate_300_camerano_1_audiospeechdisable_0">(Code){3}(Mode){2}(FrmRate){40}(LCode){3}(LMode){3}(LFrmRate){30}(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){1}(AudioSpeechDisable){0}</string>
+    <string name="init_default">初始化默认</string>
+    <string name="init_calling">初始化呼叫</string>
+    <string name="other_param">其他参数</string>
+    <string name="expire">Expire</string>
+    <string name="_10">10</string>
+    <string name="maxpeer">MaxPeer</string>
+    <string name="_256">256</string>
+    <string name="maxobject">MaxObject</string>
+    <string name="_512">512</string>
+    <string name="maxmcast">MaxMCast</string>
+    <string name="maxhandle">MaxHandle</string>
+
 </resources>

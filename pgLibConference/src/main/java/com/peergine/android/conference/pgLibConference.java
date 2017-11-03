@@ -1474,7 +1474,8 @@ public class pgLibConference {
     /**
      * 描述：摄像头切换
      * 阻塞方式：非阻塞，立即返回
-     * iCameraNo：摄像头编号
+     * @param iCameraNo：摄像头编号
+     * @return true成功，false失败
      */
     public boolean VideoSource(int iCameraNo) {
         if (m_Node != null) {
@@ -1599,9 +1600,9 @@ public class pgLibConference {
             String sObjV;
 
 
-            if(sObjPeer.equals(m_Self.sObjSelf)) {
+            if(sObjPeer.equals(m_Self.sObjSelf)||"".equals(sPeer)) {
                 sObjV=_PrvwBuild();
-                String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasAudio)(" + iHasAudio + "}";
+                String sIn = "(Peer){}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasAudio)(" + iHasAudio + "}(Direct){1}";
                 int iErr = m_Node.ObjectRequest(sObjV, 38, sIn, "VideoRecord:" + sObjPeer);
                 if (iErr > 0) {
                     _OutString("VideoRecord Error  = " + iErr);
@@ -1617,7 +1618,7 @@ public class pgLibConference {
                         sObjV = m_Group.sObjV;
                     }
 
-                    String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasAudio)(" + iHasAudio + "}";
+                    String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasAudio)(" + iHasAudio + "}(Direct){0}";
                     int iErr = m_Node.ObjectRequest(sObjV, 38, sIn, "VideoRecord:" + sObjPeer);
                     if (iErr > 0) {
                         _OutString("VideoRecord Error  = " + iErr);
@@ -1661,12 +1662,12 @@ public class pgLibConference {
         }
     }
 
-    /*
+    /**
     * 描述：AudioCtrlVolume控制自身的扬声器和麦克风是否播放或采集声音数据
     * 阻塞方式：非阻塞，立即返回
-    * sObjPeer 节点名 （在麦克风下为空则表示控制本端的麦克风音量。 ）
-    * iMode 0表示扬声器 1表示麦克风
-    * iVolume 表示音量的百分比
+    * @param sPeer 节点名 （在麦克风下为空则表示控制本端的麦克风音量。 ）
+    * @param iType 0表示扬声器 1表示麦克风
+    * @param iVolume 表示音量的百分比
     *
     * */
     public boolean AudioCtrlVolume(String sPeer, int iType, int iVolume) {
@@ -1700,8 +1701,8 @@ public class pgLibConference {
     /**
      * 描述：控制某个节点是否能播放本节点的音频，本节点能播放对方的音频
      * 阻塞方式：非阻塞，立即返回
-     * sObjPeer：节点名
-     * bSendEnable: true接收 ，false不接收
+     * @param sPeer：节点名
+     * @param bSendEnable: true接收 ，false不接收
      * 返回值： true 操作成功，false 操作失败
      */
     public boolean AudioSpeech(String sPeer, boolean bSendEnable) {
@@ -1711,8 +1712,9 @@ public class pgLibConference {
     /**
      * 描述：控制某个节点是否能播放本节点的音频，本节点能否播放对方的音频
      * 阻塞方式：非阻塞，立即返回
-     * sObjPeer：节点名
-     * bSendEnable: true接收 ，false不接收
+     * @param sPeer：节点名
+     * @param bSendEnable: true接收 ，false不接收
+     * @param bRecvEnable
      * 返回值： true 操作成功，false 操作失败
      */
     public boolean AudioSpeech(String sPeer, boolean bSendEnable, boolean bRecvEnable) {
@@ -1746,20 +1748,21 @@ public class pgLibConference {
         }
     }
 
-    /*
+    /**
    * 描述：开始录制 sObjPeer 节点的音频 注意：调用此函数后再调用VideoRecordStart 是无效的
    * 阻塞方式：非阻塞，立即返回
-   * 参数：sObjPeer 节点名  sPath 路径
+   * @param sPeer 节点名
+     * @param sPath 路径
    *
    * */
     public boolean AudioRecordStart(String sPeer, String sPath) {
         return AudioRecord(sPeer, sPath, false);
     }
 
-    /*
+    /**
      * 描述：停止录制 sObjPeer 节点的音频
      * 阻塞方式：非阻塞，立即返回
-     * 参数：sObjPeer 节点名
+     * @param sPeer 节点名
      *
      * */
     public boolean AudioRecordStop(String sPeer) {
@@ -1776,7 +1779,7 @@ public class pgLibConference {
 //                    sPathTemp += ".avi";
 //                }
                 int iHasVideo = bHasVideo ? 1 : 0;
-                String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasVideo){" + iHasVideo + "}(Direct){";
+                String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}(HasVideo){" + iHasVideo + "}(Direct){0}";
                 int iErr = m_Node.ObjectRequest(m_Group.sObjA, 37, sIn, "AudioRecord:" + sPeer);
                 if (iErr > 0) {
                     _OutString("AudioRecord Error  = " + iErr);
@@ -1793,10 +1796,11 @@ public class pgLibConference {
     }
 
 
-    /*
+    /**
      * 描述：开始录制 sObjPeer 节点的音频
      * 阻塞方式：非阻塞，立即返回
-     * 参数：sObjPeer 节点名  sPath 路径
+     * @param sPeer 节点名
+     * @param sPath 路径
      *
      * */
     public boolean RecordStart(String sPeer, String sPath) {
@@ -1808,11 +1812,11 @@ public class pgLibConference {
         }
     }
 
-    /*
+    /**
      * 描述：停止录制 sObjPeer 节点的视音频
      * 阻塞方式：非阻塞，立即返回
-     * 参数：sObjPeer 节点名
-     *
+     * @param sPeer 节点名
+     * @return true 成功
      * */
     public boolean RecordStop(String sPeer) {
         VideoRecord(sPeer, "", true);
@@ -1823,7 +1827,8 @@ public class pgLibConference {
     /**
      * 描述：摄像头控制。
      * 阻塞方式：非阻塞，立即返回
-     * 返回值： true 操作成功，false 操作失败
+     * @param bEnable
+     * @return true 操作成功，false 操作失败
      */
     public boolean CameraSwitch(boolean bEnable) {
 
@@ -1849,8 +1854,8 @@ public class pgLibConference {
     /**
      * 描述：给指定节点发送消息
      * 阻塞方式：非阻塞，立即返回
-     * sMsg：[IN] 消息内容
-     * sObjPeer：[IN]节点名称
+     * @param sMsg：[IN] 消息内容
+     * @param sPeer：[IN]节点名称
      * 返回值： true 操作成功，false 操作失败
      */
     public boolean MessageSend(String sMsg, String sPeer) {
@@ -1875,9 +1880,9 @@ public class pgLibConference {
     /**
      * 描述：给指定节点发送消息
      * 阻塞方式：非阻塞，立即返回
-     * sMsg：[IN] 消息内容
-     * sObjPeer：[IN]节点名称
-     * sSession:[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码 0表示正常成功
+     * @param sMsg：[IN] 消息内容
+     * @param sPeer：[IN]节点名称
+     * @param sSession:[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码 0表示正常成功
      * 返回值： true 操作成功，false 操作失败
      */
     public boolean CallSend(String sMsg, String sPeer, String sSession) {
@@ -1900,8 +1905,8 @@ public class pgLibConference {
     /**
      * 描述：给其他所有成员节点节点发送消息
      * 阻塞方式：非阻塞，立即返回
-     * sMsg：[IN] 消息内容
-     * 返回值： true 操作成功，false 操作失败
+     * @param sData：[IN] 消息内容
+     * @return  true 操作成功，false 操作失败
      */
     public boolean NotifySend(String sData) {
         boolean bRet = false;
@@ -1920,7 +1925,7 @@ public class pgLibConference {
     /**
      * 描述：给服务器发送消息。
      * 阻塞方式：非阻塞，立即返回
-     * 返回值： true 操作成功，false 操作失败
+     * @return  true 操作成功，false 操作失败
      */
     public boolean SvrRequest(String sData) {
         boolean bRet = false;
