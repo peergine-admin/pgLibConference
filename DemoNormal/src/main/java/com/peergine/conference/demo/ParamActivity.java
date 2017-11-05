@@ -53,9 +53,10 @@ public class ParamActivity extends Activity {
                     FragmentManager fm = getFragmentManager();
                     // 开启Fragment事务
                     FragmentTransaction transaction = fm.beginTransaction();
-                    FragmentTransaction replace = transaction.replace(R.id.rootLayout,blankFragment );
+                    FragmentTransaction replace = transaction.replace(R.id.fragment,contentFragment );
                     transaction.commit();
                     mMode = MODE_CALLING;
+
                     break;
                 default:break;
             }
@@ -144,7 +145,7 @@ public class ParamActivity extends Activity {
         setContentView(R.layout.activity_param);
 
         blankFragment = new BlankFragment();
-
+        contentFragment = new ContentFragment();
         mEditUser = findViewById(R.id.editText_user);
         mEditPass = findViewById(R.id.editText_pass);
         mEditSvraddr = findViewById(R.id.editText_svraddr);

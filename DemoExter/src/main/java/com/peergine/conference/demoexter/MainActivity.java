@@ -21,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
-import com.peergine.plugin.exter.VideoAudioInputExternal;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
@@ -31,7 +30,7 @@ import java.util.Date;
 
 import static com.peergine.android.conference.pgLibConference.*;
 
-/*
+/**
 *
 * TODO: + 说明：
 * 如果代码中有该标识，说明在标识处有功能代码待编写，待实现的功能在说明中会简略说明。
@@ -47,7 +46,7 @@ import static com.peergine.android.conference.pgLibConference.*;
 
 
 
-/*
+/**
  * Updata 2017 02 15 V13
  * 添加定时器的使用示范
  * 修改VideoStart  AudioStart  VideoOpen 的使用时机示范。
@@ -257,7 +256,7 @@ public class MainActivity extends Activity {
 			m_Conf.ConfigNode(mNodeCfg);
 
 		}
-		m_sVideoParam += "(VideoInExternal){1}";
+		//m_sVideoParam += "(VideoInExternal){1}";
 
 		if(!m_Conf.Initialize(m_sUser,m_sPass,m_sSvrAddr,m_sRelayAddr,m_sVideoParam,this)) {
 			Log.d("pgConference", "Init failed");
@@ -273,8 +272,9 @@ public class MainActivity extends Activity {
 			return;
 		}
 		m_Preview= m_Conf.PreviewCreate(160, 120);
-		VideoAudioInputExternal external = new VideoAudioInputExternal(m_Conf.GetNode(),PreviewLayout,this);
-		external.VideoInputExternalEnable();
+		PreviewLayout.addView(m_Preview);
+//		VideoAudioInputExternal external = new VideoAudioInputExternal(m_Conf.GetNode(),PreviewLayout,this);
+//		external.VideoInputExternalEnable();
 
 //		PreviewLayout.removeAllViews();
 //		PreviewLayout.addView(m_Preview);
@@ -496,20 +496,12 @@ public class MainActivity extends Activity {
 
 					}
                 case R.id.btn_recordstart:{
-                    Date currentTime = new Date();
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                    String sDate = formatter.format(currentTime);
-                    String sPath = getSDPath()+"/record"+sDate+".avi";
-                    if((!m_Conf.RecordStart(m_sChair,sPath))){
-						Toast.makeText(getApplication(),"录像失败。 已经关闭",Toast.LENGTH_SHORT).show();
-						m_Conf.RecordStop(m_sChair);
-//						m_Conf.AudioRecordStop(m_sChair);
-                    }
+                    pgRecordStart();
 					break;
                 }
                 case R.id.btn_recordstop:{
-                    m_Conf.RecordStop(m_sChair);
-                    //m_Conf.AudioRecordStop(m_sChair);
+                	pgRecordStop();
+
                     break;
                 }
 				case R.id.btn_clearlog:{
@@ -796,10 +788,12 @@ public class MainActivity extends Activity {
 
 	private void EventVideoRecord(String sAct, String sData, String sPeer) {
 		// VideoRecord 视频录制的结果
+		Show("EventVideoRecord sData = "+sData);
 	}
 
 	private void EventVideoCamera(String sAct, String sData, String sPeer) {
 		// VideoCamera 视频拍照的结果
+		Show("EventVideoCamera sData = "+sData);
 	}
 	private void EventLanScanResult(String sAct,String sData,String sPeer){
 		Show("Act : LanScanResult  -- sData: "+sData + "  sPeer  : "+sPeer);
@@ -929,6 +923,42 @@ public class MainActivity extends Activity {
 	{
 		m_Conf.VideoClose(sPeer);
 		pgVideoRestore(sPeer);
+	}
+
+	/**
+	 *
+	 *
+	 * 对主席端录像。
+	 */
+	void pgRecordStart(){
+		Date currentTime = new Date();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String sDate = formatter.format(currentTime);
+		String sPath = getSDPath()+"/record"+sDate+".avi";
+		if(m_sChair.equals(m_sUser)){
+			if("".equals(memberArray.get(0).sPeer)){
+				Toast.makeText(getApplication(), "没有成员对讲，录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
+				return;
+			}
+
+			if ((!m_Conf.RecordStart(memberArray.get(0).sPeer, sPath,1))) {
+				Toast.makeText(getApplication(), "录像返回失败。 已经关闭", Toast.LENGTH_SHORT).show();
+				m_Conf.RecordStop(memberArray.get(0).sPeer,1);
+			}
+
+		}else {
+			if ((!m_Conf.RecordStart(m_sChair, sPath))) {
+				Toast.makeText(getApplication(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
+				m_Conf.RecordStop(m_sChair);
+//						m_Conf.AudioRecordStop(m_sChair);
+			}
+		}
+
+	}
+
+	void pgRecordStop(){
+		m_Conf.RecordStop(m_sChair);
+		//m_Conf.AudioRecordStop(m_sChair);
 	}
 	//给所有加入会议的成员发送消息
 	private boolean pgNotifySend()
