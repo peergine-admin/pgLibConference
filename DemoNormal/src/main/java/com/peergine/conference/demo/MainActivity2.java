@@ -1,4 +1,4 @@
-package com.peergine.conference.demoexter;
+package com.peergine.conference.demo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -30,7 +30,7 @@ import java.util.Date;
 
 import static com.peergine.android.conference.pgLibConference.*;
 
-/**
+/*
 *
 * TODO: + 说明：
 * 如果代码中有该标识，说明在标识处有功能代码待编写，待实现的功能在说明中会简略说明。
@@ -44,9 +44,7 @@ import static com.peergine.android.conference.pgLibConference.*;
 *
 * */
 
-
-
-/**
+/*
  * Updata 2017 02 15 V13
  * 添加定时器的使用示范
  * 修改VideoStart  AudioStart  VideoOpen 的使用时机示范。
@@ -54,10 +52,10 @@ import static com.peergine.android.conference.pgLibConference.*;
  *
  */
 
-public class MainActivity extends Activity {
+public class MainActivity2 extends Activity {
 
-	private String m_sGroup = "";
-	private String m_sChair = "";
+	private String mSGroup = "";
+	private String msChair = "";
 
 	private String m_sUser = "";
 	private String m_sPass = "";
@@ -69,29 +67,30 @@ public class MainActivity extends Activity {
 					"(LCode){3}(LMode){3}(LFrmRate){30}" +
 					"(Portrait){0}(Rotate){0}(BitRate){300}(CameraNo){"+ Camera.CameraInfo.CAMERA_FACING_FRONT+"}"+
 					"(AudioSpeechDisable){0}";
-	private String m_sMemb = "";
+	private String mSmemb = "";
 
-	private pgLibConference m_Conf = null;
+	private pgLibConference mConf = null;
 	private pgLibJNINode m_Node = null;
 
-	private int RIDLaout[]={R.id.layoutVideoS1, R.id.layoutVideoS2,R.id.layoutVideoS3};
+	private int[] ridlaout = {R.id.layoutVideoS1, R.id.layoutVideoS2, R.id.layoutVideoS3};
 
-	private EditText m_editchair =null;
-	private Button m_btnStart = null;
-	private Button m_btnStop = null;
-	private Button m_btnClean = null;
-	private Button m_btnLanScan = null;
+	private EditText mEditchair =null;
+	private Button mBtnstart = null;
+	private Button mBtnstop = null;
+	private Button mBtnclean = null;
+	private Button mBtnlanscan = null;
 
-	private EditText m_editText_Notify =null;
+	private EditText mEdittextNotify =null;
 	private Button m_btnNotifySend= null;
 	private TextView text_info = null;
 	private Button m_btntest=null;
     private Button m_btn_recordstart=null;
     private Button m_btn_recordstop=null;
 
-	private LinearLayout PreviewLayout=null;
-	private SurfaceView m_Preview=null;
+	private LinearLayout mPreviewLayout =null;
+	private SurfaceView mPreview =null;
 	private Button m_BtnClearlog = null;
+	private String mMode = "";
 
 	//R.id.layoutVideoS0,
 
@@ -103,40 +102,90 @@ public class MainActivity extends Activity {
 		LinearLayout pLayout=null;
 	}
 
-	private static ArrayList<PG_MEMB> memberArray = new ArrayList<>();
+	private static ArrayList<PG_MEMB> mMemberArray = new ArrayList<>();
 
+	private View.OnClickListener mOnclink = new View.OnClickListener() {
+		// Control clicked
+		public void onClick(View args0) {
+			int k=0;
+			switch (args0.getId()) {
+				case R.id.btn_Start:
+					m_bVideoStart = false;
 
-//	public static void setCameraDisplayOrientation (Activity activity, int cameraId, android.hardware.Camera camera) {
-//		android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
-//		android.hardware.Camera.getCameraInfo (cameraId , info);
-//		int rotation = activity.getWindowManager ().getDefaultDisplay ().getRotation ();
-//		int degrees = 0;
-//		switch (rotation) {
-//			case Surface.ROTATION_0:
-//				degrees = 0;
-//				break;
-//			case Surface.ROTATION_90:
-//				degrees = 90;
-//				break;
-//			case Surface.ROTATION_180:
-//				degrees = 180;
-//				break;
-//			case Surface.ROTATION_270:
-//				degrees = 270;
-//				break;
-//		}
-//		int result;
-//		if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-//			result = (info.orientation + degrees) % 360;
-//			result = (360 - result) % 360;   // compensate the mirror
-//		} else {
-//			// back-facing
-//			result = ( info.orientation - degrees + 360) % 360;
-//		}
-//		camera.setDisplayOrientation (result);
-//	}
+					pgStart();
+					mBtnstart.setEnabled(false);
+					Log.d("OnClink", "init button");
+					break;
+				case R.id.btn_stop:
+					pgStop();
+					mBtnstart.setEnabled(true);
+					Log.d("OnClink", "MemberAdd button");
+					break;
+				case R.id.btn_Clean:
+					pgClean();
+					mBtnstart.setEnabled(true);
+					Log.d("OnClink", "MemberAdd button");
+					break;
+				case R.id.btn_LanScan:
+					mConf.LanScanStart();
+					break;
 
+				case R.id.btn_notifysend:
+//					//Group_member869384011853858
+//					mConf.MessageSend("hellllllo","Group_member869384011853858");
+//					//pgNotifySend();
+				{
 
+//					String sPath = getSDPath() + "/Video.avi";
+//					mConf.VideoRecord("_DEV_" + msChair, sPath);
+//					Log.d("OnClink", "MemberAdd button");
+//					break;
+					mConf.CallSend("hello", msChair,"123");
+					break;
+				}
+				case R.id.button:
+//              test Api
+				{
+					//mConf.SvrRequest("(User){" + mConf.GetNode().omlEncode("_DEV_358180050453651_chairman")
+					//		+ "}(Msg){" + mConf.GetNode().omlEncode("hello chairman") + "}");
+					//mConf.AudioCtrlVolume(msChair,0,0);
+					//mConf.Reset(mSGroup,"Group_member869384011853858");
+//                        Date currentTime = new Date();
+//                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+//                        String sDate = formatter.format(currentTime);
+//						String sPath = getSDPath()+"/record"+sDate+".avi";
+//						mConf.RecordStart(msChair,sPath);
+//						mConf.AudioRecordStart(msChair,sPath);
+
+					break;
+
+				}
+				case R.id.btn_recordstart:{
+					Date currentTime = new Date();
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+					String sDate = formatter.format(currentTime);
+					String sPath = getSDPath()+"/record"+sDate+".avi";
+					if((!mConf.RecordStart(msChair,sPath))){
+						Toast.makeText(getApplication(),"录像失败。 已经关闭",Toast.LENGTH_SHORT).show();
+						mConf.RecordStop(msChair);
+//						mConf.AudioRecordStop(msChair);
+					}
+					break;
+				}
+				case R.id.btn_recordstop:{
+					mConf.RecordStop(msChair);
+					//mConf.AudioRecordStop(msChair);
+					break;
+				}
+				case R.id.btn_clearlog:{
+					text_info.setText("");
+				}
+				default:
+
+					break;
+			}
+		}
+	};
 	//定时器例子 超时处理实现
 	TimerOut timerOut =new TimerOut() {
 		@Override
@@ -150,82 +199,90 @@ public class MainActivity extends Activity {
 			if("DoVideoOpen".equals(sAct)){
 				//
 				String sPeer = m_Node.omlGetContent(sParam,"Peer");
-				if(!sPeer.equals(m_sUser))
+				if(!sPeer.equals("_DEV_"+m_sUser))
 				{
 					String sObjSelf="_DEV_"+m_sUser;
-					/*
-					// Demo 是为了演示方便 在这里实现自动打开视频的功能
-					// 所以才做了这个ID大的主动打开视频
-					// 实际情况中建议从Join出得到设备列表，或者本地保存列表，用ListView显示，点击某个ID然后开始打开视频
+					/**
+					* Demo 是为了演示方便 在这里实现自动打开视频的功能
+					* 所以才做了这个ID大的主动打开视频
+					* 实际情况中建议从Join出得到设备列表，或者本地保存列表，用ListView显示，点击某个ID然后开始打开视频
 					*/
-					if(m_sUser.compareTo(sPeer)>0)
+					if(sObjSelf.compareTo(sPeer)>0)
 					{
 						Show( " 发起视频请求");
 
 						//TODO 客户使用按钮请求视频更好。
 						pgVideoOpen(sPeer);
 					}
-//			}
+
 				}
 			}
 		}
 	};
+
+
+	void initView(){
+		/**
+		 * 4个窗口初始化
+		 */
+		mPreviewLayout = findViewById(R.id.layoutVideoS0);
+		for (int aRIDLaout : ridlaout) {
+			PG_MEMB oMemb = new PG_MEMB();
+			oMemb.pLayout = findViewById(aRIDLaout);
+			mMemberArray.add(oMemb);
+		}
+
+
+		/**
+		 * 初始化控件
+		 */
+
+
+		mEditchair = (EditText) findViewById(R.id.editText_chair);
+
+		mBtnstart = (Button) findViewById(R.id.btn_Start);
+		mBtnstart.setOnClickListener(mOnclink);
+
+		mBtnstop = (Button) findViewById(R.id.btn_stop);
+		mBtnstop.setOnClickListener(mOnclink);
+
+		mBtnclean =(Button) findViewById(R.id.btn_Clean);
+		mBtnclean.setOnClickListener(mOnclink);
+
+		mBtnlanscan = (Button)findViewById(R.id.btn_LanScan);
+		mBtnlanscan.setOnClickListener(mOnclink);
+
+		mEdittextNotify =(EditText)findViewById(R.id.editText_notify);
+
+		m_btnNotifySend=(Button) findViewById(R.id.btn_notifysend);
+		m_btnNotifySend.setOnClickListener(mOnclink);
+
+		m_btntest=(Button) findViewById(R.id.button);
+		m_btntest.setOnClickListener(mOnclink);
+
+		m_btn_recordstart=(Button) findViewById(R.id.btn_recordstart);
+		m_btn_recordstart.setOnClickListener(mOnclink);
+
+		m_btn_recordstop=(Button) findViewById(R.id.btn_recordstop);
+		m_btn_recordstop.setOnClickListener(mOnclink);
+
+		m_BtnClearlog = (Button) findViewById(R.id.btn_clearlog);
+		m_BtnClearlog.setOnClickListener(mOnclink);
+		//显示一些信息
+		text_info= (TextView) findViewById(R.id.text_info);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
 				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.fragment_main);
 
 
-//		Camera camera=null;
-//		setCameraDisplayOrientation(this,Camera.CameraInfo.CAMERA_FACING_FRONT,camera);
-		memberArray.clear();
-		//todo 4个窗口初始化
-		PreviewLayout = (LinearLayout) findViewById(R.id.layoutVideoS0);
-		for (int aRIDLaout : RIDLaout) {
-			PG_MEMB oMemb = new PG_MEMB();
-			oMemb.pLayout = (LinearLayout) findViewById(aRIDLaout);
-			memberArray.add(oMemb);
-		}
-//		TextView textView = (TextView)findViewById(R.id.text_notuse);
-//		textView.requestFocus();
+		mMemberArray.clear();
 
-		//初始化控件
-
-		m_editchair = (EditText) findViewById(R.id.editText_chair);
-
-		m_btnStart = (Button) findViewById(R.id.btn_Start);
-		m_btnStart.setOnClickListener(m_OnClink);
-
-		m_btnStop = (Button) findViewById(R.id.btn_stop);
-		m_btnStop.setOnClickListener(m_OnClink);
-
-		m_btnClean =(Button) findViewById(R.id.btn_Clean);
-		m_btnClean.setOnClickListener(m_OnClink);
-
-		m_btnLanScan = (Button)findViewById(R.id.btn_LanScan);
-		m_btnLanScan.setOnClickListener(m_OnClink);
-
-		m_editText_Notify =(EditText)findViewById(R.id.editText_notify);
-
-		m_btnNotifySend=(Button) findViewById(R.id.btn_notifysend);
-		m_btnNotifySend.setOnClickListener(m_OnClink);
-
-		m_btntest=(Button) findViewById(R.id.button);
-		m_btntest.setOnClickListener(m_OnClink);
-
-        m_btn_recordstart=(Button) findViewById(R.id.btn_recordstart);
-        m_btn_recordstart.setOnClickListener(m_OnClink);
-
-        m_btn_recordstop=(Button) findViewById(R.id.btn_recordstop);
-        m_btn_recordstop.setOnClickListener(m_OnClink);
-
-		m_BtnClearlog = (Button) findViewById(R.id.btn_clearlog);
-		m_BtnClearlog.setOnClickListener(m_OnClink);
-		//显示一些信息
-		text_info= (TextView) findViewById(R.id.text_info);
+		initView();
 
 
 //		String sConfig_Node = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
@@ -242,24 +299,26 @@ public class MainActivity extends Activity {
 		int iMaxMCast = 	ParseInt(intent.getStringExtra("MaxMCast"),512);
 		int iMaxHandle = 	ParseInt(intent.getStringExtra("MaxHandle"),256);
 
-		if(m_Conf==null){
-			m_Conf= new pgLibConference();
-			m_Conf.SetEventListener(m_OnEvent);
+		mMode = intent.getStringExtra("Mode");
 
-			m_Conf.SetExpire(iExpire);
+		if(mConf ==null){
+			mConf = new pgLibConference();
+			mConf.SetEventListener(m_OnEvent);
+
+			mConf.SetExpire(iExpire);
 			PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
 
 				mNodeCfg.MaxPeer = iMaxPeer;
 				mNodeCfg.MaxObject = iMaxObject;
 				mNodeCfg.MaxMCast = iMaxMCast;
 				mNodeCfg.MaxHandle= iMaxHandle;
-			m_Conf.ConfigNode(mNodeCfg);
+
+			mConf.ConfigNode(mNodeCfg);
 
 		}
-		//m_sVideoParam += "(VideoInExternal){1}";
-
-		if(!m_Conf.Initialize(m_sUser,m_sPass,m_sSvrAddr,m_sRelayAddr,m_sVideoParam,this)) {
+		if(!mConf.Initialize(m_sUser,m_sPass,m_sSvrAddr,m_sRelayAddr,m_sVideoParam,this)) {
 			Log.d("pgConference", "Init failed");
+
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle("Error");
 			builder.setMessage("请安装pgPlugin xx.APK 或者检查网络状况!");
@@ -269,22 +328,16 @@ public class MainActivity extends Activity {
 					finish();
 				}
 			});
+			builder.show();
 			return;
 		}
-		m_Preview= m_Conf.PreviewCreate(160, 120);
-		PreviewLayout.addView(m_Preview);
-//		VideoAudioInputExternal external = new VideoAudioInputExternal(m_Conf.GetNode(),PreviewLayout,this);
-//		external.VideoInputExternalEnable();
 
-//		PreviewLayout.removeAllViews();
-//		PreviewLayout.addView(m_Preview);
+		mPreview = mConf.PreviewCreate(160, 120);
+		mPreviewLayout.removeAllViews();
+		mPreviewLayout.addView(mPreview);
 
-
-//		SetVolumeGate(1);
-//		SetAudioSuppress(0,0,0);
-		//初始化定时器
-		m_Node= m_Conf.GetNode();
-		m_Conf.TimerOutAdd(timerOut);
+		m_Node= mConf.GetNode();
+		mConf.TimerOutAdd(timerOut);
 	}
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -300,7 +353,7 @@ public class MainActivity extends Activity {
 		public void onClick(DialogInterface dialog, int which) {
 			if (which == AlertDialog.BUTTON_POSITIVE) {
 				pgStop();
-				m_Conf.Clean();
+				mConf.Clean();
 				android.os.Process.killProcess(android.os.Process.myPid());
 			}
 		}
@@ -315,8 +368,13 @@ public class MainActivity extends Activity {
 		builder.show();
 	}
 	private int m_iAngle=0;
+
+	/**
+	 * 设置摄像头旋转角度。
+	 * @param iAngle
+	 */
 	public void SetRotate(int iAngle) {
-		pgLibJNINode Node = m_Conf.GetNode();
+		pgLibJNINode Node = mConf.GetNode();
 		if (Node != null) {
 			if (Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
 				Node.ObjectRequest("_vTemp", 2, "(Item){2}(Value){" + iAngle + "}", "");
@@ -324,26 +382,6 @@ public class MainActivity extends Activity {
 			}
 		}
 	}
-
-
-	//屏幕旋转 设置摄像头旋转角度
-//	@Override
-//	public void onConfigurationChanged(Configuration newConfig) {
-//			 super.onConfigurationChanged(newConfig);
-//			// 检测屏幕的方向：纵向或横向
-//
-//			if (this.getResources().getConfiguration().orientation
-//				== Configuration.ORIENTATION_LANDSCAPE) {
-//				//当前为横屏， 在此处添加额外的处理代码
-//				SetRotate(0);
-//				// todo 或者添加 为180度
-//			}
-//			else if (this.getResources().getConfiguration().orientation
-//				== Configuration.ORIENTATION_PORTRAIT) {
-//				//当前为竖屏， 在此处添加额外的处理代码
-//				SetRotate(90);
-//			}
-//		}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -366,20 +404,7 @@ public class MainActivity extends Activity {
 		super.onDestroy();
 	}
 
-	// 设置设备的麦克风的采样率。
-	// 在初始化成功之后，打开音频通话之前调用。
-	// iRate: 采样率，单位HZ/秒。有效值：8000, 1600, 32000
-	// 示范利用中间件编写扩展
-	public void SetAudioSampleRate(int iRate) {
-		pgLibJNINode Node = m_Conf.GetNode();
-		if (Node != null) {
-			// Set microphone sample rate
-			if (Node.ObjectAdd("_AudioTemp", "PG_CLASS_Audio", "", 0)) {
-				Node.ObjectRequest("_AudioTemp", 2, "(Item){2}(Value){" + iRate + "}", "");
-				Node.ObjectDelete("_AudioTemp");
-			}
-		}
-	}
+
 
 	public void Alert(String sTitle, String sMsg) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -408,9 +433,32 @@ public class MainActivity extends Activity {
 
 	private int iflag=0;
 
+	/**
+	 * 设置设备的麦克风的采样率。
+	 * 在初始化成功之后，打开音频通话之前调用。
+	 * @param iRate: 采样率，单位HZ/秒。有效值：8000, 1600, 32000
+	 * 示范利用中间件编写扩展
+	 */
+
+	public void SetAudioSampleRate(int iRate) {
+		pgLibJNINode Node = mConf.GetNode();
+		if (Node != null) {
+			// Set microphone sample rate
+			if (Node.ObjectAdd("_AudioTemp", "PG_CLASS_Audio", "", 0)) {
+				Node.ObjectRequest("_AudioTemp", 2, "(Item){2}(Value){" + iRate + "}", "");
+				Node.ObjectDelete("_AudioTemp");
+			}
+		}
+	}
+
+	/**
+	 *
+	 * @param iVolumeGate 放音门限
+	 * @return true 成功，false 失败
+	 */
 	public boolean SetVolumeGate(int iVolumeGate)
 	{
-		pgLibJNINode Node = m_Conf.GetNode();
+		pgLibJNINode Node = mConf.GetNode();
 		if (Node != null) {
 			if (Node.ObjectAdd("_aTemp", "PG_CLASS_Audio", "", 0)) {
 				String sValue = Node.omlEncode("(TailLen){0}(VolGate){" + iVolumeGate + "}");
@@ -422,98 +470,24 @@ public class MainActivity extends Activity {
 		return false;
 	}
 
-	// 设置杂音抑制参数。
-	// 在初始化成功之后，打开音频通话之前调用。
-	// iDebug: 是否打开调试信息：1:打开调试，0:关闭调试
-	// iDelay: 延时的音频帧数
-	// iKeep: 抑制的音频帧数
-	//
+	/**
+	 *
+	 * 设置杂音抑制参数。在初始化成功之后，打开音频通话之前调用
+	 * @param iDebug 是否打开调试信息：1:打开调试，0:关闭调试
+	 * @param iDelay 延时的音频帧数
+	 * @param iKeep 抑制的音频帧数
+	 */
 	public void SetAudioSuppress(int iDebug, int iDelay, int iKeep) {
-		pgLibJNINode Node = m_Conf.GetNode();
-		if (Node != null) {
+		pgLibJNINode node = mConf.GetNode();
+		if (node != null) {
 			// Set microphone sample rate
-			if (Node.ObjectAdd("_AudioTemp", "PG_CLASS_Audio", "", 0)) {
+			if (node.ObjectAdd("_AudioTemp", "PG_CLASS_Audio", "", 0)) {
 				String sValue = "(Debug){" + iDebug + "}(Delay){" + iDelay + "}(Keep){" + iKeep + "}";
-				Node.ObjectRequest("_AudioTemp", 2, "(Item){0}(Value){" + Node.omlEncode(sValue) + "}", "");
-				Node.ObjectDelete("_AudioTemp");
+				node.ObjectRequest("_AudioTemp", 2, "(Item){0}(Value){" + node.omlEncode(sValue) + "}", "");
+				node.ObjectDelete("_AudioTemp");
 			}
 		}
 	}
-
-
-	private View.OnClickListener m_OnClink = new View.OnClickListener() {
-		// Control clicked
-		public void onClick(View args0) {
-			int k=0;
-			switch (args0.getId()) {
-				case R.id.btn_Start:
-					m_bVideoStart = false;
-					pgStart();
-					m_btnStart.setEnabled(false);
-					Log.d("OnClink", "init button");
-					break;
-				case R.id.btn_stop:
-					pgStop();
-					m_btnStart.setEnabled(true);
-					Log.d("OnClink", "MemberAdd button");
-					break;
-				case R.id.btn_Clean:
-					pgClean();
-					m_btnStart.setEnabled(true);
-					Log.d("OnClink", "MemberAdd button");
-					break;
-				case R.id.btn_LanScan:
-					m_Conf.LanScanStart();
-					break;
-
-				case R.id.btn_notifysend:
-//					//Group_member869384011853858
-//					m_Conf.MessageSend("hellllllo","Group_member869384011853858");
-//					//pgNotifySend();
-				{
-
-//					String sPath = getSDPath() + "/Video.avi";
-//					m_Conf.VideoRecord("_DEV_" + m_sChair, sPath);
-//					Log.d("OnClink", "MemberAdd button");
-//					break;
-					m_Conf.CallSend("hello",m_sChair,"123");
-					break;
-				}
-				case R.id.button:
-//              test Api
-					{
-						//m_Conf.SvrRequest("(User){" + m_Conf.GetNode().omlEncode("_DEV_358180050453651_chairman")
-						//		+ "}(Msg){" + m_Conf.GetNode().omlEncode("hello chairman") + "}");
-						//m_Conf.AudioCtrlVolume(m_sChair,0,0);
-						//m_Conf.Reset(m_sGroup,"Group_member869384011853858");
-//                        Date currentTime = new Date();
-//                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-//                        String sDate = formatter.format(currentTime);
-//						String sPath = getSDPath()+"/record"+sDate+".avi";
-//						m_Conf.RecordStart(m_sChair,sPath);
-//						m_Conf.AudioRecordStart(m_sChair,sPath);
-
-						break;
-
-					}
-                case R.id.btn_recordstart:{
-                    pgRecordStart();
-					break;
-                }
-                case R.id.btn_recordstop:{
-                	pgRecordStop();
-
-                    break;
-                }
-				case R.id.btn_clearlog:{
-					text_info.setText("");
-				}
-				default:
-
-					break;
-			}
-		}
-	};
 
 
 
@@ -545,7 +519,7 @@ public class MainActivity extends Activity {
 	{
 		// Login reply
 		// TODO: 2016/11/7 登录成功与否关系到后面的步骤能否执行 ，如果登录失败请再次初始化
-		if(sData.equals("0"))
+		if("0".equals(sData))
 		{
 			Show("已经登录");
 			Log.d( "","已经登录");
@@ -564,15 +538,28 @@ public class MainActivity extends Activity {
 	}
 
 	//保存初次连接 ,如果程序崩溃，
+//	ArrayList<String> m_PeerLink = new ArrayList<>();
+//	boolean PeerLinkSearch(String sPeer){
+//		for(int i=0;i<m_PeerLink.size();i++){
+//			if(m_PeerLink.get(i).equals(sPeer)){
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
 
 	//sPeer的离线消息
 	private void EventPeerSync(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/7 提醒应用程序可以和此节点相互发送消息了
 		Show(sPeer+"节点建立连接");
-
-		m_Conf.MessageSend("MessageSend test",sPeer);
-		m_Conf.CallSend("CallSend test",sPeer,"123");
+//		if(!PeerLinkSearch(sPeer)){
+//			//第一次建立连接，防止己方程序崩溃
+//			m_PeerLink.add(sPeer);
+//			mConf.MessageSend("SyncFrist:",sPeer);
+//		}
+		mConf.MessageSend("MessageSend test",sPeer);
+		mConf.CallSend("CallSend test",sPeer,"123");
 
 	}
 	//sPeer的离线消息
@@ -587,9 +574,14 @@ public class MainActivity extends Activity {
 	{
 		// TODO: 2016/11/7 提醒应用程序可以和主席发送消息了
 		Show( "主席节点建立连接 Act = "+sAct+" : "+sData + " : "+sPeer);
-		m_Conf.Join();
-		m_Conf.MessageSend("MessageSend test",sPeer);
-		m_Conf.CallSend("CallSend test",sPeer,"123");
+		mConf.Join();
+//		if(!PeerLinkSearch(sPeer)){
+//			//第一次建立连接，防止己方程序崩溃
+//			m_PeerLink.add(sPeer);
+//
+//		}
+		mConf.MessageSend("MessageSend test",sPeer);
+		mConf.CallSend("CallSend test",sPeer,"123");
 	}
 	//sPeer的离线消息
 	private void EventChairmanOffline(String sAct,String sData,String sPeer)
@@ -603,7 +595,7 @@ public class MainActivity extends Activity {
 	{
 		// TODO: 2016/11/7 sPeer请求加入会议  MemberAdd表示把他加入会议
 		Show( sPeer+"请求加入会议->同意");
-		m_Conf.MemberAdd(sPeer);
+		mConf.MemberAdd(sPeer);
 	}
 	//sPeer的离线消息
 	private boolean m_bVideoStart =false;
@@ -612,9 +604,9 @@ public class MainActivity extends Activity {
 		// TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
 		Show( sPeer+"加入会议");
 		String sParam  = "(Act){DoVideoOpen}(Peer){"+sPeer+"}";
-		m_Conf.TimerStart(sParam,1,false);
+		mConf.TimerStart(sParam,1,false);
 
-		m_Conf.NotifySend(sPeer + " : join ");
+		mConf.NotifySend(sPeer + " : join ");
 		Log.d( "", sPeer+" 加入会议");
 	}
 	//sPeer的离线消息
@@ -665,7 +657,7 @@ public class MainActivity extends Activity {
 	private void EventVideoJoin(String sAct,String sData,String sPeer)
 	{
 		// TODO: 2016/11/8 请求端会收到请求打开视频的结果，打开视频成功除了显示和播放视频外，还有这个事件
-		if (sData .equals("0") ) {
+		if ("0".equals(sData)) {
 			Show(sPeer+":"+ "视频成功打开");
 			Log.d("",sPeer + " 成功打开");
 		} else {
@@ -708,11 +700,9 @@ public class MainActivity extends Activity {
 				EventLogout(sAct,sData,sPeer);
 			}
 			else if (sAct .equals(EVENT_PEER_OFFLINE)) {
-				// PeerAdd 后消息发送如果对端离线会产生这个消息
 				EventPeerOffline(sAct,sData,sPeer);
 			}
 			else if (sAct.equals(EVENT_PEER_SYNC)) {
-				//PeerAdd 后如果成功会在两端产生这个同步消息
 				EventPeerSync(sAct,sData,sPeer);
 			}
 			else if (sAct .equals(EVENT_CHAIRMAN_OFFLINE)) {
@@ -755,7 +745,6 @@ public class MainActivity extends Activity {
 				EventVideoRecord(sAct,sData,sPeer);
 			}
 			else if(sAct.equals(EVENT_MESSAGE)) {
-				// 收到sPeer 调用MessageSend 后产生的消息事件
 				EventMessage(sAct,sData,sPeer);
 			}
 			else if(sAct.equals(EVENT_CALLSEND_RESULT)) {
@@ -765,15 +754,12 @@ public class MainActivity extends Activity {
 				EventNotify(sAct,sData,sPeer);
 			}
 			else if(sAct.equals(EVENT_SVR_NOTIFY)) {
-				// 收到服务器下推的消息
 				EventSvrNotify(sAct,sData,sPeer);
 			}
 			else if(sAct.equals(EVENT_SVR_RELAY)) {
-				// 给服务器发送消息后产生的回执
 				EventSvrReply(sAct,sData,sPeer);
 			}
 			else if(sAct.equals(EVENT_SVR_REPLYR_ERROR)) {
-				// 给服务器发送消息后产生的错误
 				EventSvrReplyError(sAct,sData,sPeer);
 			}
 			else if(sAct.equals(EVENT_LAN_SCAN_RESULT)){
@@ -789,15 +775,62 @@ public class MainActivity extends Activity {
 
 	private void EventVideoRecord(String sAct, String sData, String sPeer) {
 		// VideoRecord 视频录制的结果
-		Show("EventVideoRecord sData = "+sData);
 	}
 
 	private void EventVideoCamera(String sAct, String sData, String sPeer) {
 		// VideoCamera 视频拍照的结果
-		Show("EventVideoCamera sData = "+sData);
 	}
 	private void EventLanScanResult(String sAct,String sData,String sPeer){
 		Show("Act : LanScanResult  -- sData: "+sData + "  sPeer  : "+sPeer);
+	}
+
+	//选择成为主席端的初始化方式
+	private void pgChairInit() {
+
+		msChair = mSGroup;
+		m_sUser = msChair;
+		//m_sUser = "";
+		if ("".equals(m_sUser) || "".equals(msChair)) {
+			Log.e("Init", "Param Err");
+			return;
+		}
+
+		if (!mConf.Initialize(mSGroup, msChair, m_sUser, "",
+				m_sSvrAddr, "", m_sVideoParam, this)) {
+			Log.d("pgConference", "Init failed");
+			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
+			return;
+		}
+		mPreview = mConf.PreviewCreate(160, 120);
+		mPreviewLayout.removeAllViews();
+		mPreviewLayout.addView(mPreview);
+		mConf.VideoStart(VIDEO_NORMAL);
+		mConf.AudioStart();
+
+	}
+
+
+	//选择成为成员端的初始化方式
+	private void pgMembInit() {
+
+		msChair = mSGroup;
+
+		if ("".equals(m_sUser) || "".equals(msChair)) {
+			Log.e("Init", "Param Err");
+			return;
+		}
+
+		if (!mConf.Initialize(mSGroup, msChair, m_sUser, "",
+				m_sSvrAddr, "", m_sVideoParam, this)) {
+			Log.d("pgConference", "Init failed");
+			Alert("Error", "请安装pgPlugin xx.APK 或者检查网络状况!");
+			return;
+		}
+		mPreview = mConf.PreviewCreate(160, 120);
+		mPreviewLayout.removeAllViews();
+		mPreviewLayout.addView(mPreview);
+		mConf.VideoStart(VIDEO_NORMAL);
+		mConf.AudioStart();
 	}
 
 	private static int ParseInt(String sInt, int iDef) {
@@ -812,28 +845,28 @@ public class MainActivity extends Activity {
 	}
 
 	private void pgStart(){
-		m_sChair = m_editchair.getText().toString().trim();
-		if("".equals(m_sChair)){
+		msChair = mEditchair.getText().toString().trim();
+		if("".equals(msChair)){
 			Alert("错误","主席端ID不能为空。");
 		}
-		String sName = m_sChair;
-		m_Conf.Start(sName,m_sChair);
-		m_Conf.VideoStart(VIDEO_NORMAL);
-		m_Conf.AudioStart();
+		String sName = msChair;
+		mConf.Start(sName, msChair);
+		mConf.VideoStart(VIDEO_NORMAL);
+		mConf.AudioStart();
 	}
 
 	private void pgStop(){
 
-		for(int i=0;i<memberArray.size();i++)
+		for(int i = 0; i< mMemberArray.size(); i++)
 		{
-			PG_MEMB oMemb=memberArray.get(i);
+			PG_MEMB oMemb= mMemberArray.get(i);
 			if(!"".equals(oMemb.sPeer)) {
 				pgVideoClose(oMemb.sPeer);
 			}
 		}
-		m_Conf.AudioStop();
-		m_Conf.VideoStop();
-		m_Conf.Stop();
+		mConf.AudioStop();
+		mConf.VideoStop();
+		mConf.Stop();
 
 	}
 
@@ -842,11 +875,11 @@ public class MainActivity extends Activity {
 	private void pgClean()
 	{
 		pgStop();
-		m_Conf.TimerOutDel(timerOut);
+		mConf.TimerOutDel(timerOut);
 		m_Node=null;
 
-		//m_Conf.PreviewDestroy();
-		m_Conf.Clean();
+		//mConf.PreviewDestroy();
+		mConf.Clean();
 		finish();
 //		m_PeerLink.clear();
 	}
@@ -856,14 +889,14 @@ public class MainActivity extends Activity {
 
 		try
 		{
-			if ("".equals(sPeer)) {
+			if (sPeer .equals("")) {
 				Log.d("","Search can't Search Start");
 				return null;
 			}
-			for (int i = 0; i < memberArray.size(); i++) {
+			for (int i = 0; i < mMemberArray.size(); i++) {
 
-				if (memberArray.get(i).sPeer .equals(sPeer)||memberArray.get(i).sPeer .equals("")) {
-					return memberArray.get(i);
+				if (mMemberArray.get(i).sPeer .equals(sPeer)|| mMemberArray.get(i).sPeer .equals("")) {
+					return mMemberArray.get(i);
 				}
 			}
 
@@ -874,14 +907,18 @@ public class MainActivity extends Activity {
 		return null;
 	}
 
-	//打开视频时完成窗口和相关数据的改变
+	/**
+	 * 打开视频时完成窗口和相关数据的改变
+	 * @param sPeer 对象ID
+	 * @return
+	 */
 	private boolean pgVideoOpen(String sPeer) {
 
 		PG_MEMB MembTmp = MembSearch(sPeer);
 		//没有窗口了
 		if(MembTmp==null)
 		{
-			m_Conf.VideoReject(sPeer);
+			mConf.VideoReject(sPeer);
 			return false;
 		}
 		if("".equals(MembTmp.sPeer))
@@ -889,7 +926,7 @@ public class MainActivity extends Activity {
 			MembTmp.sPeer=sPeer;
 		}
 
-		MembTmp.pView=m_Conf.VideoOpen(sPeer,160,120);
+		MembTmp.pView= mConf.VideoOpen(sPeer,160,120);
 		if(MembTmp.pView!=null)
 		{
 			MembTmp.pLayout.removeAllViews();
@@ -900,21 +937,22 @@ public class MainActivity extends Activity {
 
 	}
 
-	/*
-	* 重置节点的显示窗口
-	* */
+	/**
+	 * 重置节点的显示窗口
+	 * @param sPeer
+	 */
 	private void pgVideoRestore(String sPeer)
 	{
-		PG_MEMB MembTmp = MembSearch(sPeer);
-		if(MembTmp!=null)
+		PG_MEMB membTmp = MembSearch(sPeer);
+		if(membTmp!=null)
 		{
-			if(MembTmp.sPeer.equals(sPeer))
+			if(membTmp.sPeer.equals(sPeer))
 			{
-				MembTmp.pLayout.removeView(MembTmp.pView);
-				MembTmp.pView=null;
-				MembTmp.sPeer="";
-				MembTmp.bJoin=false;
-				MembTmp.bVideoSync=false;
+				membTmp.pLayout.removeView(membTmp.pView);
+				membTmp.pView=null;
+				membTmp.sPeer="";
+				membTmp.bJoin=false;
+				membTmp.bVideoSync=false;
 			}
 		}
 	}
@@ -922,67 +960,29 @@ public class MainActivity extends Activity {
 	//清理窗口数据和关闭视频
 	private void pgVideoClose(String sPeer)
 	{
-		m_Conf.VideoClose(sPeer);
+		mConf.VideoClose(sPeer);
 		pgVideoRestore(sPeer);
-	}
-
-	/**
-	 *
-	 *
-	 * 对主席端录像。
-	 */
-	void pgRecordStart(){
-		Date currentTime = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		String sDate = formatter.format(currentTime);
-		String sPath = getSDPath()+"/record"+sDate+".avi";
-		if(m_sChair.equals(m_sUser)){
-			if("".equals(memberArray.get(0).sPeer)){
-				Toast.makeText(getApplication(), "没有成员对讲，录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
-				return;
-			}
-
-			if ((!m_Conf.RecordStart(memberArray.get(0).sPeer, sPath,1))) {
-				Toast.makeText(getApplication(), "录像返回失败。 已经关闭", Toast.LENGTH_SHORT).show();
-				m_Conf.RecordStop(memberArray.get(0).sPeer,1);
-			}
-
-		}else {
-			if ((!m_Conf.RecordStart(m_sChair, sPath))) {
-				Toast.makeText(getApplication(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
-				m_Conf.RecordStop(m_sChair);
-//						m_Conf.AudioRecordStop(m_sChair);
-			}
-		}
-
-	}
-
-	void pgRecordStop(){
-		if(m_sChair.equals(m_sUser)) {
-			m_Conf.RecordStop(memberArray.get(0).sPeer,1);
-		}else{
-			m_Conf.RecordStop(m_sChair);
-		}
-		//m_Conf.AudioRecordStop(m_sChair);
 	}
 	//给所有加入会议的成员发送消息
 	private boolean pgNotifySend()
 	{
-		String sData=m_editText_Notify.getText().toString();
-		if(sData.equals(""))
+		String sData= mEdittextNotify.getText().toString();
+		if("".equals(sData))
 		{
 			return false;
 		}
-		m_Conf.NotifySend(sData);
+		mConf.NotifySend(sData);
 
 		return true;
 	}
 
 	private boolean m_bSpeechEnable = true;
 
-	//选择自己的声音是否在对端播放
+	/**
+	 * 选择自己的声音是否在对端播放
+	 */
 	private void Speech() {
-		if (!m_Conf.AudioSpeech(m_sMemb,m_bSpeechEnable)) {
+		if (!mConf.AudioSpeech(mSmemb,m_bSpeechEnable)) {
 			Log.d("pgRobotClient", "Enable speech failed");
 		} else {
 			m_bSpeechEnable = !m_bSpeechEnable;

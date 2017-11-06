@@ -177,7 +177,7 @@ public class MainActivityExter extends Activity {
 		super.onCreate(savedInstanceState);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
 				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.fragment_main);
 
 
 //		Camera camera=null;

@@ -145,7 +145,7 @@ public class MainActivityCalling extends Activity {
 		super.onCreate(savedInstanceState);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
 				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.fragment_main);
 
 
 //		Camera camera=null;
@@ -528,7 +528,7 @@ public class MainActivityCalling extends Activity {
 
 				try {
 					// Show main activity to foreground.
-					Intent start = new Intent(getApplicationContext(), MainActivity.class);
+					Intent start = new Intent(getApplicationContext(), MainActivity2.class);
 					start.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 					startActivity(start);
 				} catch (Exception ex) {

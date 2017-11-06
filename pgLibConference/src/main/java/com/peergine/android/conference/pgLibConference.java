@@ -1597,7 +1597,7 @@ public class pgLibConference {
      *
      * @param sPeer   节点名
      * @param iDirect 默认填0，为录制对端sPeer的视频，1为录制视频通话时本端节点视频。
-     *             @return true 操作成功，false 操作失败
+     * @return true 操作成功，false 操作失败
      */
     public boolean VideoRecordStop(String sPeer, int iDirect) {
         return VideoRecord(sPeer, "", false, iDirect);
@@ -1828,9 +1828,9 @@ public class pgLibConference {
         return RecordStop(sPeer,0);
     }
     public boolean RecordStop(String sPeer,int iDirect) {
-        VideoRecord(sPeer, "", true,iDirect);
-        AudioRecord(sPeer, "", true,iDirect);
-        return true;
+        boolean bRet = VideoRecord(sPeer, "", true,iDirect);
+        boolean bRet1 = AudioRecord(sPeer, "", true,iDirect);
+        return bRet&&bRet1;
     }
 
     /**

@@ -7,7 +7,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.pgrobotclient.MainActivity" >
+    tools:context="com.example.pgrobotcliMainActivity2vity" >
 
     <TextView
         android:layout_width="wrap_content"
@@ -37,22 +37,22 @@
             android:layout_height="wrap_content">
 
         <LinearLayout
-            android:layout_width="322dp"
-            android:layout_height="486dp"
+            android:layout_width="162dp"
+            android:layout_height="246dp"
             android:paddingLeft="1dip"
             android:paddingRight="1dip"
             android:orientation="vertical" >
 
-            <LinearLayout
-                android:id="@+id/layoutVideoS0"
-                android:layout_width="320dp"
-                android:layout_height="240dip"
+            <LinearLayout android:id="@+id/layoutVideoS0"
+                android:layout_height="120dip"
                 android:layout_marginBottom="1dip"
                 android:background="#ff000000"
-                android:orientation="horizontal"></LinearLayout>
+                android:orientation="horizontal"
+                android:layout_width="160dp">
+            </LinearLayout>
             <LinearLayout android:id="@+id/layoutVideoS2"
-                android:layout_width="320dip"
-                android:layout_height="240dip"
+                android:layout_width="160dip"
+                android:layout_height="120dip"
                 android:layout_marginBottom="1dip"
                 android:background="#ff000000"
                 android:orientation="horizontal" >
@@ -60,23 +60,23 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="325dp"
+            android:layout_width="165dp"
             android:layout_height="match_parent"
             android:paddingLeft="1dip"
             android:paddingRight="1dip"
             android:orientation="vertical" >
 
             <LinearLayout android:id="@+id/layoutVideoS1"
-                android:layout_width="320dip"
-                android:layout_height="240dip"
+                android:layout_width="160dip"
+                android:layout_height="120dip"
                 android:layout_marginBottom="1dip"
                 android:background="#ff000000"
                 android:orientation="horizontal" >
             </LinearLayout>
 
             <LinearLayout android:id="@+id/layoutVideoS3"
-                android:layout_width="320dip"
-                android:layout_height="240dip"
+                android:layout_width="160dip"
+                android:layout_height="120dip"
                 android:layout_marginBottom="1dip"
                 android:background="#ff000000"
                 android:orientation="horizontal">
@@ -94,7 +94,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
 
-                android:text="主席ID："/>
+                android:text="@string/id_chainman"/>
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -112,7 +112,7 @@
                 android:id="@+id/btn_Start"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Start" />
+                android:text="@string/id_start" />
 
             <Button
                 android:id="@+id/btn_stop"
@@ -155,7 +155,7 @@
 
             <Button
                 android:id="@+id/button"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="test" />
