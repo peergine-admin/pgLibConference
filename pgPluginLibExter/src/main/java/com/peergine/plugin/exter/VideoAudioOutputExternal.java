@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 public class VideoAudioOutputExternal {
     private final VideoPlayView m_wndPlay;
 
-    VideoAudioOutputExternal(LinearLayout m_View , Context context){
+    public VideoAudioOutputExternal(LinearLayout m_View , Context context){
         pgDevVideoOut.SetCallback(m_oVideoOutCB);
         Log.d("pgLiveRanExter", "pgDevVideoOut Set callback");
 
@@ -33,16 +33,16 @@ public class VideoAudioOutputExternal {
         m_wndPlay.setVisibility(View.VISIBLE);
     }
 
-
-
-    public pgDevVideoOut.OnCallback m_oVideoOutCB = new pgDevVideoOut.OnCallback() {
+    private pgDevVideoOut.OnCallback m_oVideoOutCB = new pgDevVideoOut.OnCallback() {
 
         @Override
         public int Open(int iDevNO) {
             // TODO Auto-generated method stub
             Log.d("RenExter", "pgDevVideoOut.Open: iDevNO=" + iDevNO);
-
-            return 1234;
+            if(iDevNO<2) {
+                return 1234;
+            }
+            return iDevNO;
         }
 
         @Override

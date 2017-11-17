@@ -12,7 +12,6 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -65,7 +64,7 @@ public class VideoAudioInputExternal {
 
     public pgDevVideoIn.OnCallback m_oVideoInCB = new pgDevVideoIn.OnCallback() {
 
-        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+
         @Override
         public int Open(int iDevNO, int iPixBytes, int iWidth, int iHeight,
                         int iBitRate, int iFrmRate, int iKeyFrmRate)
@@ -84,7 +83,6 @@ public class VideoAudioInputExternal {
             return iDevID;
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void Close(int iDevID) {
             // TODO Auto-generated method stub
@@ -163,6 +161,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
             Log.d("plugin Exter", "CameraView.Initialize");
 
             m_Handler = new Handler() {
+                @Override
                 public void handleMessage(Message msg) {
                     try {
                     }
@@ -184,7 +183,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+
     public void Clean() {
         try {
             Log.d("plugin Exter", "CameraView.Clean");
@@ -196,7 +195,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+
     public boolean Start(int iDevID, int iCameraNo, int iW, int iH, int iFrmRate) {
         try {
             Log.d("plugin Exter", "CameraView.Start: iW=" + iW + ", iH=" + iH + ", iFrmRate=" + iFrmRate);
@@ -225,6 +224,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
 
             // Post the open camera handle to UI thread.
             m_Handler.post(new Runnable() {
+                @Override
                 public void run() {
                     Log.d("plugin Exter", "CameraView.Start, run PreviewOpen");
                     PreviewOpen();
@@ -268,7 +268,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+
     public void Stop() {
         try {
             Log.d("plugin Exter", "CameraView.Stop");
@@ -278,6 +278,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
 
             // Post the close camera handle to UI thread.
             m_Handler.post(new Runnable() {
+                @Override
                 public void run() {
                     Log.d("plugin Exter", "CameraView.Stop, run PreviewClose");
                     PreviewClose();
@@ -296,8 +297,11 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
 
             if (HW_CODEC) {
                 if (m_MediaCodec != null) {
-                    m_MediaCodec.stop();
-                    m_MediaCodec.release();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        m_MediaCodec.stop();
+
+                        m_MediaCodec.release();
+                    }
                     m_MediaCodec = null;
                 }
             }
@@ -504,6 +508,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
         }
     }
 
+    @Override
     public void surfaceDestroyed(SurfaceHolder surfaceholder) {
         if (m_Camera != null) {
             try {
@@ -522,6 +527,7 @@ class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.P
         Log.d("plugin Exter", "CameraView.surfaceDestroyed");
     }
 
+    @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
 
         if (m_iDevID < 0) {

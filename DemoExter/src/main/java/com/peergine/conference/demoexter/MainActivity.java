@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
+import com.peergine.plugin.exter.VideoAudioOutputExternal;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
@@ -256,7 +257,7 @@ public class MainActivity extends Activity {
 			m_Conf.ConfigNode(mNodeCfg);
 
 		}
-		//m_sVideoParam += "(VideoInExternal){1}";
+		m_sVideoParam += "(OutputExtCmp){1}";
 
 		if(!m_Conf.Initialize(m_sUser,m_sPass,m_sSvrAddr,m_sRelayAddr,m_sVideoParam,this)) {
 			Log.d("pgConference", "Init failed");
@@ -273,8 +274,8 @@ public class MainActivity extends Activity {
 		}
 		m_Preview= m_Conf.PreviewCreate(160, 120);
 		PreviewLayout.addView(m_Preview);
-//		VideoAudioInputExternal external = new VideoAudioInputExternal(m_Conf.GetNode(),PreviewLayout,this);
-//		external.VideoInputExternalEnable();
+
+		VideoAudioOutputExternal external = new VideoAudioOutputExternal(memberArray.get(1).pLayout,this);
 
 //		PreviewLayout.removeAllViews();
 //		PreviewLayout.addView(m_Preview);

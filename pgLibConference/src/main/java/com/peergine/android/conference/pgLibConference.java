@@ -962,16 +962,16 @@ public class pgLibConference {
      * 返回值：true 成功， false 失败
      */
 
-    /*
-        初始化后需手动加入会议。
+    /**
+     * 初始化后需手动加入会议。
      */
     public boolean Initialize(String sUser, String sPass, String sSvrAddr,
                               String sRelayAddr, String sVideoParam, Context oCtx) {
         return Initialize("", "", sUser, sPass, sSvrAddr, sRelayAddr, sVideoParam, oCtx);
     }
 
-    /*
-        初始化后已经自动加入会议。
+    /**
+      *  初始化后已经自动加入会议。
      */
     public boolean Initialize(String sName, String sChair, String sUser, String sPass, String sSvrAddr,
                               String sRelayAddr, String sVideoParam, Context oCtx) {
