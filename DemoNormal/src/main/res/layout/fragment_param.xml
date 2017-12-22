@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.peergine.conference.demo.MainActivity">
+    android:fillViewport="true"
+    tools:context="com.peergine.conference.demo.ParamFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,15 +17,17 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
 
+                android:layout_weight="0.2"
                 android:text="@string/user" />
 
             <EditText
                 android:id="@+id/editText_user"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.8"
                 android:hint="@string/id_needID"
                 android:text="" />
         </LinearLayout>
@@ -34,14 +37,16 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="@string/p_a_s_s" />
 
             <EditText
                 android:id="@+id/editText_pass"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.8"
                 android:hint="@string/enable_empty"
                 android:text="" />
         </LinearLayout>
@@ -52,15 +57,17 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
 
                 android:text="@string/svraddr" />
 
             <EditText
                 android:id="@+id/editText_svraddr"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.8"
                 android:inputType="text"
                 android:text="@string/connect_peergine_com_7781" />
         </LinearLayout>
@@ -70,16 +77,38 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="@string/relayaddr" />
 
             <EditText
                 android:id="@+id/editText_relay"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.8"
                 android:hint="@string/enable_empty"
                 android:text="" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.2"
+                android:text="@string/expire" />
+
+            <EditText
+                android:id="@+id/editText_expire"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:inputType="number"
+                android:text="@string/_10" />
         </LinearLayout>
 
         <LinearLayout
@@ -91,14 +120,43 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
 
+
+                android:text="初始化参数" />
+
+            <EditText
+                android:id="@+id/editText_initparam"
+                style="@android:style/Widget.AutoCompleteTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="text"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+
                 android:text="@string/videoparam" />
 
             <EditText
                 android:id="@+id/editText_videoparam"
+                style="@android:style/Widget.AutoCompleteTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:inputType="text"
-                android:text="@string/code_3_mode_2_frmrate_40_lcode_3_lmode_3_lfrmrate_30_portrait_1_rotate_0_bitrate_300_camerano_1_audiospeechdisable_0" />
+                android:selectAllOnFocus="false"
+                android:singleLine="false"
+                android:text="@string/code_3_mode_2_frmrate_40_lcode_3_lmode_3_lfrmrate_30_portrait_1_rotate_0_bitrate_300_camerano_1_audiospeechdisable_0"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:visibility="visible" />
         </LinearLayout>
 
         <LinearLayout
@@ -108,116 +166,27 @@
 
             <Button
                 android:id="@+id/btnInitDefault"
-                android:layout_width="166dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/init_default"
+                android:layout_weight="1"
+                android:text="Demo"
                 tools:ignore="ButtonStyle" />
 
             <Button
                 android:id="@+id/btnInitCalling"
-                android:layout_width="166dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/init_calling"
+                android:layout_weight="1"
+                android:text="Demo呼叫"
+                tools:ignore="ButtonStyle" />
+
+            <Button
+                android:id="@+id/btnInitExter"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:text="Demo外部采集"
                 tools:ignore="ButtonStyle" />
         </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/other_param" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/expire" />
-
-            <EditText
-                android:id="@+id/editText_expire"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:text="@string/_10" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/maxpeer" />
-
-            <EditText
-                android:id="@+id/editText_MaxPeer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:text="@string/_256" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:text="@string/maxobject" />
-
-            <EditText
-                android:id="@+id/editText_MaxObject"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:text="@string/_512" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:text="@string/maxmcast" />
-
-            <EditText
-                android:id="@+id/editText_MaxMCast"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:text="@string/_512" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:text="@string/maxhandle" />
-
-            <EditText
-                android:id="@+id/editText_MaxHandle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:text="@string/_256" />
-        </LinearLayout>
-
     </LinearLayout>
 </ScrollView>

@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/DemoCalling/DemoCalling.iml" filepath="$PROJECT_DIR$/DemoCalling/DemoCalling.iml" />
-      <module fileurl="file://$PROJECT_DIR$/DemoExter/DemoExter.iml" filepath="$PROJECT_DIR$/DemoExter/DemoExter.iml" />
       <module fileurl="file://$PROJECT_DIR$/DemoNormal/DemoNormal.iml" filepath="$PROJECT_DIR$/DemoNormal/DemoNormal.iml" />
       <module fileurl="file://$PROJECT_DIR$/pgLibConference/pgLibConference.iml" filepath="$PROJECT_DIR$/pgLibConference/pgLibConference.iml" />
       <module fileurl="file://$PROJECT_DIR$/pgLibConference_Android.iml" filepath="$PROJECT_DIR$/pgLibConference_Android.iml" />

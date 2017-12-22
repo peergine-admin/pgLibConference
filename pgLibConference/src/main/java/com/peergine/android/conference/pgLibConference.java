@@ -26,6 +26,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
+import static com.peergine.android.conference.pgLibConferenceEvent.*;
+import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_LOGOUT;
+import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_VIDEO_LOST;
+import static com.peergine.android.conference.pgLibError.*;
 
 /**
  * Created by ctkj-004 on 2016/8/16.
@@ -150,270 +154,10 @@ public class pgLibConference {
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
-    /**
-     * 正常
-     */
-    public static final int PG_ERR_Normal = 0;
-    /**
-     * 系统错误
-     */
-    public static final int PG_ERR_System = 1;
-    /**
-     * 错误的参数
-     */
-    public static final int PG_ERR_BadParam = 2;
-    /**
-     * 错误的类
-     */
-    public static final int PG_ERR_BadClass = 3;
-    /**
-     * 错误的方法
-     */
-    public static final int PG_ERR_BadMethod = 4;
-    /**
-     * 错误的对象
-     */
-    public static final int PG_ERR_BadObject = 5;
-    /**
-     * 错误的状态
-     */
-    public static final int PG_ERR_BadStatus = 6;
-    /**
-     * 错误的文件
-     */
-    public static final int PG_ERR_BadFile = 7;
-    /**
-     * 错误的ID
-     */
-    public static final int PG_ERR_BadUser = 8;
-    /**
-     * 错误的密码
-     */
-    public static final int PG_ERR_BadPass = 9;
-    /**
-     * 还没有登录
-     */
-    public static final int PG_ERR_NoLogin = 10;
-    /**
-     * 没有网络
-     */
-    public static final int PG_ERR_Network = 11;
-    /**
-     * 超时，网络不通
-     */
-    public static final int PG_ERR_Timeout = 12;
-    /**
-     * 拒绝
-     */
-    public static final int PG_ERR_Reject = 13;
-    /**
-     * 系统正忙
-     */
-    public static final int PG_ERR_Busy = 14;
-    /**
-     * 已经打开
-     */
-    public static final int PG_ERR_Opened = 15;
-    /**
-     * 已经关闭
-     */
-    public static final int PG_ERR_Closed = 16;
-    /**
-     * 已经存在
-     */
-    public static final int PG_ERR_Exist = 17;
-    /**
-     * 不存在
-     */
-    public static final int PG_ERR_NoExist = 18;
-    /**
-     * 没有空间
-     */
-    public static final int PG_ERR_NoSpace = 19;
-    /**
-     * 错误的结构
-     */
-    public static final int PG_ERR_BadType = 20;
-    /**
-     * 检查错误
-     */
-    public static final int PG_ERR_CheckErr = 21;
-    /**
-     * 错误的服务
-     */
-    public static final int PG_ERR_BadServer = 22;
-    /**
-     * 错误的域
-     */
-    public static final int PG_ERR_BadDomain = 23;
-    /**
-     * 没有数据
-     */
-    public static final int PG_ERR_NoData = 24;
-    /**
-     * 不知道
-     */
-    public static final int PG_ERR_Unknown = 0xff;
-
-    /**
-     * 登录事件
-     */
-    public static final String EVENT_LOGIN = "Login";
-    /**
-     * 登出事件
-     */
-    public static final String EVENT_LOGOUT = "Logout";
-    /**
-     * 视频丢失事件
-     */
-    public static final String EVENT_VIDEO_LOST = "VideoLost";
-    /**
-     * 音频通道同步事件
-     */
-    public static final String EVENT_AUDIO_SYNC = "AudioSync";
-    /**
-     * 音频控制声音事件
-     */
-    public static final String EVENT_AUDIO_CTRL_VOLUME = "AudioCtrlVolume";
-    /**
-     * 视频通道同步事件
-     */
-    public static final String EVENT_VIDEO_SYNC = "VideoSync";
-    /**
-     * 第二个视频通道同步事件
-     */
-    public static final String EVENT_VIDEO_SYNC_1 = "VideoSyncL";
-    /**
-     * 请求视频通话
-     */
-    public static final String EVENT_VIDEO_OPEN = "VideoOpen";
-    /**
-     * 第二个视频通道请求视频通话
-     */
-    public static final String EVENT_VIDEO_OPEN_1 = "VideoOpenL";
-    /**
-     * 视频关闭事件
-     */
-    public static final String EVENT_VIDEO_CLOSE = "VideoClose";
-    /**
-     * 第二个视频关闭事件
-     */
-    public static final String EVENT_VIDEO_CLOSE_1 = "VideoCloseL";
-    /**
-     * 视频状态信息上报
-     */
-    public static final String EVENT_VIDEO_FRAME_STAT = "VideoFrameStat";
-    /**
-     * 视频状态信息上报2
-     */
-    public static final String EVENT_VIDEO_FRAME_STAT_1 = "VideoFrameStatL";
-
-    /**
-     * 请求视频通话结果上报事件
-     */
-    public static final String EVENT_VIDEO_JOIN = "VideoJoin";
-    /**
-     * 拍照结果事件
-     */
-    public static final String EVENT_VIDEO_CAMERA = "VideoCamera";
-    /**
-     * 视频录像结果事件
-     */
-    public static final String EVENT_VIDEO_RECORD = "VideoRecord";
-    /**
-     * 主席端同步
-     */
-    public static final String EVENT_CHAIRMAN_SYNC = "ChairmanSync";
-    /**
-     * 主席端离线消息
-     */
-    public static final String EVENT_CHAIRMAN_OFFLINE = "ChairmanOffline";
-    /**
-     * 节点同步
-     */
-    public static final String EVENT_PEER_SYNC = "PeerSync";
-    /**
-     * 节点离线消息
-     */
-    public static final String EVENT_PEER_OFFLINE = "PeerOffline";
-    /**
-     * 成员端请求加入会议事件（主席端上报）
-     */
-    public static final String EVENT_ASK_JOIN = "AskJoin";
-    /**
-     * 成员请求离开会议事件(主席端上报)
-     */
-    public static final String EVENT_ASK_LEAVE = "AskLeave";
-    /**
-     * 成员加入组事件
-     */
-    public static final String EVENT_JOIN = "Join";
-    /**
-     * 成员离开会议事件
-     */
-    public static final String EVENT_LEAVE = "Leave";
-    /**
-     * 节点消息事件
-     */
-    public static final String EVENT_MESSAGE = "Message";
-    /**
-     * 广播消息事件
-     */
-    public static final String EVENT_NOTIFY = "Notify";
-    /**
-     * 服务器下发消息事件
-     */
-    public static final String EVENT_SVR_NOTIFY = "SvrNotify";
-    /**
-     * 服务器回复消息错误事件
-     */
-    public static final String EVENT_SVR_REPLYR_ERROR = "SvrReplyError";
-    /**
-     * 服务器回复消息事件
-     */
-    public static final String EVENT_SVR_RELAY = "SvrReply";
-    /**
-     * 上报CallSend的结果
-     */
-    public static final String EVENT_CALLSEND_RESULT = "CallSend";
-    /**
-     * 上报局域网节点信息
-     */
-    public static final String EVENT_LAN_SCAN_RESULT = "LanScanResult";
-
-    /**
-     * 初始化音频控制正常对讲
-     */
-    public static final int AUDIO_SPEECH = 0;
-    /**
-     * 初始化音频控制自己静音
-     */
-    public static final int AUDIO_NO_SPEECH_SELF = 1;
-    /**
-     * 初始化音频控制静音其他成员
-     */
-    public static final int AUDIO_NO_SPEECH_PEER = 2;
-    /**
-     * 初始化音频控制不接收音频也不发送音频
-     */
-    public static final int AUDIO_NO_SPEECH_SELF_AND_PEER = 3;
-
-    /**
-     * 初始化视频正常
-     */
-    public static final int VIDEO_NORMAL = 0;
-    /**
-     * 初始化视频只接收视频不发送视频
-     */
-    public static final int VIDEO_ONLY_INPUT = 1;
-    /**
-     * 初始化视频只发送视频不接收视频
-     */
-    public static final int VIDEO_ONLY_OUTPUT = 2;
 
     /**
      * @author ctkj
-     *         中间件初始化参数结构类
+     * 中间件初始化参数结构类
      */
     public static class PG_NODE_CFG {
         /**
@@ -699,6 +443,8 @@ public class pgLibConference {
     private java.util.Random m_Random = new java.util.Random();
     private boolean m_bJNILibInited = false;
     // Event listen interface object.
+    // Node event hook interface object.
+    private NodeEventHook m_eventHook = null;
     private OnEventListener m_eventListener = null;
     private pgLibJNINode m_Node = null;
     private pgLibNodeProc m_NodeProc = null;
@@ -812,45 +558,19 @@ public class pgLibConference {
         }
     }
 
-    ///------------------------------------------------------------------------
-    // Private methods.
-    private static Integer s_iNodeLibInitCount = 0;
 
-    private static boolean _NodeLibInit(Context oCtx) {
-        try {
-            boolean bResult = false;
-            synchronized (s_iNodeLibInitCount) {
-                if (s_iNodeLibInitCount > 0) {
-                    s_iNodeLibInitCount++;
-                    bResult = true;
-                } else {
-                    if (pgLibJNINode.Initialize(oCtx)) {
-                        s_iNodeLibInitCount++;
-                        bResult = true;
-                    }
-                }
-            }
-            return bResult;
-        } catch (Exception e) {
-            _OutString("pgLibLive.NodeLibInit: e=" + e.toString());
-            return false;
-        }
+    ///------------------------------------------------------
+    // Peergine event hook interface.
+    public interface NodeEventHook {
+        int OnExtRequest(String sObj, int uMeth, String sData, int uHandle, String sPeer);
+        int OnReply(String sObj, int uErr, String sData, String sParam);
     }
 
-    private static void _NodeLibClean() {
-        try {
-            synchronized (s_iNodeLibInitCount) {
-                if (s_iNodeLibInitCount > 0) {
-                    s_iNodeLibInitCount--;
-                    if (s_iNodeLibInitCount == 0) {
-                        pgLibJNINode.Clean();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            _OutString("pgLibLive.NodeLibClean: e=" + e.toString());
-        }
+    public void SetNodeEventHook(NodeEventHook eventHook) {
+        m_eventHook = eventHook;
     }
+
+
 
     /**
      * 描述：设置消息接收回调接口。
@@ -978,7 +698,7 @@ public class pgLibConference {
         if (!m_Status.bInitialized) {
             if ((!"".equals(sUser)) && sUser.length() < 100) {
                 // Init JNI lib.
-                if (!_NodeLibInit(oCtx)) {
+                if (!pgLibNode.NodeLibInit(oCtx)) {
                     _OutString("Initialize: Peergine plugin invalid.");
                     return false;
                 }
@@ -1032,7 +752,7 @@ public class pgLibConference {
         //pgLibJNINode.Clean();
 
         if (m_bJNILibInited) {
-            _NodeLibClean();
+            pgLibNode.NodeLibClean();
             m_bJNILibInited = false;
         }
         m_Status.restore();
@@ -3088,7 +2808,7 @@ public class pgLibConference {
                     String sDataTemp = "id=" + sID + "&addr=" + sAddr;
                     _EventProc(EVENT_LAN_SCAN_RESULT, sDataTemp, "");
                 }
-                m_LanScan.sLanScanRes += "(" + sPeer + "){" + sAddr + "}";
+                m_LanScan.sLanScanRes += ("(" + sPeer + "){" + sAddr + "}");
             }
 
             iInd++;
@@ -3105,6 +2825,13 @@ public class pgLibConference {
     private int _NodeOnExtRequest(String sObj, int uMeth, String sData, int iHandle, String sObjPeer) {
         if (!((!m_Group.bEmpty) && uMeth == 40 && (sObj.equals(m_Group.sObjV) || sObj.equals(m_Group.sObjLV)))) {
             _OutString("NodeOnExtRequest: " + sObj + ", " + uMeth + ", " + sData + ", " + sObjPeer);
+        }
+
+        if (m_eventHook != null) {
+            int iErr = m_eventHook.OnExtRequest(sObj, uMeth, sData, iHandle, sObjPeer);
+            if (iErr != PG_ERR_Unknown) {
+                return iErr;
+            }
         }
 
         if (m_Node != null) {
@@ -3254,6 +2981,13 @@ public class pgLibConference {
 
     private int _NodeOnReply(String sObj, int iErr, String sData, String sParam) {
         _OutString("NodeOnReply: " + sObj + ", " + iErr + ", " + sData + ", " + sParam);
+
+        if (m_eventHook != null) {
+            int uErr = m_eventHook.OnReply(sObj, iErr, sData, sParam);
+            if (uErr >= 0) {
+                return iErr;
+            }
+        }
 
         if (m_Node != null) {
 

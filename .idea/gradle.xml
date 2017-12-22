@@ -9,8 +9,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/DemoCalling" />
-            <option value="$PROJECT_DIR$/DemoExter" />
             <option value="$PROJECT_DIR$/DemoNormal" />
             <option value="$PROJECT_DIR$/pgLibConference" />
             <option value="$PROJECT_DIR$/pgPluginLib" />
