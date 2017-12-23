@@ -610,57 +610,62 @@ public class MainFragment extends SupportFragment {
         public void event(String sAct, String sData, final String sPeer) {
             // TODO Auto-generated method stub
 
-            Log.d("ConferenceDemo", "OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sPeer);
+            String sObjPeer = sPeer;
+            if(sObjPeer.contains("_DEV_")){
+                sObjPeer = sPeer.substring(5);
+            }
+
+            Log.d("ConferenceDemo", "OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
             if (sAct.equals(EVENT_VIDEO_FRAME_STAT)) {
-                EventVideoFrameStat(sAct, sData, sPeer);
+                EventVideoFrameStat(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_LOGIN)) {
-                EventLogin(sAct, sData, sPeer);
+                EventLogin(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_LOGOUT)) {
-                EventLogout(sAct, sData, sPeer);
+                EventLogout(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_PEER_OFFLINE)) {
-                EventPeerOffline(sAct, sData, sPeer);
+                EventPeerOffline(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_PEER_SYNC)) {
-                EventPeerSync(sAct, sData, sPeer);
+                EventPeerSync(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_CHAIRMAN_OFFLINE)) {
-                EventChairmanOffline(sAct, sData, sPeer);
+                EventChairmanOffline(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_CHAIRMAN_SYNC)) {
-                EventChairmanSync(sAct, sData, sPeer);
+                EventChairmanSync(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_ASK_JOIN)) {
-                EventAskJoin(sAct, sData, sPeer);
+                EventAskJoin(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_JOIN)) {
-                EventJoin(sAct, sData, sPeer);
+                EventJoin(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_LEAVE)) {
-                EventLeave(sAct, sData, sPeer);
+                EventLeave(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_SYNC)) {
-                EventVideoSync(sAct, sData, sPeer);
+                EventVideoSync(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_SYNC_1)) {
-                EventVideoSyncL(sAct, sData, sPeer);
+                EventVideoSyncL(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_OPEN)) {
-                EventVideoOpen(sAct, sData, sPeer);
+                EventVideoOpen(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_LOST)) {
-                EventVideoLost(sAct, sData, sPeer);
+                EventVideoLost(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_CLOSE)) {
-                EventVideoClose(sAct, sData, sPeer);
+                EventVideoClose(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_JOIN)) {
-                EventVideoJoin(sAct, sData, sPeer);
+                EventVideoJoin(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_CAMERA)) {
-                EventVideoCamera(sAct, sData, sPeer);
+                EventVideoCamera(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_VIDEO_RECORD)) {
-                EventVideoRecord(sAct, sData, sPeer);
+                EventVideoRecord(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_MESSAGE)) {
-                EventMessage(sAct, sData, sPeer);
+                EventMessage(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_CALLSEND_RESULT)) {
-                EventCallSend(sAct, sData, sPeer);
+                EventCallSend(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_NOTIFY)) {
-                EventNotify(sAct, sData, sPeer);
+                EventNotify(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_SVR_NOTIFY)) {
-                EventSvrNotify(sAct, sData, sPeer);
+                EventSvrNotify(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_SVR_RELAY)) {
-                EventSvrReply(sAct, sData, sPeer);
+                EventSvrReply(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_SVR_REPLYR_ERROR)) {
-                EventSvrReplyError(sAct, sData, sPeer);
+                EventSvrReplyError(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_LAN_SCAN_RESULT)) {
-                EventLanScanResult(sAct, sData, sPeer);
+                EventLanScanResult(sAct, sData, sObjPeer);
             }
         }
     };

@@ -57,15 +57,15 @@ public class ParamFragment extends SupportFragment {
                         switch (btnID){
                             case R.id.btnInitDefault:
                                 start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                        sInitParam,sVideoParam,sExpire));
+                                        sInitParam,sVideoParam,sExpire,"0"));
                                 break;
                             case R.id.btnInitCalling:
-                                start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                                start(MainFragmentCalling.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
                                         sInitParam,sVideoParam,sExpire));
                                 break;
                             case R.id.btnInitExter:
                                 start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                        sInitParam,sVideoParam,sExpire));
+                                        sInitParam,sVideoParam,sExpire,"1"));
                                 break;
                             default:break;
                         }
