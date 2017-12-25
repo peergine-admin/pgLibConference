@@ -33,6 +33,7 @@ import me.yokeyword.fragmentation.SupportFragment;
 
 import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
+import static com.peergine.android.conference.pgLibConference.VIDEO_NORMAL;
 import static com.peergine.android.conference.pgLibConferenceEvent.*;
 
 /**

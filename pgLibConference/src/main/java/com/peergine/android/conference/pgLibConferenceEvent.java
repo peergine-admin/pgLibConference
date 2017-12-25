@@ -137,34 +137,23 @@ public class pgLibConferenceEvent {
     public static final String EVENT_LAN_SCAN_RESULT = "LanScanResult";
 
     /**
-     * 初始化音频控制正常对讲
+     * 文件传输进度
      */
-    public static final int AUDIO_SPEECH = 0;
+    public static final String EVENT_FILE_PROGRESS = "FileProgress";
     /**
-     * 初始化音频控制自己静音
+     * 文件传输结束
      */
-    public static final int AUDIO_NO_SPEECH_SELF = 1;
+    public static final String EVENT_FILE_FINISH = "FileFinish";
     /**
-     * 初始化音频控制静音其他成员
+     * 文件传输中断
      */
-    public static final int AUDIO_NO_SPEECH_PEER = 2;
+    public static final String EVENT_FILE_ABORT = "FileAbort";
     /**
-     * 初始化音频控制不接收音频也不发送音频
+     * 文件传输被拒绝
      */
-    public static final int AUDIO_NO_SPEECH_SELF_AND_PEER = 3;
-
+    public static final String EVENT_FILE_REJECT = "FileReject";
     /**
-     * 初始化视频正常
+     * 文件传输请求被接受
      */
-    public static final int VIDEO_NORMAL = 0;
-    /**
-     * 初始化视频只接收视频不发送视频
-     */
-    public static final int VIDEO_ONLY_INPUT = 1;
-    /**
-     * 初始化视频只发送视频不接收视频
-     */
-    public static final int VIDEO_ONLY_OUTPUT = 2;
-
-
+    public static final String EVENT_FILE_ACCEPT = "FileAccept";
 }

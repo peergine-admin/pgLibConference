@@ -30,7 +30,10 @@ import me.yokeyword.fragmentation.SupportFragment;
 
 import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
+import static com.peergine.android.conference.pgLibConference.PG_RECORD_NORMAL;
+import static com.peergine.android.conference.pgLibConference.VIDEO_NORMAL;
 import static com.peergine.android.conference.pgLibConferenceEvent.*;
+import static com.peergine.android.conference.pgLibError.PG_ERR_Normal;
 
 /**
  * Updata 2017 02 15 V13
@@ -86,62 +89,8 @@ public class MainFragment extends SupportFragment {
 
     private static ArrayList<MEMBER> mListMemberS = new ArrayList<>();
 
-    private final View.OnClickListener mOnclink = new View.OnClickListener() {
-        @Override
-        public void onClick(View args0) {
-            int k = 0;
-            switch (args0.getId()) {
-                case R.id.btn_Start:
-                    m_bVideoStart = false;
-                    pgStart();
-                    Log.d("OnClink", "init button");
-                    break;
-                case R.id.btn_stop:
-                    pgStop();
-                    Log.d("OnClink", "MemberAdd button");
-                    break;
-                case R.id.btn_Clean:
-                    pgClean();
-                    Log.d("OnClink", "MemberAdd button");
-                    break;
-                case R.id.btn_LanScan:
-                    mConf.LanScanStart();
-                    break;
-                case R.id.btn_notifysend: {
-                    mConf.CallSend("hello", msChair, "123");
-                    break;
-                }
-                case R.id.button: {
-                    break;
-
-                }
-                case R.id.btn_recordstart: {
-                    Date currentTime = new Date();
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                    String sDate = formatter.format(currentTime);
-                    String sPath = getSDCardDir() + "/record" + sDate + ".avi";
-                    if ((!mConf.RecordStart(msChair, sPath))) {
-                        Toast.makeText(getContext(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
-                        mConf.RecordStop(msChair);
-
-                    }
-                    break;
-                }
-                case R.id.btn_recordstop: {
-                    mConf.RecordStop(msChair);
-                    break;
-                }
-                case R.id.btn_clearlog: {
-                    text_info.setText("");
-                }
-                default:
-
-                    break;
-            }
-        }
-    };
     //定时器例子 超时处理实现
-    final pgLibTimer timer = new pgLibTimer();
+    final pgLibTimer mTimer = new pgLibTimer();
 
     final pgLibTimer.OnTimeOut timerOut = new pgLibTimer.OnTimeOut() {
         @Override
@@ -204,24 +153,22 @@ public class MainFragment extends SupportFragment {
         mEditchair = (EditText) view.findViewById(R.id.editText_chair);
 
         view.findViewById(R.id.btn_Start).setOnClickListener(mOnclink);
-
         view.findViewById(R.id.btn_stop).setOnClickListener(mOnclink);
-
-
         view.findViewById(R.id.btn_Clean).setOnClickListener(mOnclink);
-
         view.findViewById(R.id.btn_LanScan).setOnClickListener(mOnclink);
 
         mEdittextNotify = (EditText) view.findViewById(R.id.editText_notify);
 
         view.findViewById(R.id.btn_notifysend).setOnClickListener(mOnclink);
-
-        view.findViewById(R.id.button).setOnClickListener(mOnclink);
+        view.findViewById(R.id.btn_msg).setOnClickListener(mOnclink);
+        view.findViewById(R.id.btn_svr_request).setOnClickListener(mOnclink);
 
         view.findViewById(R.id.btn_recordstart).setOnClickListener(mOnclink);
-
         view.findViewById(R.id.btn_recordstop).setOnClickListener(mOnclink);
+        view.findViewById(R.id.btn_test).setOnClickListener(mOnclink);
 
+        view.findViewById(R.id.btn_file_put).setOnClickListener(mOnclink);
+        view.findViewById(R.id.btn_file_get).setOnClickListener(mOnclink);
         view.findViewById(R.id.btn_clearlog).setOnClickListener(mOnclink);
         //显示一些信息
         text_info = (TextView) view.findViewById(R.id.text_info);
@@ -232,8 +179,9 @@ public class MainFragment extends SupportFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_main, container, false);
-        initView(view);
         mListMemberS.clear();
+        initView(view);
+
 
         Bundle args = getArguments();
         m_sUser = args.getString("User");
@@ -276,7 +224,7 @@ public class MainFragment extends SupportFragment {
         mPreviewLayout.addView(mPreview);
 
         m_Node = mConf.GetNode();
-        if(!timer.timerInit(timerOut)){
+        if(!mTimer.timerInit(timerOut)){
             showInfo("定时器初始化失败！");
             pop();
         }
@@ -465,26 +413,10 @@ public class MainFragment extends SupportFragment {
         showInfo("已经注销" + sData);
     }
 
-    //保存初次连接 ,如果程序崩溃，
-//	ArrayList<String> m_PeerLink = new ArrayList<>();
-//	boolean PeerLinkSearch(String sPeer){
-//		for(int i=0;i<m_PeerLink.size();i++){
-//			if(m_PeerLink.get(i).equals(sPeer)){
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-
     //sPeer的离线消息
     private void EventPeerSync(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 提醒应用程序可以和此节点相互发送消息了
         showInfo(sPeer + "节点建立连接");
-//		if(!PeerLinkSearch(sPeer)){
-//			//第一次建立连接，防止己方程序崩溃
-//			m_PeerLink.add(sPeer);
-//			mConf.MessageSend("SyncFrist:",sPeer);
-//		}
         mConf.MessageSend("MessageSend test", sPeer);
         mConf.CallSend("CallSend test", sPeer, "123");
 
@@ -501,11 +433,7 @@ public class MainFragment extends SupportFragment {
         // TODO: 2016/11/7 提醒应用程序可以和主席发送消息了
         showInfo("主席节点建立连接 Act = " + sAct + " : " + sData + " : " + sPeer);
         mConf.Join();
-//		if(!PeerLinkSearch(sPeer)){
-//			//第一次建立连接，防止己方程序崩溃
-//			m_PeerLink.add(sPeer);
-//
-//		}
+
         mConf.MessageSend("MessageSend test", sPeer);
         mConf.CallSend("CallSend test", sPeer, "123");
     }
@@ -529,8 +457,9 @@ public class MainFragment extends SupportFragment {
     private void EventJoin(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
         showInfo(sPeer + "加入会议");
-        String sParam = "(Act){DoVideoOpen}(Peer){" + sPeer + "}";
-        mConf.TimerStart(sParam, 1, false);
+        /*这个是开始一个定时器*/
+        String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
+        mTimer.timerStart(sParam, 1);
 
         mConf.NotifySend(sPeer + " : join ");
         Log.d("", sPeer + " 加入会议");
@@ -734,7 +663,7 @@ public class MainFragment extends SupportFragment {
     }
 
     //搜索成员列表
-    MEMBER MembSearch(String sPeer) {
+    MEMBER memberSearch(String sPeer) {
 
         try {
             if ("".equals(sPeer)) {
@@ -762,7 +691,7 @@ public class MainFragment extends SupportFragment {
      */
     private boolean pgVideoOpen(String sPeer) {
 
-        MEMBER MembTmp = MembSearch(sPeer);
+        MEMBER MembTmp = memberSearch(sPeer);
         //没有窗口了
         if (MembTmp == null) {
             mConf.VideoReject(sPeer);
@@ -785,10 +714,10 @@ public class MainFragment extends SupportFragment {
     /**
      * 重置节点的显示窗口
      *
-     * @param sPeer
+     * @param sPeer 重置节点
      */
     private void pgVideoRestore(String sPeer) {
-        MEMBER membTmp = MembSearch(sPeer);
+        MEMBER membTmp = memberSearch(sPeer);
         if (membTmp != null) {
             if (membTmp.sPeer.equals(sPeer)) {
                 membTmp.pLayout.removeView(membTmp.pView);
@@ -804,6 +733,23 @@ public class MainFragment extends SupportFragment {
     private void pgVideoClose(String sPeer) {
         mConf.VideoClose(sPeer);
         pgVideoRestore(sPeer);
+    }
+
+    private void pgRecordStart(){
+        Date currentTime = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String sDate = formatter.format(currentTime);
+        String sPath = getSDCardDir() + "/record" + sDate + ".avi";
+        int iErr = mConf.RecordStart(msChair, sPath,PG_RECORD_NORMAL);
+        if ((iErr > PG_ERR_Normal)) {
+            Toast.makeText(getContext(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
+            mConf.RecordStop(msChair,PG_RECORD_NORMAL);
+
+        }
+    }
+
+    private void pgRecordStop(){
+        mConf.RecordStop(msChair,PG_RECORD_NORMAL);
     }
 
     //给所有加入会议的成员发送消息
@@ -830,5 +776,77 @@ public class MainFragment extends SupportFragment {
         }
     }
 
+    private final View.OnClickListener mOnclink = new View.OnClickListener() {
+        @Override
+        public void onClick(View args0) {
+            int k = 0;
+            switch (args0.getId()) {
+                case R.id.btn_Start:
+                    m_bVideoStart = false;
+                    pgStart();
+                    Log.d("OnClink", "init button");
+                    break;
+                case R.id.btn_stop:
+                    pgStop();
+                    Log.d("OnClink", "MemberAdd button");
+                    break;
+                case R.id.btn_Clean:
+                    pgClean();
+                    Log.d("OnClink", "MemberAdd button");
+                    break;
+                case R.id.btn_LanScan:
+                    mConf.LanScanStart();
+                    break;
+                case R.id.btn_notifysend: {
+                    String sMsg = mEdittextNotify.getText().toString().trim();
+                    mConf.NotifySend(sMsg);
+                    break;
+                }
+                case R.id.btn_msg: {
+                    String sMsg = mEdittextNotify.getText().toString().trim();
+                    mConf.MessageSend(sMsg, msChair);
+                    break;
+
+                } case R.id.btn_svr_request: {
+                    String sMsg = mEdittextNotify.getText().toString().trim();
+                    mConf.SvrRequest(sMsg);
+                    break;
+
+                }
+                case R.id.btn_recordstart: {
+                    pgRecordStart();
+                    break;
+                }
+                case R.id.btn_recordstop: {
+                    pgRecordStop();
+                    break;
+                }
+                case R.id.btn_test: {
+                    test();
+                    break;
+
+                }case R.id.btn_file_put: {
+                    mConf.FilePutRequest(msChair,m_sUser,"","");
+
+                    break;
+
+                }case R.id.btn_file_get: {
+                    mConf.FilePutRequest(msChair,m_sUser,"","");
+                    break;
+
+                }
+                case R.id.btn_clearlog: {
+                    text_info.setText("");
+                }
+                default:
+
+                    break;
+            }
+        }
+    };
+
+    private void test() {
+
+    }
 }
 

@@ -93,7 +93,6 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-
                 android:layout_weight="0.2"
                 android:text="@string/id_chainman" />
 
@@ -105,7 +104,7 @@
                 android:hint="请找客服申请测试ID"
                 android:inputType=""
                 android:text="" />
-            </LinearLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -146,27 +145,18 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="Msg" />
-            <EditText
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/editText_notify"
-                android:text="hello"
-                android:inputType="" />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="NotifySend"
-                android:id="@+id/btn_notifysend" />
 
-            <Button
-                android:id="@+id/button"
+            <EditText
+                android:id="@+id/editText_notify"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="test" />
+                android:inputType=""
+                android:text="hello" />
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -174,21 +164,76 @@
             android:orientation="horizontal">
 
             <Button
-                android:layout_width="wrap_content"
+                android:id="@+id/btn_notifysend"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="recordstart"
-                android:id="@+id/btn_recordstart" />
+                android:layout_weight="1"
+                android:text="Notify" />
+
+            <Button
+                android:id="@+id/btn_msg"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Msg" />
+
+            <Button
+                android:id="@+id/btn_svr_request"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="SvrRequest" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_recordstart"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="recordstart" />
 
             <Button
                 android:id="@+id/btn_recordstop"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="recordstop" />
 
             <Button
-                android:id="@+id/btn_clearlog"
-                android:layout_width="wrap_content"
+                android:id="@+id/btn_test"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Test" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_file_put"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="FilePut" />
+
+            <Button
+                android:id="@+id/btn_file_get"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="FileGet" />
+
+            <Button
+                android:id="@+id/btn_clearlog"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="clearlog" />
         </LinearLayout>
