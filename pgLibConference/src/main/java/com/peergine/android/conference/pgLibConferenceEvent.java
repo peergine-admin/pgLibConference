@@ -137,6 +137,14 @@ public class pgLibConferenceEvent {
     public static final String EVENT_LAN_SCAN_RESULT = "LanScanResult";
 
     /**
+     * 文件上传请求 sObjPeer 为 ID
+     */
+    public static final String EVENT_FILE_PUT_REQUEST = "FilePutRequest";
+    /**
+     * 文件下载请求 sObjPeer 为 成员ID。
+     */
+    public static final String EVENT_FILE_GET_REQUEST = "FileGetRequest";
+    /**
      * 文件传输进度
      */
     public static final String EVENT_FILE_PROGRESS = "FileProgress";

@@ -30,123 +30,12 @@ import static com.peergine.android.conference.pgLibConferenceEvent.*;
 import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_LOGOUT;
 import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_VIDEO_LOST;
 import static com.peergine.android.conference.pgLibError.*;
-
 /**
- * Created by ctkj-004 on 2016/8/16.
- * Update 2016/11/1 v1.0.3
- * 添加SvrRequest API函数：给服务器发送扩展消息
- * 包含事件：SvrReplyError  Data为错误代码 和 SvrReply Data为服务器回复消息
- * <p>
- * Updata 2016/11/17 v1.0.6
- * 添加视频的抓拍和录制功能
- * 做了一个超时检测 在执行MemberAdd MemberDel Leave 操作是 如果45秒内没有退出和加入会议   。就产生TimeOut 的回调    sData 数操作名   sPeer是参数
- * 这个还没有测试稳定 只是测试了一下程序能跑过去
- * 还添加了CallSend   会产生CallSend的回执
- * CallSend函数的最后一个参数自定义
- * CallSend回调事件的sData 是错误代码 0是正常 ，sPeer是CallSend的最后一个参数
- * 新增函数 AudioCtrlVolume 控制sPeer 的扬声器和麦克风是否播放或采集声音数据，sPeer为空时
- * <p>
- * Updata 2016/12/30 v9
- * 1、升级产品版本规则，版本号前3位是中间件版本，后一位是SDK版本
- * 2、升级打包规则，不同平台分别打包
- * 3、updata增加一些视音频操作函数，节点操作函数 ，Reset 函数 等
- * 4、增加音频初始化选项
- * <p>
- * Updata 2016/12/30 v10
- * 1、升级AudioSpeech函数，增加一个参数，同时兼容之前的函数。
- */
-
-/*
-* Updata 2017/02/09 v12
-* 优化心跳包发送顺序。
-*
-* */
-
-/*
-* Updata 2017/02/014 v13
-* 继续优化心跳包。
-* 删除会议模块在离线事件和离开会议后的主动清理视频的代码。
-* 修复上报离线事件后再次连接上报同步消息。
-* 修复主席端对同一节点反复上报离线消息。
-* 修复反复上报VideoLost消息。
-* 修改PG_PEER 的列表添加位置，由加入会议添加，离开会议删除，改为视频打开或收到请求添加，视频关闭删除
-* 修改函数VideoOpen中对同一节点的Node和View，由新建改为继承。
-* 修改Keep函数中的列表的遍历方式。
-* 修改ServiceStart的执行位置，使得可以在SDK Initialze 后可以在之后任意位置VideoStart 和AudioStart
-* 函数执行打印信息
-*
-* 开放定时器
-*    相关接口TimerOut
-*  相关函数：
-*    TimerOutAdd  把接口TimerOut的实现加入定时器处理
-*    TimerOutDel  把接口TimerOut的实现从定时器处理中删除
-*    TimerStart  开始一个定时器处理
-*    TimerStop  对定时时间长或者循环定时进行停止操作
-*
-*
-* Updata 2017/02/014 v14
-* 1、取消TimeOut事件的上报。
-*      如 ：Act="TimeOut",sData = "MemberAdd",sObjPeer 等不再上报。
-* 2 、取消利用临时用户登录代码
-* 3、取消bOpened的使用
-* 4、增加Config_Node函数，在初始化前配置初始化参数。输入参数为结构体PG_NODE_CFG,具体情况可查看该结构体的注释。
-*
-* Updata 2017/03/01 v15
-* 1 增加关于CallSend 的log打印。
-* 2 修复CallSend偶尔收不到回执CallSend事件的异常。
-* 3 优化其他问题。
-* 4 修改默认心跳时间为10 秒，超过心跳时间3倍 为超时上报离线。
-* 5 修改心跳定时器的启动频率。
-*
-*  updata 2017/4/7 v16
-*  添加功能：
-*       添加重载Initialze方法，增加一种初始化方式，初始化后只登陆，而不开始会议。原有Initialze 初始化登陆的同时开始会议。
-*       增加Start 方法，会议没有开始时，开始会议。初始化会议相关的视音频数据通道。
-*       增加Stop 方法，会议的相关逻辑，停止会议。清理会议视音频，消息发送等相关数据。
-*  升级功能：
-*       升级SetExpire 方法 设置心跳间隔，当设置为0时 关闭心跳。 请保持各端心跳设置一致，如果不同可能导致误报离线状态。
-*
-*  其他升级：
-*       对SDK进行了数据结构的优化。
-*
-*
-*  已知问题：
-*       修改会议没有Start不能发消息的问题。
-*       修复录音录像不能停止的问题
-*
-*  updata 2017/4/24 v17
-*
-*  fix：
-*
-*  修复一些空指针错误。以及其他已知问题。
-*
-*  修改：
-*       VideoRecordStart 改成只能录制视频，
-*       AudioRecordStart 改成只能录制音频，
-*       VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不再公开
-*       AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不再公开
-*  添加：
-*       函数 RecordStart 为开始录制视音频
-*       函数 RecordStop 为停止录制视音频
-*       函数 LanScanStart 检测局域网中的会议设备，通过LanScanResult 事件上报局域网中的会议设备及其地址。
-*       功能：如果在路由器没有接入公网的情况下，Start后可以使用LanScanStart 成员端可以连上主席端进行对讲。
-*       如果主席端和成员端在同一局域网的，并且成员端通过LanScanStart扫描到了主席端，当外网断开的情况下，主席端和成员端处于Start状态下。
-*       主席端和成员端可以保持连接。可以继续对讲和通信
-*
-*  updata 2017/5/12 v18
-*  修复一些已知问题。
-*    添加：
-*  函数 LanScanStart 检测局域网中的会议设备，通过LanScanResult 事件上报局域网中的会议设备及其地址。
-*       功能：如果在路由器没有接入公网的情况下，Start后可以使用LanScanStart 成员端可以连上主席端进行对讲。
-*       如果主席端和成员端在同一局域网的，并且成员端通过LanScanStart扫描到了主席端，当外网断开的情况下，主席端和成员端处于Start状态下。
-*       主席端和成员端可以保持连接。可以继续对讲和通信
-*
-* */
-
-
-/**
- * @author ctkj
- * @version 20
+ * Copyright (C) 2014-2017, Peergine, All rights reserved.
+ * www.peergine.com, www.pptun.com
+ * ${PACKAGE_NAME}
+ * @author ctkj-004
+ * @date 2016/8/16.
  */
 public class pgLibConference {
 
@@ -272,16 +161,22 @@ public class pgLibConference {
 
     ///------------------------------------------------------
     // Peergine event hook interface.
+
+    /**
+     * 钩子结构回调接口，不建议使用，使用需要对中间件编程有足够的了解。
+     */
     public interface NodeEventHook {
         int OnExtRequest(String sObj, int uMeth, String sData, int uHandle, String sPeer);
         int OnReply(String sObj, int uErr, String sData, String sParam);
     }
 
+    /**
+     * 设置钩子回调，不建议使用，使用需要对中间件编程有足够的了解。
+     * @param eventHook
+     */
     public void SetNodeEventHook(NodeEventHook eventHook) {
         m_eventHook = eventHook;
     }
-
-
 
     /**
      * 描述：设置消息接收回调接口。
@@ -328,18 +223,17 @@ public class pgLibConference {
     /**
      * 描述：设置消息接收回调接口。
      * 阻塞方式：非阻塞，立即返回
-     * eventListener：[IN] 实现了OnEventListner接口的对象，必须定义event函数。
+     * @param eventListener：[IN] 实现了OnEventListner接口的对象，必须定义event函数。
      */
     public void SetEventListener(OnEventListener eventListener) {
         m_eventListener = eventListener;
     }
 
-    // sConfig_Node 参数示例："Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64";
-    public boolean ConfigControl(String m_sConfig_Control) {
-        this.msConfigControl = m_sConfig_Control;
-        return true;
-    }
-
+    /**
+     * 初始化前可以设置的 中间件 Node的配置参数，一般不用配置。
+     * @param mNodeCfg 参数结构体。
+     * @return true 成功，false 失败
+     */
     public boolean ConfigNode(PG_NODE_CFG mNodeCfg) {
         if (mNodeCfg == null) {
             return false;
@@ -834,7 +728,7 @@ public class pgLibConference {
      * 描述：拒绝打开某一成员的视频
      * 阻塞方式：非阻塞，立即返回
      * 返回值： true 操作成功，false 操作失败
-     * sObjPeer:成员节点名
+     * @param sPeer 成员节点名
      */
     public void VideoReject(String sPeer) {
         _OutString("->VideoReject");
@@ -879,6 +773,7 @@ public class pgLibConference {
     /**
      * 描述：关闭某一成员视频
      * 阻塞方式：非阻塞，立即返回
+     * @param sPeer 节点ID或对象
      */
     public void VideoClose(String sPeer) {
 
@@ -894,9 +789,9 @@ public class pgLibConference {
     /**
      * 描述：获取已打开成员视频的View
      * 阻塞方式：非阻塞，立即返回
+     * @param sPeer 节点ID或对象
      * 返回值： true 操作成功，false 操作失败
      */
-
     public SurfaceView VideoGetView(String sPeer) {
         SurfaceView view = null;
         if (m_Status.bApiVideoStart) {
@@ -930,13 +825,11 @@ public class pgLibConference {
         return false;
     }
 
-    /*
-    * 描述:采集图像角度切换
-    * 阻塞方式：非阻塞，立即返回
-    * iAngle:角度
-    *
-    * */
-
+    /**
+     * 描述:采集图像角度切换
+     * 阻塞方式：非阻塞，立即返回
+     * @param  iAngle:角度
+     */
     public void VideoSetRotate(int iAngle) {
         if (m_Node != null) {
             if (m_Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
@@ -949,8 +842,9 @@ public class pgLibConference {
     /**
      * 描述：控制成员的视频流
      * 阻塞方式：非阻塞，立即返回
+     * @param sPeer 节点ID或对象
+     * @param bEnable 是否接收和发送视频流
      */
-
     public boolean VideoControl(String sPeer, boolean bEnable) {
 
         if (m_Status.bApiVideoStart) {
@@ -972,13 +866,13 @@ public class pgLibConference {
         return false;
     }
 
-    /*
-    * 描述：抓拍 sObjPeer 节点的图片
-    * 阻塞方式：非阻塞，立即返回
-    * 参数：sObjPeer 节点名  sPath 路径
-    *
-    *
-    * */
+    /**
+     * 描述：抓拍 sObjPeer 节点的图片
+     * 阻塞方式：非阻塞，立即返回
+     * @param sPeer 节点名
+     * @param sPath 路径
+     * @return true 成功 false 失败
+     */
     public boolean VideoCamera(String sPeer, String sPath) {
         boolean bRet = false;
         if (m_Status.bApiVideoStart) {
@@ -1117,6 +1011,10 @@ public class pgLibConference {
         return false;
     }
 
+    /**
+     * 设置音频采样率
+     * @param iRate 采样率大小
+     */
     public void AudioSetSampleRate(int iRate) {
         if (m_Node != null) {
             // Set microphone sample rate
@@ -1132,7 +1030,7 @@ public class pgLibConference {
 
     /**
      * 开始录制
-     * @param sID 录制端ID
+     * @param sID 录制端ID ID为本身则录制本端视频，要求：视频通话正在进行。
      * @param sAviPath 视频保存路径
      * @param iMode 录制模式，0 同时录制视音频；1 只录制视频；2 只录制音频
      * @return 错误码 @link pgLibError
@@ -1312,7 +1210,7 @@ public class pgLibConference {
      * 描述：给指定节点发送消息
      * 阻塞方式：非阻塞，立即返回
      *
-     * @param sMsg：[IN]                                      消息内容
+     * @param sMsg：[IN] 消息内容
      * @param sPeer：[IN]节点名称
      * @param sSession:[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码 0表示正常成功
      *                                                       返回值： true 操作成功，false 操作失败
@@ -1358,7 +1256,7 @@ public class pgLibConference {
     /**
      * 描述：给服务器发送消息。
      * 阻塞方式：非阻塞，立即返回
-     *
+     * @param sData 发送到服务器的消息内容
      * @return true 操作成功，false 操作失败
      */
     public boolean SvrRequest(String sData) {
@@ -1581,7 +1479,7 @@ public class pgLibConference {
             // Config jni node.
             m_Node.Control = "Type=1;PumpMessage=1;LogLevel0=1;LogLevel1=1";
             m_Node.Node = msConfigNode;
-            m_Node.Class = "PG_CLASS_Data:128;PG_CLASS_Video:128;PG_CLASS_Audio:128";
+            m_Node.Class = "PG_CLASS_Data:128;PG_CLASS_Video:128;PG_CLASS_Audio:128;PG_CLASS_File:128";
             m_Node.Local = "Addr=0:0:0:127.0.0.1:0:0";
             m_Node.Server = "Name=" + m_Svr.sSvrName + ";Addr=" + m_Svr.sSvrAddr + ";Digest=1";
             m_Node.NodeProc = m_NodeProc;
@@ -2318,7 +2216,7 @@ public class pgLibConference {
         }
         int iInd = sCapRender.indexOf("\n");
         if (iInd > 0) {
-            return sCapRender.substring(iInd);
+            return sCapRender.substring(iInd+1);
         }
         return "";
 
@@ -2837,14 +2735,14 @@ public class pgLibConference {
         String sChairID = _FileObjectParseChairID(sObj);
         String sID = _FileObjectParseMemberID(sObj);
 
-        if (_FileListGet(sChairID,sID, "Status").equals("1")) {
+        if ("1".equals(_FileListGet(sChairID, sID, "Status"))) {
             return PG_ERR_BadStatus;
         }
 
         _FileListSet(sChairID,sID,"Handle", (iHandle + ""));
         _FileListSet(sChairID,sID, "Status", "1");
 
-        _OutString("pgLibLiveMultiCapture._OnFileRequest: sData=" + sData);
+        _OutString("_OnFileRequest: sData=" + sData);
 
         String sPeerPath = m_Node.omlGetContent(sData, "PeerPath");
         String sParam = "peerpath=" + sPeerPath;
@@ -3062,20 +2960,24 @@ public class pgLibConference {
             }
 
             if (_FileObjectIs(sObj)) {
-                if (uMeth == 32) { // put file request
+                if (uMeth == 32) {
+                    // put file request
                     return _OnFileRequest(sObj, uMeth, sData, iHandle);
                 }
 
-                if (uMeth == 33) { // get file request
+                if (uMeth == 33) {
+                    // get file request
                     return _OnFileRequest(sObj, uMeth, sData, iHandle);
                 }
 
-                if (uMeth == 34) { // File transfer status report.
+                if (uMeth == 34) {
+                    // File transfer status report.
                     _OnFileStatus(sObj, sData);
                     return 0;
                 }
 
-                if (uMeth == 35) { // Cancel file request
+                if (uMeth == 35) {
+                    // Cancel file request
                     _OnFileCancel(sObj);
                     return 0;
                 }
@@ -3441,7 +3343,7 @@ public class pgLibConference {
         }
     }
 
-    private String msConfigControl = "Type=1;LogLevel0=1;LogLevel1=1";
+    private String msIni = "Type=1;LogLevel0=1;LogLevel1=1";
     private String msConfigNode = "Type=0;Option=1;MaxPeer=256;MaxGroup=32;MaxObject=512;MaxMCast=512;MaxHandle=256;SKTBufSize0=128;SKTBufSize1=64;SKTBufSize2=256;SKTBufSize3=64;P2PTryTime=1";
     // Randomer.
     private java.util.Random m_Random = new java.util.Random();

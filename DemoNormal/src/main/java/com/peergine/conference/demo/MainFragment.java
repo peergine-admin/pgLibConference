@@ -230,7 +230,12 @@ public class MainFragment extends SupportFragment {
         }
         return view;
     }
-
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        pgStop();
+        mConf.Clean();
+    }
 
     private DialogInterface.OnClickListener m_DlgClick = new DialogInterface.OnClickListener() {
         @Override
@@ -544,7 +549,7 @@ public class MainFragment extends SupportFragment {
                 sObjPeer = sPeer.substring(5);
             }
 
-            Log.d("ConferenceDemo", "OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+            //
             if (sAct.equals(EVENT_VIDEO_FRAME_STAT)) {
                 EventVideoFrameStat(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_LOGIN)) {
@@ -595,9 +600,59 @@ public class MainFragment extends SupportFragment {
                 EventSvrReplyError(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_LAN_SCAN_RESULT)) {
                 EventLanScanResult(sAct, sData, sObjPeer);
+            } else if (sAct.equals(EVENT_FILE_ACCEPT)) {
+                EventFileAccept(sAct, sData, sObjPeer);
+            } else if (sAct.equals(EVENT_FILE_REJECT)) {
+                EventFileReject(sAct, sData, sObjPeer);
+            } else if (sAct.equals(EVENT_FILE_ABORT)) {
+                EventFileAbrot(sAct, sData, sObjPeer);
+            } else if (sAct.equals(EVENT_FILE_FINISH)) {
+                EventFileFinish(sAct, sData, sObjPeer);
+            } else if (sAct.equals(EVENT_FILE_PROGRESS)) {
+                EventFileProgress(sAct, sData, sObjPeer);
+            }else if (sAct.equals(EVENT_FILE_PUT_REQUEST)) {
+                EventFilePutRequest(sAct, sData, sObjPeer);
+            }else if (sAct.equals(EVENT_FILE_GET_REQUEST)) {
+                EventFileGetRequest(sAct, sData, sObjPeer);
+            }else {
+                showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
             }
         }
     };
+
+    private void EventFileGetRequest(String sAct, String sData, String sObjPeer) {
+        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+        mConf.FileAccept(msChair,sObjPeer,"/sdcard/test/test.avi" );
+    }
+
+    private void EventFilePutRequest(String sAct, String sData, String sObjPeer) {
+        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+        Date currentTime = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        String sDate = formatter.format(currentTime);
+        //sData = "peerpath=xxxxxxxxx" so xxxxxxx = sData.substring(9)
+        mConf.FileAccept(msChair,sObjPeer,"/sdcard/test/GetFile_" + sDate + sData.substring(9) );
+    }
+
+    private void EventFileProgress(String sAct, String sData, String sObjPeer) {
+        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+    }
+
+    private void EventFileFinish(String sAct, String sData, String sObjPeer) {
+        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+    }
+
+    private void EventFileAbrot(String sAct, String sData, String sObjPeer) {
+        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+    }
+
+    private void EventFileReject(String sAct, String sData, String sObjPeer) {
+        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+    }
+
+    private void EventFileAccept(String sAct, String sData, String sObjPeer) {
+        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
+    }
 
     private void EventCallSend(String sAct, String sData, String sPeer) {
         // CallSend （具有回执的信息） 最终结果
@@ -739,7 +794,7 @@ public class MainFragment extends SupportFragment {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         String sDate = formatter.format(currentTime);
-        String sPath = getSDCardDir() + "/record" + sDate + ".avi";
+        String sPath = getSDCardDir() + "/test/record" + sDate + ".avi";
         int iErr = mConf.RecordStart(msChair, sPath,PG_RECORD_NORMAL);
         if ((iErr > PG_ERR_Normal)) {
             Toast.makeText(getContext(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
@@ -792,6 +847,7 @@ public class MainFragment extends SupportFragment {
                     break;
                 case R.id.btn_Clean:
                     pgClean();
+                    pop();
                     Log.d("OnClink", "MemberAdd button");
                     break;
                 case R.id.btn_LanScan:
@@ -826,12 +882,16 @@ public class MainFragment extends SupportFragment {
                     break;
 
                 }case R.id.btn_file_put: {
-                    mConf.FilePutRequest(msChair,m_sUser,"","");
+
+                    mConf.FilePutRequest(msChair,m_sUser,"/sdcard/test/test.avi","");
 
                     break;
 
                 }case R.id.btn_file_get: {
-                    mConf.FilePutRequest(msChair,m_sUser,"","");
+                    Date currentTime = new Date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+                    String sDate = formatter.format(currentTime);
+                    mConf.FileGetRequest(msChair,m_sUser,"/sdcard/test/GetFile_" + sDate + ".avi","");
                     break;
 
                 }
