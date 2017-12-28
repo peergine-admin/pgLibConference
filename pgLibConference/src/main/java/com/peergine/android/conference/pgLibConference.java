@@ -79,7 +79,7 @@ public class pgLibConference {
     //======================================================================
 
     private static final String ID_PREFIX = "_DEV_";
-    private static final String LIB_VER = "20";
+    private static final String LIB_VER = "19";
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
@@ -1404,9 +1404,10 @@ public class pgLibConference {
     };
 
     //事件下发程序
-    private void _EventProc(String sAct, String sData, String sPeer) {
+    private void _EventProc(String sAct, String sData, String sObjPeer) {
         if (m_eventListener != null && m_Status.bEventEnable) {
             //OutString("EventProc: sAct=" + sAct + ", sData=" + sData + ", sObjPeer=" + sObjPeer);
+             String sPeer = _ObjPeerParsePeer(sObjPeer);
             m_eventListener.event(sAct, sData, sPeer);
         }
     }
