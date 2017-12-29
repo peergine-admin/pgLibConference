@@ -36,42 +36,40 @@ public class ParamFragment extends SupportFragment {
             final int btnID = v.getId();
 
             if(checkCameraPermission(getContext())) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setTitle("信息");
-                builder.setMessage("本Demo可以设置一个主席端，和多个成员端。");
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String sUser = mEditUser.getText().toString().trim();
-                        String sPass = mEditPass.getText().toString().trim();
-                        String sSvrAddr = mEditSvraddr.getText().toString().trim();
-                        String sRelayAddr = mEditRelayaddr.getText().toString().trim();
-                        String sInitParam = mEditInitparam.getText().toString().trim();
-                        String sVideoParam = mEditVideoparam.getText().toString().trim();
-                        if ("".equals(sUser) || "".equals(sSvrAddr) || "".equals(sVideoParam)) {
-                            Toast.makeText(getContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
 
-                        String sExpire = mEditExpire.getText().toString().trim();
-                        switch (btnID){
-                            case R.id.btnInitDefault:
-                                start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                        sInitParam,sVideoParam,sExpire,"0"));
-                                break;
-                            case R.id.btnInitCalling:
-                                start(MainFragmentCalling.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                        sInitParam,sVideoParam,sExpire));
-                                break;
-                            case R.id.btnInitExter:
-                                start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                        sInitParam,sVideoParam,sExpire,"1"));
-                                break;
-                            default:break;
-                        }
-                    }
-                });
-                builder.show();
+
+                String sUser = mEditUser.getText().toString().trim();
+                String sPass = mEditPass.getText().toString().trim();
+                String sSvrAddr = mEditSvraddr.getText().toString().trim();
+                String sRelayAddr = mEditRelayaddr.getText().toString().trim();
+                String sInitParam = mEditInitparam.getText().toString().trim();
+                String sVideoParam = mEditVideoparam.getText().toString().trim();
+                if ("".equals(sUser) || "".equals(sSvrAddr) || "".equals(sVideoParam)) {
+                    Toast.makeText(getContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String sExpire = mEditExpire.getText().toString().trim();
+                switch (btnID){
+                    case R.id.btnInitDefault:
+                        Toast.makeText(getContext(), "进入Demo。", Toast.LENGTH_SHORT).show();
+                        start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                                sInitParam,sVideoParam,sExpire,"0"));
+                        break;
+                    case R.id.btnInitCalling:
+                        Toast.makeText(getContext(), "进入Demo 模拟电话呼叫流程。", Toast.LENGTH_SHORT).show();
+                        start(MainFragmentCalling.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                                sInitParam,sVideoParam,sExpire));
+                        break;
+                    case R.id.btnInitExter:
+                        Toast.makeText(getContext(), "进入Demo。", Toast.LENGTH_SHORT).show();
+                        start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                                sInitParam,sVideoParam,sExpire,"1"));
+                        break;
+                    default:break;
+                }
+
+
 
             }
             else {

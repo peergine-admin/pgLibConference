@@ -1,4 +1,30 @@
-2017/07/17-16:31	8 files committed: 
+updata 2017/12/29 v19
+    1、升级录像系统，添加针对本端的录像。
+         /**
+         * 开始录制
+         * @param sID 录制端ID ID为本身则录制本端视频，要求：视频通话正在进行。
+         * @param sAviPath 视频保存路径
+         * @param iMode 录制模式，0 同时录制视音频；1 只录制视频；2 只录制音频
+         * @return 错误码 @link pgLibError
+         */
+        public int RecordStart( String sID, String sAviPath,int iMode)
+         /**
+         * 停止录制
+         * @param sID 录制ID ,本端录制填本端ID。
+         * @param iMode 录制模式
+         */
+        public void RecordStop(String sID,int iMode)
+
+    2、删除录像系统的一些函数 VideoRecord*  AudioRecord*。
+
+    3、添加主席和成员间的文件传输功能。相关函数 FilePutRequest，FileGetRequest，FileAccept，FileReject，FileCancel。
+
+    4、添加版本查看函数，Version。
+
+    5、修改 Event 参数 sPeer 对于一些事件会传递节点名称，之前传递的是 "_DEV_" + ID ,现在改为传递 ID。部分逻辑可能要改变。
+
+
+2017/07/17-16:31	8 files committed:
 			1、将 事件 处理 接口函数中的Action 改成常量的方式。
 			2、将Video 相关的3个常量数据移动到pgLibConference 类中，并加上VIDEO_的前缀。
 			3、修复Demo2中存在的问题。

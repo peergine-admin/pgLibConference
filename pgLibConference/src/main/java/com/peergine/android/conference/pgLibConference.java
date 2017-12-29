@@ -1,14 +1,3 @@
-
-/* ***********************************************************************
- copyright   : Copyright (C) 2016, ctkj, All rights reserved.
- : www.peergine.com, www.pptun.com
- :
- filename    : pgLibConference.java
- discription :
- modify      : create, ctkj, 2016/07/24
-
- ************************************************************************ */
-
 package com.peergine.android.conference;
 
 import android.content.Context;
@@ -35,7 +24,6 @@ import static com.peergine.android.conference.pgLibError.*;
  * www.peergine.com, www.pptun.com
  * ${PACKAGE_NAME}
  * @author ctkj-004
- * @date 2016/8/16.
  */
 public class pgLibConference {
 
@@ -223,7 +211,7 @@ public class pgLibConference {
     /**
      * 描述：设置消息接收回调接口。
      * 阻塞方式：非阻塞，立即返回
-     * @param eventListener：[IN] 实现了OnEventListner接口的对象，必须定义event函数。
+     * @param eventListener ：[IN] 实现了OnEventListner接口的对象，必须定义event函数。
      */
     public void SetEventListener(OnEventListener eventListener) {
         m_eventListener = eventListener;
@@ -256,14 +244,14 @@ public class pgLibConference {
     /**
      * 描述：P2P会议对象初始化函数
      * 阻塞方式：非阻塞，立即返回。
-     * @param sName：[IN] 会议名称
-     * @param sChair：[IN] 主席端设备ID
-     * @param sUser：[IN] 登录用户名，自身的设备ID
-     * @param sPass：[IN] 登录密码
-     * @param sSvrAddr：[IN] 登录服务器地址和端口，格式：x.x.x.x:x
-     * @param sRelayAddr：[IN] 转发服务器地址和端口，格式：x.x.x.x:x。
+     * @param sName ：[IN] 会议名称
+     * @param sChair ：[IN] 主席端设备ID
+     * @param sUser ：[IN] 登录用户名，自身的设备ID
+     * @param sPass ：[IN] 登录密码
+     * @param sSvrAddr ：[IN] 登录服务器地址和端口，格式：x.x.x.x:x
+     * @param sRelayAddr ：[IN] 转发服务器地址和端口，格式：x.x.x.x:x。
      * 如果传入空字符串，则使用登录服务器的IP地址加上443端口构成转发服务器地址。
-     * @param sVideoParam：[IN] 视频参数，格式为：(Code){3}(Mode){2}(Rate){40}(LCode){3}(LMode){2}
+     * @param sVideoParam ：[IN] 视频参数，格式为：(Code){3}(Mode){2}(Rate){40}(LCode){3}(LMode){2}
      *                       (LRate){40}(CameraNo){0}(Portrait){1}(BitRate){400}
      *                        Code: 视频压缩编码类型：1为MJPEG、2为VP8、3为H264。
      *                        Mode: 视频图像的分辨率（尺寸），有效数值如下：
@@ -379,9 +367,9 @@ public class pgLibConference {
     /**
      * 描述：创建播放窗口对象
      * 阻塞方式：阻塞
-     * @param iW：[IN] 窗口宽度
-     * @param iH：[IN] 窗口高度
-     * 返回值：SurfaceView对象，可加入到程序主View中
+     * @param iW ：[IN] 窗口宽度
+     * @param iH ：[IN] 窗口高度
+     * @return  返回值：SurfaceView对象，可加入到程序主View中
      */
     public SurfaceView PreviewCreate(int iW, int iH) {
         if (m_Node != null) {
@@ -424,7 +412,7 @@ public class pgLibConference {
     /**
      * 描述：通过节点名与其他节点建立联系 （节点名在我们P2P网络的功能类似英特网的IP地址）
      * 阻塞方式：非阻塞。
-     * @param sPeer: 对端的节点名（用户名 ID）
+     * @param sPeer  对端的节点名（用户名 ID）
      * @return true 成功，失败
     */
     public boolean PeerAdd(String sPeer) {
@@ -811,7 +799,7 @@ public class pgLibConference {
      * 描述：摄像头切换
      * 阻塞方式：非阻塞，立即返回
      *
-     * @param iCameraNo：摄像头编号
+     * @param iCameraNo ：摄像头编号
      * @return true成功，false失败
      */
     public boolean VideoSource(int iCameraNo) {
@@ -828,7 +816,7 @@ public class pgLibConference {
     /**
      * 描述:采集图像角度切换
      * 阻塞方式：非阻塞，立即返回
-     * @param  iAngle:角度
+     * @param  iAngle :角度
      */
     public void VideoSetRotate(int iAngle) {
         if (m_Node != null) {
@@ -974,9 +962,9 @@ public class pgLibConference {
      * 描述：控制某个节点是否能播放本节点的音频，本节点能播放对方的音频
      * 阻塞方式：非阻塞，立即返回
      *
-     * @param sPeer：节点名
-     * @param bSendEnable: true接收 ，false不接收
-     *                     返回值： true 操作成功，false 操作失败
+     * @param sPeer ：节点名
+     * @param bSendEnable : true接收 ，false不接收
+     * @return 返回值： true 操作成功，false 操作失败
      */
     public boolean AudioSpeech(String sPeer, boolean bSendEnable) {
         return AudioSpeech(sPeer, bSendEnable, true);
@@ -986,8 +974,8 @@ public class pgLibConference {
      * 描述：控制某个节点是否能播放本节点的音频，本节点能否播放对方的音频
      * 阻塞方式：非阻塞，立即返回
      *
-     * @param sPeer：节点名
-     * @param bSendEnable: true接收 ，false不接收
+     * @param sPeer ：节点名
+     * @param bSendEnable : true接收 ，false不接收
      * @param bRecvEnable  返回值： true 操作成功，false 操作失败
      */
     public boolean AudioSpeech(String sPeer, boolean bSendEnable, boolean bRecvEnable) {
@@ -1184,8 +1172,8 @@ public class pgLibConference {
      * 描述：给指定节点发送消息
      * 阻塞方式：非阻塞，立即返回
      *
-     * @param sMsg：[IN]      消息内容
-     * @param sPeer：[IN]节点名称 返回值： true 操作成功，false 操作失败
+     * @param sMsg [IN]      消息内容
+     * @param sPeer [IN]节点名称 返回值： true 操作成功，false 操作失败
      */
     public boolean MessageSend(String sMsg, String sPeer) {
         boolean bRet = false;
@@ -1210,9 +1198,9 @@ public class pgLibConference {
      * 描述：给指定节点发送消息
      * 阻塞方式：非阻塞，立即返回
      *
-     * @param sMsg：[IN] 消息内容
-     * @param sPeer：[IN]节点名称
-     * @param sSession:[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码 0表示正常成功
+     * @param sMsg ：[IN] 消息内容
+     * @param sPeer ：[IN]节点名称
+     * @param sSession :[IN]可以为空，发送成功后可以收到CallSend事件，sSession 为sData = sSession+":"+错误码 0表示正常成功
      *                                                       返回值： true 操作成功，false 操作失败
      */
     public boolean CallSend(String sMsg, String sPeer, String sSession) {
@@ -1236,7 +1224,7 @@ public class pgLibConference {
      * 描述：给其他所有成员节点节点发送消息
      * 阻塞方式：非阻塞，立即返回
      *
-     * @param sData：[IN] 消息内容
+     * @param sData [IN] 消息内容
      * @return true 操作成功，false 操作失败
      */
     public boolean NotifySend(String sData) {
@@ -1297,6 +1285,14 @@ public class pgLibConference {
     //------------------------------------------------------
     // File transfer functions.
 
+    /**
+     * 上传文件请求
+     * @param sChairID 主席端ID
+     * @param sID 本端ID
+     * @param sPath 本地文件路径
+     * @param sPeerPath 建议对端文件保存路径
+     * @return 错误码
+     */
     public int FilePutRequest(String sChairID,String sID, String sPath, String sPeerPath) {
         if (!m_Status.bInitialized) {
             _OutString("FilePutRequest: Not initialize");
@@ -1306,6 +1302,14 @@ public class pgLibConference {
         return _FileRequest(sChairID, sID, sPath, sPeerPath, 32);
     }
 
+    /**
+     * 下载文件请求
+     * @param sChairID 主席端ID
+     * @param sID 本端ID
+     * @param sPath 本地文件保存路径
+     * @param sPeerPath 对端文件路径
+     * @return 错误码
+     */
     public int FileGetRequest(String sChairID,String sID, String sPath, String sPeerPath) {
         if (!m_Status.bInitialized) {
             _OutString("FileGetRequest: Not initialize");
@@ -1315,6 +1319,13 @@ public class pgLibConference {
         return _FileRequest(sChairID,sID, sPath, sPeerPath, 33);
     }
 
+    /**
+     * 接受文件传输请求
+     * @param sChairID 主席端ID
+     * @param sID 成员端或对端ID
+     * @param sPath 文件路径（空为默认值，下载请求时下载文件路径，上传请求时上传文件保存路径）
+     * @return 错误码
+     */
     public int FileAccept(String sChairID,String sID, String sPath) {
         if (!m_Status.bInitialized) {
             _OutString("FileAccept: Not initialize");
@@ -1324,6 +1335,13 @@ public class pgLibConference {
         return _FileReply(PG_ERR_Normal, sChairID,sID, sPath);
     }
 
+    /**
+     * 拒绝文件传输
+     * @param sChairID 主席端ID
+     * @param sID 成员端ID
+     * @param iErrCode 错误码
+     * @return 错误码
+     */
     public int FileReject(String sChairID,String sID, int iErrCode) {
         if (!m_Status.bInitialized) {
             _OutString("FileReject: Not initialize");
@@ -1334,6 +1352,12 @@ public class pgLibConference {
         return _FileReply(iErrTemp, sChairID,sID, "");
     }
 
+    /**
+     * 取消文件传输
+     * @param sChairID 主席端ID
+     * @param sID 成员端ID
+     * @return 错误码
+     */
     public int FileCancel(String sChairID,String sID) {
         if (!m_Status.bInitialized) {
             _OutString("FileCancel: Not initialize");
@@ -1343,6 +1367,10 @@ public class pgLibConference {
         return _FileCancel(sChairID,sID);
     }
 
+    /**
+     * 获取当前版本
+     * @return 版本号
+     */
     public String Version() {
         if (!m_Status.bInitialized) {
             return "";

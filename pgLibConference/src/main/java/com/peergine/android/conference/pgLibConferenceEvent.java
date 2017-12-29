@@ -6,7 +6,6 @@ package com.peergine.android.conference;
  * com.peergine.android.conference
  *
  * @author ctkj
- * @date 2017/12/22.
  */
 
 public class pgLibConferenceEvent {

@@ -21,7 +21,6 @@ import static com.peergine.android.conference.pgLibNode._OutString;
  * com.peergine.lib.share
  *
  * @author ctkj
- * @date 2017/12/15.
  */
 
 public class pgLibTimer {

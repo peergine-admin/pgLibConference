@@ -792,7 +792,7 @@ public class MainFragment extends SupportFragment {
 
     private void pgRecordStart(){
         Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String sDate = formatter.format(currentTime);
         String sPath = getSDCardDir() + "/test/record" + sDate + ".avi";
         int iErr = mConf.RecordStart(msChair, sPath,PG_RECORD_NORMAL);
