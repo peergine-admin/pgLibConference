@@ -182,6 +182,7 @@ public class MainFragment extends SupportFragment {
         mListMemberS.clear();
         initView(view);
 
+        createTestDir();
 
         Bundle args = getArguments();
         m_sUser = args.getString("User");
@@ -230,6 +231,17 @@ public class MainFragment extends SupportFragment {
         }
         return view;
     }
+
+    private void createTestDir() {
+        File file = new File("/sdcard/test");
+        if(!file.exists()){
+            file.mkdirs();
+            showInfo("创建 测试文件夹成功 /sdcard/test");
+        }else{
+            showInfo("测试文件夹已经存在 /sdcard/test");
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
