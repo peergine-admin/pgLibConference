@@ -260,33 +260,6 @@ public class MainFragment extends SupportFragment {
         }
     };
 
-    public void ExitDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Confirm");
-        builder.setMessage("Are you sure to exit?");
-        builder.setPositiveButton("YES", m_DlgClick);
-        builder.setNegativeButton("NO", m_DlgClick);
-        builder.show();
-    }
-
-    private int m_iAngle = 0;
-
-    /**
-     * 设置摄像头旋转角度。
-     *
-     * @param iAngle
-     */
-    public void SetRotate(int iAngle) {
-        pgLibJNINode Node = mConf.GetNode();
-        if (Node != null) {
-            if (Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
-                Node.ObjectRequest("_vTemp", 2, "(Item){2}(Value){" + iAngle + "}", "");
-                Node.ObjectDelete("_vTemp");
-            }
-        }
-    }
-
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -331,64 +304,6 @@ public class MainFragment extends SupportFragment {
         }
         toast.show();
     }
-
-    private int iflag = 0;
-
-    /**
-     * 设置设备的麦克风的采样率。
-     * 在初始化成功之后，打开音频通话之前调用。
-     *
-     * @param iRate: 采样率，单位HZ/秒。有效值：8000, 1600, 32000
-     *               示范利用中间件编写扩展
-     */
-
-    public void SetAudioSampleRate(int iRate) {
-        pgLibJNINode Node = mConf.GetNode();
-        if (Node != null) {
-            // Set microphone sample rate
-            if (Node.ObjectAdd("_AudioTemp", "PG_CLASS_Audio", "", 0)) {
-                Node.ObjectRequest("_AudioTemp", 2, "(Item){2}(Value){" + iRate + "}", "");
-                Node.ObjectDelete("_AudioTemp");
-            }
-        }
-    }
-
-    /**
-     * @param iVolumeGate 放音门限
-     * @return true 成功，false 失败
-     */
-    public boolean SetVolumeGate(int iVolumeGate) {
-        pgLibJNINode Node = mConf.GetNode();
-        if (Node != null) {
-            if (Node.ObjectAdd("_aTemp", "PG_CLASS_Audio", "", 0)) {
-                String sValue = Node.omlEncode("(TailLen){0}(VolGate){" + iVolumeGate + "}");
-                Node.ObjectRequest("_aTemp", 2, "(Item){3}(Value){" + sValue + "}", "");
-                Node.ObjectDelete("_aTemp");
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 设置杂音抑制参数。在初始化成功之后，打开音频通话之前调用
-     *
-     * @param iDebug 是否打开调试信息：1:打开调试，0:关闭调试
-     * @param iDelay 延时的音频帧数
-     * @param iKeep  抑制的音频帧数
-     */
-    public void SetAudioSuppress(int iDebug, int iDelay, int iKeep) {
-        pgLibJNINode node = mConf.GetNode();
-        if (node != null) {
-            // Set microphone sample rate
-            if (node.ObjectAdd("_AudioTemp", "PG_CLASS_Audio", "", 0)) {
-                String sValue = "(Debug){" + iDebug + "}(Delay){" + iDelay + "}(Keep){" + iKeep + "}";
-                node.ObjectRequest("_AudioTemp", 2, "(Item){0}(Value){" + node.omlEncode(sValue) + "}", "");
-                node.ObjectDelete("_AudioTemp");
-            }
-        }
-    }
-
 
     //视频传输的状态
     private void EventVideoFrameStat(String sAct, String sData, String sPeer) {
