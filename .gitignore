@@ -1,5 +1,7 @@
 *.iml
 .gradle
+.idea
+.settings
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
@@ -28,3 +30,11 @@ pgPluginLib/.settings/org.eclipse.buildship.core.prefs
 pgPluginLibExter/.classpath
 pgPluginLibExter/.project
 pgPluginLibExter/.settings/org.eclipse.buildship.core.prefs
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestCalling.java
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestChairman.java
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestDialing.java
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestMember.java
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestCalling.java
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestChairman.java
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestDialing.java
+/DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestMember.java
