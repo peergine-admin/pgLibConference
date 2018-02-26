@@ -17,7 +17,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.yanzhenjie.permission.Action;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.Permission;
+import com.yanzhenjie.permission.Rationale;
+import com.yanzhenjie.permission.RequestExecutor;
+import com.yanzhenjie.permission.SettingService;
+
+import java.util.List;
+
 import me.yokeyword.fragmentation.SupportFragment;
+
+import static com.yanzhenjie.permission.Permission.transformText;
 
 public class ParamFragment extends SupportFragment {
 
@@ -35,51 +46,35 @@ public class ParamFragment extends SupportFragment {
         public void onClick(View v) {
             final int btnID = v.getId();
 
-            if(checkCameraPermission(getContext())) {
-
-
-                String sUser = mEditUser.getText().toString().trim();
-                String sPass = mEditPass.getText().toString().trim();
-                String sSvrAddr = mEditSvraddr.getText().toString().trim();
-                String sRelayAddr = mEditRelayaddr.getText().toString().trim();
-                String sInitParam = mEditInitparam.getText().toString().trim();
-                String sVideoParam = mEditVideoparam.getText().toString().trim();
-                if ("".equals(sUser) || "".equals(sSvrAddr) || "".equals(sVideoParam)) {
-                    Toast.makeText(getContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                String sExpire = mEditExpire.getText().toString().trim();
-                switch (btnID){
-                    case R.id.btnInitDefault:
-                        Toast.makeText(getContext(), "进入Demo。", Toast.LENGTH_SHORT).show();
-                        start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                sInitParam,sVideoParam,sExpire,"0"));
-                        break;
-                    case R.id.btnInitCalling:
-                        Toast.makeText(getContext(), "进入Demo 模拟电话呼叫流程。", Toast.LENGTH_SHORT).show();
-                        start(MainFragmentCalling.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                sInitParam,sVideoParam,sExpire));
-                        break;
-                    case R.id.btnInitExter:
-                        Toast.makeText(getContext(), "进入Demo。", Toast.LENGTH_SHORT).show();
-                        start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
-                                sInitParam,sVideoParam,sExpire,"1"));
-                        break;
-                    default:break;
-                }
-
-
-
+            String sUser = mEditUser.getText().toString().trim();
+            String sPass = mEditPass.getText().toString().trim();
+            String sSvrAddr = mEditSvraddr.getText().toString().trim();
+            String sRelayAddr = mEditRelayaddr.getText().toString().trim();
+            String sInitParam = mEditInitparam.getText().toString().trim();
+            String sVideoParam = mEditVideoparam.getText().toString().trim();
+            if ("".equals(sUser) || "".equals(sSvrAddr) || "".equals(sVideoParam)) {
+                Toast.makeText(getContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
+                return;
             }
-            else {
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setTitle("错误！");
-                builder.setMessage("没有获取到摄像头权限。");
-                builder.setPositiveButton("OK", null);
-                builder.setNegativeButton("返回",null);
-                builder.show();
+            String sExpire = mEditExpire.getText().toString().trim();
+            switch (btnID){
+                case R.id.btnInitDefault:
+                    Toast.makeText(getContext(), "进入Demo。", Toast.LENGTH_SHORT).show();
+                    start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                            sInitParam,sVideoParam,sExpire,"0"));
+                    break;
+                case R.id.btnInitCalling:
+                    Toast.makeText(getContext(), "进入Demo 模拟电话呼叫流程。", Toast.LENGTH_SHORT).show();
+                    start(MainFragmentCalling.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                            sInitParam,sVideoParam,sExpire));
+                    break;
+                case R.id.btnInitExter:
+                    Toast.makeText(getContext(), "进入Demo。", Toast.LENGTH_SHORT).show();
+                    start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                            sInitParam,sVideoParam,sExpire,"1"));
+                    break;
+                default:break;
             }
         }
     };
@@ -91,23 +86,6 @@ public class ParamFragment extends SupportFragment {
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
-    }
-
-
-    public static boolean checkCameraPermission(Context context) {
-        boolean canUse = true;
-        Camera mCamera = null;
-        try {
-            mCamera = Camera.open(0);
-            mCamera.setDisplayOrientation(90);
-        } catch (Exception e) {
-            Log.getStackTraceString(e);
-            canUse = false;
-        }
-        if (canUse) {
-            mCamera.release();
-        }
-        return canUse;
     }
 
     @Override
@@ -122,6 +100,60 @@ public class ParamFragment extends SupportFragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_param, container, false);
         InitView(view);
+
+
+        AndPermission.with(this)
+                .permission(
+                        Permission.CAMERA,
+                        Permission.RECORD_AUDIO,
+                        Permission.READ_EXTERNAL_STORAGE,
+                        Permission.WRITE_EXTERNAL_STORAGE
+                )
+                //.rationale(mRationale)
+                .onGranted(new Action() {
+                    @Override
+                    public void onAction(List<String> permissions) {
+                        // TODO what to do.
+                        Toast.makeText(getContext(),"获取到的权限有：" + permissions.toString(),Toast.LENGTH_SHORT).show();
+
+                    }
+                })
+                .onDenied(new Action() {
+                    @Override
+                    public void onAction(List<String> permissions) {
+                        // TODO what to do
+                        Toast.makeText(getContext(),"未获取到的权限有：" + transformText(getContext(),permissions).toString(),Toast.LENGTH_SHORT).show();
+                        if (AndPermission.hasAlwaysDeniedPermission(getContext(), permissions)) {
+                            // 这里使用一个Dialog展示没有这些权限应用程序无法继续运行，询问用户是否去设置中授权。
+
+                            final SettingService settingService = AndPermission.permissionSetting(getContext());
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                            builder.setTitle("询问！");
+                            builder.setMessage("没有视音频权限，是否去设置中授权。");
+                            builder.setPositiveButton("好的", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // 如果用户同意去设置：
+                                    settingService.execute();
+                                    android.os.Process.killProcess(android.os.Process.myPid());
+                                }
+                            });
+                            builder.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // 如果用户不同意去设置：
+                                    settingService.cancel();
+                                    android.os.Process.killProcess(android.os.Process.myPid());
+                                }
+                            });
+                            builder.show();
+                        }
+
+
+                    }
+                })
+                .start();
         return view;
     }
 
