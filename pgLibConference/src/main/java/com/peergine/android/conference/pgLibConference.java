@@ -2054,7 +2054,9 @@ public class pgLibConference {
 
             //预览
             this.m_Node.ObjectAdd(_PrvwBuild(), "PG_CLASS_Video", "", 0x2);
-            String sWndRect = "(Code){" + m_Self.iVideoCode + "}(Mode){2}(Rate){40}(Wnd){}";
+            String sWndRect = "(Code){0}(Mode){"+
+                    ((m_Self.iVideoMode>m_Self.iVideoMode)?(m_Self.iVideoMode):(m_Self.iLVideoMode))
+                    +"}(Rate){40}(Wnd){}";
             int iErr = this.m_Node.ObjectRequest(_PrvwBuild(), 32, sWndRect, "pgLibConference.PrvwStart");
             if (iErr > 0) {
                 _OutString("pgLibConference.m_VideoInit: Open Prvw failed. iErr=" + iErr);
