@@ -105,9 +105,7 @@ public class ParamFragment extends SupportFragment {
         AndPermission.with(this)
                 .permission(
                         Permission.CAMERA,
-                        Permission.RECORD_AUDIO,
-                        Permission.READ_EXTERNAL_STORAGE,
-                        Permission.WRITE_EXTERNAL_STORAGE
+                        Permission.RECORD_AUDIO
                 )
                 //.rationale(mRationale)
                 .onGranted(new Action() {

@@ -1,23 +1,27 @@
 apply plugin: 'com.android.application'
 
-static def releaseTime() {
-    return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
-}
-
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion rootProject.ext.android.compileSdkVersion
+    buildToolsVersion rootProject.ext.android.buildToolsVersion
+
+//    applicationVariants.all { variant ->
+//        variant.outputs.each { output ->
+//            output.outputFile = new File(
+//                    output.outputFile.parent + "/${variant.buildType.name}",
+//                    "ganchai-${variant.buildType.name}-${variant.versionName}-${variant.productFlavors[0].name}.apk".toLowerCase())
+//        }
+//    }
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "DemoNormal_v${defaultConfig.versionName}_${releaseTime()}.apk"
+            outputFileName = rootProject.ext.output.fileName
         }
     }
     defaultConfig {
         applicationId "com.peergine.conference.demo"
-        minSdkVersion 15
-        targetSdkVersion 26
-        versionCode 20
-        versionName "1.31.8.20"
+        minSdkVersion rootProject.ext.android.minSdkVersion
+        targetSdkVersion rootProject.ext.android.targetSdkVersion
+        versionCode rootProject.ext.android.versionCode
+        versionName rootProject.ext.android.versionName
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -31,7 +35,7 @@ android {
 
 dependencies {
     implementation 'com.android.support:support-v4:26.1.0'
-    implementation 'com.yanzhenjie:permission:2.0.0-rc2'
+    implementation project(':permission')//'com.yanzhenjie:permission:2.0.0-rc2'
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':pgLibConference')
     compile 'com.android.support:appcompat-v7:26.1.0'
