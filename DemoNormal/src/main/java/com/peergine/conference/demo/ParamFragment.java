@@ -17,18 +17,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.yanzhenjie.permission.Action;
-import com.yanzhenjie.permission.AndPermission;
-import com.yanzhenjie.permission.Permission;
-import com.yanzhenjie.permission.Rationale;
-import com.yanzhenjie.permission.RequestExecutor;
-import com.yanzhenjie.permission.SettingService;
+import com.peergine.util.Checker;
 
-import java.util.List;
 
 import me.yokeyword.fragmentation.SupportFragment;
 
-import static com.yanzhenjie.permission.Permission.transformText;
 
 public class ParamFragment extends SupportFragment {
 
@@ -102,57 +95,70 @@ public class ParamFragment extends SupportFragment {
         InitView(view);
 
 
-        AndPermission.with(this)
-                .permission(
-                        Permission.CAMERA,
-                        Permission.RECORD_AUDIO
-                )
-                //.rationale(mRationale)
-                .onGranted(new Action() {
-                    @Override
-                    public void onAction(List<String> permissions) {
-                        // TODO what to do.
-                        Toast.makeText(getContext(),"获取到的权限有：" + permissions.toString(),Toast.LENGTH_SHORT).show();
-
-                    }
-                })
-                .onDenied(new Action() {
-                    @Override
-                    public void onAction(List<String> permissions) {
-                        // TODO what to do
-                        Toast.makeText(getContext(),"未获取到的权限有：" + transformText(getContext(),permissions).toString(),Toast.LENGTH_SHORT).show();
-                        if (AndPermission.hasAlwaysDeniedPermission(getContext(), permissions)) {
-                            // 这里使用一个Dialog展示没有这些权限应用程序无法继续运行，询问用户是否去设置中授权。
-
-                            final SettingService settingService = AndPermission.permissionSetting(getContext());
-
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                            builder.setTitle("询问！");
-                            builder.setMessage("没有视音频权限，是否去设置中授权。");
-                            builder.setPositiveButton("好的", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // 如果用户同意去设置：
-                                    settingService.execute();
-                                    android.os.Process.killProcess(android.os.Process.myPid());
-                                }
-                            });
-                            builder.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // 如果用户不同意去设置：
-                                    settingService.cancel();
-                                    android.os.Process.killProcess(android.os.Process.myPid());
-                                }
-                            });
-                            builder.show();
-                        }
+            if(Checker.CameraCheck(this.getContext())){
+                Toast.makeText(this.getContext(),"打开摄像头成功！",Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(this.getContext(),"打开摄像头失败。请检查摄像头权限！",Toast.LENGTH_SHORT).show();
+            }
+            if(Checker.RecordAudioCheck()){
+                Toast.makeText(this.getContext(),"打开录音设备成功！",Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(this.getContext(),"打开录音设备失败。请检查录音设备权限！",Toast.LENGTH_SHORT).show();
+            }
 
 
-                    }
-                })
-                .start();
-        return view;
+    //        AndPermission.with(this)
+    //                .permission(
+    //                        Permission.CAMERA,
+    //                        Permission.RECORD_AUDIO
+    //                )
+    //                //.rationale(mRationale)
+    //                .onGranted(new Action() {
+    //                    @Override
+    //                    public void onAction(List<String> permissions) {
+    //                        // TODO what to do.
+    //                        Toast.makeText(getContext(),"获取到的权限有：" + permissions.toString(),Toast.LENGTH_SHORT).show();
+    //
+    //                    }
+    //                })
+    //                .onDenied(new Action() {
+    //                    @Override
+    //                    public void onAction(List<String> permissions) {
+    //                        // TODO what to do
+    //                        Toast.makeText(getContext(),"未获取到的权限有：" + transformText(getContext(),permissions).toString(),Toast.LENGTH_SHORT).show();
+    //                        if (AndPermission.hasAlwaysDeniedPermission(getContext(), permissions)) {
+    //                            // 这里使用一个Dialog展示没有这些权限应用程序无法继续运行，询问用户是否去设置中授权。
+    //
+    //                            final SettingService settingService = AndPermission.permissionSetting(getContext());
+    //
+    //                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+    //                            builder.setTitle("询问！");
+    //                            builder.setMessage("没有视音频权限，是否去设置中授权。");
+    //                            builder.setPositiveButton("好的", new DialogInterface.OnClickListener() {
+    //                                @Override
+    //                                public void onClick(DialogInterface dialog, int which) {
+    //                                    // 如果用户同意去设置：
+    //                                    settingService.execute();
+    //                                    android.os.Process.killProcess(android.os.Process.myPid());
+    //                                }
+    //                            });
+    //                            builder.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+    //                                @Override
+    //                                public void onClick(DialogInterface dialog, int which) {
+    //                                    // 如果用户不同意去设置：
+    //                                    settingService.cancel();
+    //                                    android.os.Process.killProcess(android.os.Process.myPid());
+    //                                }
+    //                            });
+    //                            builder.show();
+    //                        }
+    //
+    //
+    //                    }
+    //                })
+    //                .start();
+            return view;
+
     }
 
     void InitView(View view){

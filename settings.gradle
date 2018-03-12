@@ -1,1 +1,1 @@
-include ':DemoNormal', ':pgLibConference', ':pgPluginLib',  ':pgPluginLibExter' ,'permission'
+include ':DemoNormal', ':pgLibConference', ':pgPluginLib',  ':pgPluginLibExter'
