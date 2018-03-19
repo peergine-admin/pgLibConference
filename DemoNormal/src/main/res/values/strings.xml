@@ -30,7 +30,6 @@
     <string name="connect_peergine_com_7781">connect.peergine.com:7781</string>
     <string name="relayaddr">RelayAddr:</string>
     <string name="videoparam">VideoParam:</string>
-    <string name="code_3_mode_2_frmrate_40_lcode_3_lmode_3_lfrmrate_30_portrait_1_rotate_0_bitrate_300_camerano_1_audiospeechdisable_0">(Code){3}(Mode){2}(FrmRate){40}(LCode){3}(LMode){3}(LFrmRate){30}(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){1}(AudioSpeechDisable){0}</string>
     <string name="init_default">初始化默认</string>
     <string name="init_calling">初始化呼叫</string>
     <string name="other_param">其他参数</string>

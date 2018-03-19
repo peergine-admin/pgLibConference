@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
 import com.peergine.android.conference.pgLibTimer;
+import com.peergine.plugin.exter.VideoAudioInputExternal;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
@@ -32,6 +33,7 @@ import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
 import static com.peergine.android.conference.pgLibConference.PG_RECORD_NORMAL;
 import static com.peergine.android.conference.pgLibConference.VIDEO_NORMAL;
+import static com.peergine.android.conference.pgLibConference.VIDEO_ONLY_INPUT;
 import static com.peergine.android.conference.pgLibConferenceEvent.*;
 import static com.peergine.android.conference.pgLibError.PG_ERR_Normal;
 
@@ -53,7 +55,7 @@ public class MainFragment extends SupportFragment {
     private String m_sRelayAddr = "";
     private String m_sInitParam;
     private String m_sVideoParam =
-            "(Code){3}(Mode){2}(FrmRate){40}" +
+                    "(Code){3}(Mode){2}(FrmRate){40}" +
                     "(LCode){3}(LMode){3}(LFrmRate){30}" +
                     "(Portrait){0}(Rotate){0}(BitRate){300}(CameraNo){" + Camera.CameraInfo.CAMERA_FACING_FRONT + "}" +
                     "(AudioSpeechDisable){0}";
@@ -75,8 +77,22 @@ public class MainFragment extends SupportFragment {
     private SurfaceView mPreview = null;
     private Button m_BtnClearlog = null;
     private String mMode = "";
+    private int REQ_MSG = 10;
 
 
+    // view 放大
+    private View.OnClickListener layoutOnClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            int iWndID = v.getId();
+
+            SurfaceView videoview = (SurfaceView) ((LinearLayout)v).getChildAt(0);
+
+            ((LinearLayout)v).removeAllViews();
+
+            startForResult(FullScreenFragment.newInstance(videoview,iWndID),REQ_MSG);
+        }
+    };
     //R.id.layoutVideoS0,
 
     class MEMBER {
@@ -133,14 +149,16 @@ public class MainFragment extends SupportFragment {
         return fragment;
     }
 
-    void initView(View view) {
+    void initView(final View view) {
         /**
          * 4个窗口初始化
          */
         mPreviewLayout = view.findViewById(R.id.layoutVideoS0);
+        mPreviewLayout.setOnClickListener(layoutOnClick);
         for (int aRIDLaout : ridlaout) {
             MEMBER oMemb = new MEMBER();
             oMemb.pLayout = view.findViewById(aRIDLaout);
+            oMemb.pLayout.setOnClickListener(layoutOnClick);
             mListMemberS.add(oMemb);
         }
 
@@ -193,7 +211,7 @@ public class MainFragment extends SupportFragment {
         m_sVideoParam = args.getString("VideoParam");
 
         int iExpire = ParseInt(args.getString("Expire"), 10);
-
+        String sMode = args.getString("Mode");
         if (mConf == null) {
             mConf = new pgLibConference();
             mConf.SetEventListener(m_OnEvent);
@@ -204,6 +222,11 @@ public class MainFragment extends SupportFragment {
             mConf.ConfigNode(mNodeCfg);
 
         }
+
+        if("1".equals(sMode)){
+            m_sVideoParam += "(VideoInExternal){1}";
+        }
+
         if (!mConf.Initialize(m_sUser, m_sPass, m_sSvrAddr, m_sRelayAddr, m_sVideoParam, getContext())) {
             Log.d("pgConference", "Init failed");
 
@@ -221,8 +244,14 @@ public class MainFragment extends SupportFragment {
         }
 
         mPreview = mConf.PreviewCreate(160, 120);
-        mPreviewLayout.removeAllViews();
-        mPreviewLayout.addView(mPreview);
+        if("1".equals(sMode)){
+            int iVideoMode = ParseInt(mConf.GetNode().omlGetContent(m_sVideoParam,"Mode"),0);
+            VideoAudioInputExternal external = new VideoAudioInputExternal(mConf.GetNode(),mPreviewLayout,iVideoMode,getContext());
+        	external.VideoInputExternalEnable();
+        }else{
+            mPreviewLayout.removeAllViews();
+            mPreviewLayout.addView(mPreview);
+        }
 
         m_Node = mConf.GetNode();
         if(!mTimer.timerInit(timerOut)){
@@ -247,6 +276,37 @@ public class MainFragment extends SupportFragment {
         super.onDestroyView();
         pgStop();
         mConf.Clean();
+    }
+
+
+    @Override
+    public boolean onBackPressedSupport() {
+        // 对于 4个类别的主Fragment内的回退back逻辑,已经在其onBackPressedSupport里各自处理了
+        return true;
+    }
+
+
+    @Override
+    public void onFragmentResult(int requestCode, int resultCode, Bundle data) {
+        super.onFragmentResult(requestCode, resultCode, data);
+        if (requestCode == REQ_MSG && resultCode == RESULT_OK) {
+
+            int iWndID = data.getInt("WndID");
+            LinearLayout linearLayout = this.getView().findViewById(iWndID);
+
+            if(R.id.layoutVideoS0 == iWndID){
+                linearLayout.addView(mPreview);
+            }
+            else {
+                for (MEMBER oMemb : mListMemberS) {
+                    if (oMemb.pLayout.equals(linearLayout)) {
+                        if (oMemb.pView!=null){
+                            linearLayout.addView(oMemb.pView);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private DialogInterface.OnClickListener m_DlgClick = new DialogInterface.OnClickListener() {
@@ -617,7 +677,12 @@ public class MainFragment extends SupportFragment {
         }
         String sName = msChair;
         mConf.Start(sName, msChair);
-        mConf.VideoStart(VIDEO_NORMAL);
+        int iVideoFlag = VIDEO_NORMAL;
+        if(msChair.equals(m_sUser)){
+            iVideoFlag = VIDEO_ONLY_INPUT;
+        }
+
+        mConf.VideoStart(iVideoFlag);
         mConf.AudioStart();
     }
 
@@ -774,7 +839,10 @@ public class MainFragment extends SupportFragment {
                     break;
                 case R.id.btn_Clean:
                     pgClean();
-                    pop();
+                    if(getFragmentManager().getBackStackEntryCount() > 1){
+                        pop();
+                    }
+
                     Log.d("OnClink", "MemberAdd button");
                     break;
                 case R.id.btn_LanScan:

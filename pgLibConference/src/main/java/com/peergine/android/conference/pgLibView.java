@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * @author ctkj
  * View对象管理类
  */
-public class pgLibView {
+public final class pgLibView {
 	
 	static class NodeItem {
 		public String sID = "";

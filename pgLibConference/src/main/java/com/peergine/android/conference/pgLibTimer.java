@@ -23,7 +23,7 @@ import static com.peergine.android.conference.pgLibNode._OutString;
  * @author ctkj
  */
 
-public class pgLibTimer {
+public final class pgLibTimer {
     private Random mRandom = new Random();
 
     public interface OnTimeOut{

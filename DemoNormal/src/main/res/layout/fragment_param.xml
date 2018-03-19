@@ -36,8 +36,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.8"
-                android:hint="@string/id_needID"
-                android:text="" />
+                android:hint="@string/id_needID" />
         </LinearLayout>
 
         <LinearLayout
@@ -162,7 +161,7 @@
                 android:inputType="text"
                 android:selectAllOnFocus="false"
                 android:singleLine="false"
-                android:text="@string/code_3_mode_2_frmrate_40_lcode_3_lmode_3_lfrmrate_30_portrait_1_rotate_0_bitrate_300_camerano_1_audiospeechdisable_0"
+                android:text="(Code){3}(Mode){3}(FrmRate){40}(LCode){3}(LMode){3}(LFrmRate){30}(Portrait){1}(Rotate){0}(BitRate){300}(CameraNo){1}(AudioSpeechDisable){0}"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:visibility="visible" />
         </LinearLayout>

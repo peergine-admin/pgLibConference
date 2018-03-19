@@ -71,6 +71,23 @@ public class pgLibConference {
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
+    private static final String PARAM_LOGIN = "NodeLogin";
+    private static final String PARAM_LANSCAN = "LanScan";
+    private static final String PARAM_SVRREQUEST = "SvrRequest";
+    private static final String PARAM_PRE_CALLSEND = "CallSend";
+    private static final String PARAM_PRE_VIDEO_OPEN = "VideoOpen";
+    private static final String PARAM_FILE_GET_REQUEST = "FileGetRequest";
+    private static final String PARAM_FILE_PUT_REQUEST = "FilePutRequest";
+    private static final String PARAM_AUDIO_CTRL_VOLUME = "AudioCtrlVolume";
+    private static final String PARAM_LOGOUT = "NodeLogout";
+    private static final String PARAM_SVR_REDIRECT = "SvrRedirect";
+
+
+    private int m_iLoginFailCount;
+    private boolean m_bLogin;
+    private int m_iLoginDelayMax;
+    private int m_iIDTimerRelogin;
+
 
     /**
      * @author ctkj
@@ -316,6 +333,10 @@ public class pgLibConference {
                 }
 
                 // Init status
+
+                m_iLoginFailCount = 0;
+                m_iLoginDelayMax = 60;
+                m_iIDTimerRelogin = -1;
                 m_Self.init(sUser, sPass, sVideoParam, m_Node);
                 String m_sInitSvrName = "pgConnectSvr";
                 m_InitSvr.init(m_sInitSvrName, sSvrAddr, sRelayAddr);
@@ -1432,7 +1453,7 @@ public class pgLibConference {
     };
 
     //事件下发程序
-    private void _EventProc(String sAct, String sData, String sObjPeer) {
+    private void _OnEvent(String sAct, String sData, String sObjPeer) {
         if (m_eventListener != null && m_Status.bEventEnable) {
             //OutString("EventProc: sAct=" + sAct + ", sData=" + sData + ", sObjPeer=" + sObjPeer);
              String sPeer = _ObjPeerParsePeer(sObjPeer);
@@ -1532,7 +1553,7 @@ public class pgLibConference {
             // Enable video input external
             _NodeVideoExter();
             // Login to server.
-            if (!_NodeLogin()) {
+            if (_NodeLogin()!=PG_ERR_Normal) {
                 _OutString("NodeStart: failed.");
                 _NodeStop();
                 return false;
@@ -1573,124 +1594,164 @@ public class pgLibConference {
             m_Node.Stop();
         }
     }
-
-    //节点 登录
-    private boolean _NodeLogin() {
-        _OutString("->NodeLogin");
-        boolean bRet = false;
-        if (m_Node != null) {
-
-            String sVersion = "";
-            String sVerTemp = m_Node.omlGetContent(m_Node.utilCmd("Version", ""), "Version");
-            if (sVerTemp.length() > 1) {
-                sVersion = sVerTemp.substring(1);
-            }
-
-            String sParamTemp = "(Ver){" + sVersion + "." + LIB_VER + "}";
-            String sData = "(User){" + m_Self.sObjSelf + "}(Pass){" + m_Self.sPass + "}(Param){" + m_Node.omlEncode(sParamTemp) + "}";
-            int iErr = m_Node.ObjectRequest(m_Svr.sSvrName, 32, sData, "NodeLogin");
-            if (iErr > 0) {
-                _OutString("NodeLogin: Login failed. iErr=" + iErr);
-            } else {
-                bRet = true;
-            }
+    private int _NodeLogin() {
+        String sVersion = "";
+        String sVerTemp = m_Node.omlGetContent(m_Node.utilCmd("Version", ""), "Version");
+        if (sVerTemp.length() > 1) {
+            sVersion = sVerTemp.substring(1);
         }
-        return bRet;
+
+        String sParam = "(Ver){" + sVersion + "." + LIB_VER + "}";
+        _OutString("_NodeLogin: Version=" + sParam);
+
+        String sData = "(User){" + m_Node.omlEncode(m_Self.sObjSelf) + "}(Pass){"
+                + m_Node.omlEncode(m_Self.sPass) + "}(Param){" + m_Node.omlEncode(sParam) + "}";
+        int iErr = m_Node.ObjectRequest(m_Svr.sSvrName, 32, sData, PARAM_LOGIN);
+        if (iErr > PG_ERR_Normal) {
+            _OutString("_NodeLogin: Login failed. iErr=" + iErr);
+            return iErr;
+        }
+
+        return PG_ERR_Normal;
     }
 
-    //节点下线
     private void _NodeLogout() {
-        _OutString("->NodeLogout");
-        if (m_Node != null) {
-            m_Node.ObjectRequest(m_Svr.sSvrName, 33, "", "NodeLogout");
-            if (m_Status.bLogined) {
-                _EventProc(EVENT_LOGOUT, "", "");
-            }
-            m_Status.bLogined = false;
+
+        m_Node.ObjectRequest(m_Svr.sSvrName, 33, "", PARAM_LOGOUT);
+        if (m_Status.bLogined) {
+            _OnEvent("Logout", "", "");
         }
+
+        m_Status.bLogined = false;
     }
 
-    //节点重新登录
-    private void _NodeRelogin(int iDelay) {
-        _OutString("->NodeRelogin!");
+    private void _NodeRelogin(int uDelay) {
         _NodeLogout();
-        TimerStart("(Act){Relogin}", iDelay, false);
+        _NodeTimerRelogin(uDelay);
     }
 
-    //重新配置节点信息
     private void _NodeRedirect(String sRedirect) {
 
-        if (m_Node != null) {
-            _NodeLogout();
+        _NodeLogout();
 
-            String sSvrName = m_Node.omlGetContent(sRedirect, "SvrName");
-            if (!"".equals(sSvrName) && !sSvrName.equals(m_Svr.sSvrName)) {
-                m_Node.ObjectDelete(m_Svr.sSvrName);
-                if (!m_Node.ObjectAdd(sSvrName, "PG_CLASS_Peer", "", (0x10000 | 0x2))) {
-                    _OutString("pgLibConference.NodeRedirect: Add server object failed");
-                    return;
-                }
-                m_Svr.sSvrName = sSvrName;
-                m_Svr.sSvrAddr = "";
+        String sSvrName = m_Node.omlGetContent(sRedirect, "SvrName");
+        if (!"".equals(sSvrName) && !sSvrName.equals(m_Svr.sSvrName)) {
+            m_Node.ObjectDelete(m_Svr.sSvrName);
+            if (!m_Node.ObjectAdd(sSvrName, "PG_CLASS_Peer", "", (0x10000 | 0x2))) {
+                _OutString("_NodeRedirect: Add server object failed");
+                return;
             }
-            String sSvrAddr = m_Node.omlGetContent(sRedirect, "SvrAddr");
-            if (!"".equals(sSvrAddr) && !sSvrAddr.equals(m_Svr.sSvrAddr)) {
-                String sData = "(Addr){" + sSvrAddr + "}(Proxy){}";
-                int iErr = m_Node.ObjectRequest(m_Svr.sSvrName, 37, sData, "pgLibConference.NodeRedirect");
-                if (iErr > 0) {
-                    _OutString("pgLibConference.NodeRedirect: Set server address. iErr=" + iErr);
-                    return;
-                }
-                m_Svr.sSvrAddr = sSvrAddr;
-            }
-
-            _OutString("NodeRedirect: sSvrName=" + sSvrName + ", sSvrAddr=" + sSvrAddr);
-
-            TimerStart("(Act){Relogin}", 1, false);
-        } else {
-            _OutString("->NodeRedirect! NODE = null");
+            m_Svr.sSvrName = sSvrName;
+            m_Svr.sSvrAddr = "";
         }
+
+        String sSvrAddr = m_Node.omlGetContent(sRedirect, "SvrAddr");
+        if (!"".equals(sSvrAddr) && !sSvrAddr.equals( m_Svr.sSvrAddr)) {
+            String sData = "(Addr){" + sSvrAddr + "}(Proxy){}";
+            int iErr = m_Node.ObjectRequest( m_Svr.sSvrName, 37, sData, PARAM_SVR_REDIRECT);
+
+            if (iErr > 0) {
+                _OutString("_NodeRedirect: Set server address. iErr=" + iErr);
+                return;
+            }
+            m_Svr.sSvrAddr = sSvrAddr;
+        }
+
+        _OutString("_NodeRedirect: sSvrName=" + sSvrName + ", sSvrAddr=" + sSvrAddr);
+
+        _NodeTimerRelogin(1);
     }
 
-    private void _NodeRedirectReset(int iDelay) {
+    private void _NodeRedirectReset(int uDelay) {
         if (!m_Svr.sSvrAddr.equals(m_InitSvr.sSvrAddr)) {
-            String sRedirect = "(SvrName){" + m_InitSvr.sSvrName + "}(SvrAddr){" + m_InitSvr.sSvrAddr + "}";
+            String sRedirect = "(SvrName){" + m_InitSvr.sSvrName
+                    + "}(SvrAddr){" + m_InitSvr.sSvrAddr + "}";
             _NodeRedirect(sRedirect);
-        } else {
-            if (iDelay != 0) {
-                _NodeRelogin(iDelay);
+        }
+        else {
+            if (uDelay != 0) {
+                _NodeRelogin(uDelay);
             }
         }
     }
+
+    private int _NodeLoginReply(int uErr, String sData) {
+        if (uErr != PG_ERR_Normal) {
+            _OutString("_NodeLoginReply: Login failed. uErr=" + uErr);
+
+            _OnEvent(EVENT_LOGIN, ("" + uErr), "");
+
+            if (uErr == PG_ERR_Network
+                    || uErr == PG_ERR_Timeout
+                    || uErr == PG_ERR_Busy)
+            {
+                int iDelay = _NodeLoginFailDelay();
+                _NodeRedirectReset(iDelay);
+            }
+            else {
+                _NodeRelogin(m_iLoginDelayMax * 10);
+            }
+
+            return 0;
+        }
+
+        String sParam = m_Node.omlGetContent(sData, "Param");
+        String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
+        if (!"".equals(sRedirect)) {
+            _NodeRedirect(sRedirect);
+            return 1;
+        }
+
+        m_iLoginFailCount = 0;
+        m_bLogin = true;
+
+        // Request video forward.
+
+        _OnEvent(EVENT_LOGIN, "0", "");
+        return 1;
+    }
+
+    private void _NodePeerGetInfo(String sPeer) {
+        if (!m_Status.bServiceStart) {
+            return;
+        }
+
+        int iErr = m_Node.ObjectRequest(sPeer, 38, "", "PeerGetInfo");
+        if (iErr > PG_ERR_Normal) {
+            _OutString("pgLibLiveMultiCapture._NodePeerGetInfo: iErr=" + iErr);
+        }
+    }
+
+    private int _NodeLoginFailDelay() {
+        int iDelay = m_iLoginFailCount * 10;
+        if (m_iLoginFailCount < m_iLoginDelayMax) {
+            m_iLoginFailCount++;
+        }
+        return ((iDelay > 0) ? iDelay : 1);
+    }
+
+    private void _NodeTimerRelogin(int iDelay) {
+        if (m_iIDTimerRelogin >= 0) {
+            TimerStop(m_iIDTimerRelogin);
+            m_iIDTimerRelogin = -1;
+        }
+
+        m_iIDTimerRelogin = TimerStart("(Act){Relogin}", iDelay,false);
+    }
+    //节点 登录
+
+
+    //节点下线
+
+
+    //节点重新登录
+
+
+    //重新配置节点信息
+
 
     //登录回复信息
-    private int _NodeLoginReply(int iErr, String sData) {
-        int iRet = 0;
-        if (m_Node != null) {
-            if (iErr != 0) {
-                _OutString("NodeLoginReply: Login failed. uErr=" + iErr);
 
-                _EventProc(EVENT_LOGIN, String.valueOf(iErr), "");
-                if (iErr == 11 || iErr == 12 || iErr == 14) {
-                    _NodeRedirectReset(10);
-                }
-            } else {
-                // Process redirect.
-                String sParam = m_Node.omlGetContent(sData, "Param");
-                String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
-                if (!"".equals(sRedirect)) {
-                    _NodeRedirect(sRedirect);
-                    return 1;
-                }
-
-                m_Status.bLogined = true;
-                _ChairPeerCheck();
-                _EventProc(EVENT_LOGIN, "0", m_Svr.sSvrName);
-            }
-        }
-
-        return iRet;
-    }
 
     //添加主席节点  使之能在加入会议前与主席通信，发送Join信号
     private void _ChairmanAdd() {
@@ -1854,7 +1915,7 @@ public class pgLibConference {
         }
         int i = 0;
         while (i < m_listLostPeer.size()) {
-            _EventProc(EVENT_VIDEO_LOST, "", m_listLostPeer.get(i));
+            _OnEvent(EVENT_VIDEO_LOST, "", m_listLostPeer.get(i));
             i++;
         }
     }
@@ -1896,7 +1957,7 @@ public class pgLibConference {
                     oSync.iKeepStamp = m_Stamp.iKeepStamp;
                 } else {
                     _KeepAdd(sObjPeer);
-                    _EventProc(EVENT_PEER_SYNC, "reason=1", sObjPeer);
+                    _OnEvent(EVENT_PEER_SYNC, "reason=1", sObjPeer);
                 }
             } else {
                 m_Node.ObjectRequest(sObjPeer, 36, "Keep?", "pgLibConference.MessageSend");
@@ -1933,7 +1994,7 @@ public class pgLibConference {
 
                     // 超过3倍心跳周期，没有接收到成员端的心跳应答，说明成员端之间连接断开了
                     if ((m_Stamp.iKeepStamp - oSync.iKeepStamp) > (m_Stamp.iExpire * 3)) {
-                        _EventProc(EVENT_PEER_OFFLINE, "reason=1", oSync.sObjPeer);
+                        _OnEvent(EVENT_PEER_OFFLINE, "reason=1", oSync.sObjPeer);
                         PeerDelete(oSync.sObjPeer);
                         m_listSyncPeer.remove(i);
                         continue;
@@ -2055,7 +2116,7 @@ public class pgLibConference {
             //预览
             this.m_Node.ObjectAdd(_PrvwBuild(), "PG_CLASS_Video", "", 0x2);
             String sWndRect = "(Code){0}(Mode){"+
-                    ((m_Self.iVideoMode>m_Self.iVideoMode)?(m_Self.iVideoMode):(m_Self.iLVideoMode))
+                    ((m_Self.iVideoMode>m_Self.iLVideoMode)?(m_Self.iVideoMode):(m_Self.iLVideoMode))
                     +"}(Rate){40}(Wnd){}";
             int iErr = this.m_Node.ObjectRequest(_PrvwBuild(), 32, sWndRect, "pgLibConference.PrvwStart");
             if (iErr > 0) {
@@ -2397,7 +2458,7 @@ public class pgLibConference {
         }
         if ("Msg".equals(sCmd)) {
             String sPeer = _ObjPeerParsePeer(sObjPeer);
-            this._EventProc(EVENT_MESSAGE, sParam, sPeer);
+            this._OnEvent(EVENT_MESSAGE, sParam, sPeer);
         }
         m_Node.ObjectExtReply(sObjPeer, 0, "", iHandle);
 
@@ -2420,11 +2481,11 @@ public class pgLibConference {
         }
 
         if ("Join".equals(sCmd)) {
-            this._EventProc(EVENT_ASK_JOIN, "", sPeer);
+            this._OnEvent(EVENT_ASK_JOIN, "", sPeer);
         } else if ("Leave".equals(sCmd)) {
-            this._EventProc(EVENT_ASK_LEAVE, "", sPeer);
+            this._OnEvent(EVENT_ASK_LEAVE, "", sPeer);
         } else if ("Msg".equals(sCmd)) {
-            this._EventProc(EVENT_MESSAGE, sParam, sPeer);
+            this._OnEvent(EVENT_MESSAGE, sParam, sPeer);
         } else if ("Active".equals(sCmd)) {
             if (m_Status.bServiceStart) {
                 PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
@@ -2455,7 +2516,7 @@ public class pgLibConference {
         }
 
         if ("UserExtend".equals(sCmd)) {
-            this._EventProc(EVENT_SVR_NOTIFY, sParam, sObjPeer);
+            this._OnEvent(EVENT_SVR_NOTIFY, sParam, sObjPeer);
         } else if ("Restart".equals(sCmd)) {
             if (sParam.contains("redirect=1")) {
                 _NodeRedirectReset(3);
@@ -2491,10 +2552,10 @@ public class pgLibConference {
                 _NodeRedirect(sRedirect);
                 return;
             }
-
+            m_iLoginFailCount = 0;
             m_Status.bLogined = true;
             _ChairPeerCheck();
-            _EventProc(EVENT_LOGIN, "0", m_Svr.sSvrName);
+            _OnEvent(EVENT_LOGIN, "0", m_Svr.sSvrName);
         }
 
     }
@@ -2519,10 +2580,10 @@ public class pgLibConference {
                     String sPeer = _ObjPeerParsePeer(sObjPeer);
                     if ("1".equals(sAct)) {
                         _FileListAdd(m_Group.sChair,sPeer,m_Group.bChairman);
-                        _EventProc(EVENT_JOIN, "", sPeer);
+                        _OnEvent(EVENT_JOIN, "", sPeer);
                     } else {
                         _FileListDelete(m_Group.sChair,sPeer);
-                        _EventProc(EVENT_LEAVE, "", sPeer);
+                        _OnEvent(EVENT_LEAVE, "", sPeer);
                     }
                 }
 
@@ -2553,13 +2614,13 @@ public class pgLibConference {
             oCtrl.bLarge = true;
         }
         String sPeer = _ObjPeerParsePeer(sObjPeer);
-        _EventProc(sAct, sData, sPeer);
+        _OnEvent(sAct, sData, sPeer);
     }
 
     //初始化节点
     private void _VideoLeave(String sObj, String sData, int iHandle, String sPeer, String sAct) {
         _OutString("->VideoLeave");
-        _EventProc(sAct, sData, sPeer);
+        _OnEvent(sAct, sData, sPeer);
 
         PG_PEER oCtrl = _VideoPeerSearch(sPeer);
         if (oCtrl != null) {
@@ -2576,7 +2637,7 @@ public class pgLibConference {
         String sAct;
         if (!m_Group.bEmpty && sObjPeer.equals(m_Group.sObjChair)) {
             sAct = EVENT_CHAIRMAN_OFFLINE;
-            this._EventProc(sAct, sError, sPeer);
+            this._OnEvent(sAct, sError, sPeer);
             _ChairPeerStatic();
             if (!m_LanScan.bPeerCheckTimer) {
                 if (TimerStart("(Act){CapPeerCheck}", 3, false) >= 0) {
@@ -2585,7 +2646,7 @@ public class pgLibConference {
             }
         } else {
             sAct = EVENT_PEER_OFFLINE;
-            this._EventProc(sAct, sError, sPeer);
+            this._OnEvent(sAct, sError, sPeer);
         }
     }
 
@@ -2596,7 +2657,7 @@ public class pgLibConference {
         String sFrmTotal = m_Node.omlGetContent(sData, "Total");
         String sFrmDrop = m_Node.omlGetContent(sData, "Drop");
 
-        _EventProc(sAct, ("total=" + sFrmTotal + "&drop=" + sFrmDrop), sPeerTemp);
+        _OnEvent(sAct, ("total=" + sFrmTotal + "&drop=" + sFrmDrop), sPeerTemp);
     }
 
     private void _VideoCameraReply(String sData) {
@@ -2606,7 +2667,7 @@ public class pgLibConference {
         String sObjPeer = m_Node.omlGetContent(sData, "Peer");
         String sPath = m_Node.omlGetContent(sData, "Path");
         String sPeer = _ObjPeerParsePeer(sObjPeer);
-        _EventProc(EVENT_VIDEO_CAMERA, sPath, sPeer);
+        _OnEvent(EVENT_VIDEO_CAMERA, sPath, sPeer);
     }
 
     private void _VideoRecordReply(String sData) {
@@ -2614,16 +2675,16 @@ public class pgLibConference {
             String sObjPeer = m_Node.omlGetContent(sData, "Peer");
             String sPath = m_Node.omlGetContent(sData, "Path");
             String sPeer = _ObjPeerParsePeer(sObjPeer);
-            _EventProc(EVENT_VIDEO_RECORD, sPath, sPeer);
+            _OnEvent(EVENT_VIDEO_RECORD, sPath, sPeer);
         }
     }
 
     //服务器下发数据
     private void _SvrReply(int iErr, String sData) {
         if (iErr != 0) {
-            _EventProc(EVENT_SVR_REPLYR_ERROR, "" + iErr, m_Svr.sSvrName);
+            _OnEvent(EVENT_SVR_REPLYR_ERROR, "" + iErr, m_Svr.sSvrName);
         } else {
-            _EventProc(EVENT_SVR_RELAY, sData, m_Svr.sSvrName);
+            _OnEvent(EVENT_SVR_RELAY, sData, m_Svr.sSvrName);
         }
     }
 
@@ -2747,7 +2808,7 @@ public class pgLibConference {
                 if (m_LanScan.bApiLanScan) {
                     String sID = sPeer.substring(5);
                     String sDataTemp = "id=" + sID + "&addr=" + sAddr;
-                    _EventProc(EVENT_LAN_SCAN_RESULT, sDataTemp, "");
+                    _OnEvent(EVENT_LAN_SCAN_RESULT, sDataTemp, "");
                 }
                 m_LanScan.sLanScanRes += ("(" + sPeer + "){" + sAddr + "}");
             }
@@ -2779,10 +2840,10 @@ public class pgLibConference {
         String sParam = "peerpath=" + sPeerPath;
 
         if (iMethod == 32) {
-            _EventProc("FilePutRequest", sParam, sID);
+            _OnEvent("FilePutRequest", sParam, sID);
         }
         else if (iMethod == 33) {
-            _EventProc("FileGetRequest", sParam, sID);
+            _OnEvent("FileGetRequest", sParam, sID);
         }
 
         return -1; // Async reply
@@ -2800,7 +2861,7 @@ public class pgLibConference {
             String sReqSize = m_Node.omlGetContent(sData, "ReqSize");
             String sCurSize = m_Node.omlGetContent(sData, "CurSize");
             String sParam = "path=" + sPath + "&total=" + sReqSize	+ "&position=" + sCurSize;
-            _EventProc("FileProgress", sParam, sChairID);
+            _OnEvent("FileProgress", sParam, sChairID);
         }
         else { // Stop
             _FileListSet(sChairID,sID, "Status", "0");
@@ -2810,15 +2871,15 @@ public class pgLibConference {
             String sCurSize = m_Node.omlGetContent(sData, "CurSize");
 
             String sParam = "path=" + sPath + "&total=" + sReqSize + "&position=" + sCurSize;
-            _EventProc("FileProgress", sParam, sChairID);
+            _OnEvent("FileProgress", sParam, sChairID);
 
             int iCurSize = _ParseInt(sCurSize, 0);
             int iReqSize = _ParseInt(sReqSize, 0);
             if (iCurSize >= iReqSize && iReqSize > 0) {
-                _EventProc("FileFinish", sParam, sChairID);
+                _OnEvent("FileFinish", sParam, sChairID);
             }
             else {
-                _EventProc("FileAbort", sParam, sChairID);
+                _OnEvent("FileAbort", sParam, sChairID);
             }
         }
 
@@ -2833,7 +2894,7 @@ public class pgLibConference {
         }
 
         _FileListSet(sRenID,sID, "Status", "0");
-        _EventProc("FileAbort", "", sRenID);
+        _OnEvent("FileAbort", "", sRenID);
     }
 
     private int _NodeOnExtRequest(String sObj, int uMeth, String sData, int iHandle, String sObjPeer) {
@@ -2875,7 +2936,7 @@ public class pgLibConference {
                     }
                 } else if (uMeth == 47) {
                     //ID冲突 被踢下线了
-                    _EventProc(EVENT_LOGOUT, "47", "");
+                    _OnEvent(EVENT_LOGOUT, "47", "");
                 }
                 return 0;
             } else if (!m_Group.bEmpty && this.m_Group.sObjChair.equals(sObj)) {
@@ -2885,7 +2946,7 @@ public class pgLibConference {
                     if ("1".equals(sAct)) {
                         _KeepAdd(sObj);
                         m_LanScan.bPeerCheckTimer = false;
-                        this._EventProc(EVENT_CHAIRMAN_SYNC, sAct, sObj);
+                        this._OnEvent(EVENT_CHAIRMAN_SYNC, sAct, sObj);
                     }
                 } else if (uMeth == 1) {
                     String sMeth = this.m_Node.omlGetContent(sData, "Meth");
@@ -2906,7 +2967,7 @@ public class pgLibConference {
                         if (!m_Group.bEmpty && m_Group.bChairman) {
                             _KeepAdd(sObj);
                         }
-                        this._EventProc(EVENT_PEER_SYNC, sAct, sObj);
+                        this._OnEvent(EVENT_PEER_SYNC, sAct, sObj);
                     }
                 } else if (uMeth == 1) {
                     String sMeth = this.m_Node.omlGetContent(sData, "Meth");
@@ -2941,7 +3002,7 @@ public class pgLibConference {
             //DData类相关
             if (!m_Group.bEmpty && sObj.equals(this.m_Group.sObjD)) {
                 if (uMeth == 32) {
-                    this._EventProc(EVENT_NOTIFY, sData, sObjPeer);
+                    this._OnEvent(EVENT_NOTIFY, sData, sObjPeer);
                 }
                 return 0;
             }
@@ -2950,7 +3011,7 @@ public class pgLibConference {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
                     if ("1".equals(sAct)) {
-                        _EventProc(EVENT_VIDEO_SYNC, "", sObjPeer);
+                        _OnEvent(EVENT_VIDEO_SYNC, "", sObjPeer);
                     }
 
                 } else if (uMeth == 35) {
@@ -2968,7 +3029,7 @@ public class pgLibConference {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
                     if ("1".equals(sAct)) {
-                        _EventProc(EVENT_VIDEO_SYNC_1, "", sObjPeer);
+                        _OnEvent(EVENT_VIDEO_SYNC_1, "", sObjPeer);
                     }
                 } else if (uMeth == 35) {
                     _VideoJoin(sObj, sData, iHandle, sObjPeer, EVENT_VIDEO_OPEN_1);
@@ -2985,7 +3046,7 @@ public class pgLibConference {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
                     if ("1".equals(sAct)) {
-                        _EventProc(EVENT_AUDIO_SYNC, "", sObjPeer);
+                        _OnEvent(EVENT_AUDIO_SYNC, "", sObjPeer);
                     }
                 }
             }
@@ -3033,20 +3094,23 @@ public class pgLibConference {
         if (m_Node != null) {
 
             if (sObj.equals(m_Svr.sSvrName)) {
-                if ("NodeLogin".equals(sParam)) {
-                    _NodeLoginReply(iErr, sData);
-                } else if ("LanScan".equals(sParam)) {
+                if (PARAM_LOGIN.equals(sParam)) {
+                    int iRet = _NodeLoginReply(iErr, sData);
+                    if(iRet == 1){
+                        _ChairPeerCheck();
+                    }
+                } else if (PARAM_LANSCAN.equals(sParam)) {
                     _LanScanResult(sData);
-                } else if ("SvrRequest".equals(sParam)) {
+                } else if (PARAM_SVRREQUEST.equals(sParam)) {
                     _SvrReply(iErr, sData);
                 }
 
                 return 1;
             }
-            if (sParam.indexOf("CallSend") == 0) {
+            if (sParam.indexOf(PARAM_PRE_CALLSEND) == 0) {
                 String sSession;
                 sSession = sParam.substring(9);
-                _EventProc(EVENT_CALLSEND_RESULT, sSession + ":" + iErr, sObj);
+                _OnEvent(EVENT_CALLSEND_RESULT, sSession + ":" + iErr, sObj);
                 return 1;
             }
 
@@ -3055,9 +3119,9 @@ public class pgLibConference {
                 return 1;
             }
 
-            if (sParam.indexOf("VideoOpen") == 0) {
+            if (sParam.indexOf(PARAM_PRE_VIDEO_OPEN) == 0) {
                 //视频加入通知
-                this._EventProc(EVENT_VIDEO_JOIN, "" + iErr, sParam.substring(10));
+                this._OnEvent(EVENT_VIDEO_JOIN, "" + iErr, sParam.substring(10));
                 return 1;
             }
             if (sParam.indexOf(EVENT_VIDEO_CAMERA) == 0) {
@@ -3070,25 +3134,25 @@ public class pgLibConference {
             }
 
             if (!m_Group.bEmpty && sObj.equals(m_Group.sObjA)) {
-                if ("AudioCtrlVolume".equals(sParam)) { // Cancel file
-                    _EventProc(EVENT_AUDIO_CTRL_VOLUME, Integer.valueOf(iErr).toString(), sObj);
+                if (PARAM_AUDIO_CTRL_VOLUME.equals(sParam)) { // Cancel file
+                    _OnEvent(EVENT_AUDIO_CTRL_VOLUME, Integer.valueOf(iErr).toString(), sObj);
                 }
             }
 
             if (_FileObjectIs(sObj)) {
-                if ("FileGetRequest".equals(sParam)
-                        || "FilePutRequest".equals(sParam))
+                if (PARAM_FILE_GET_REQUEST.equals(sParam)
+                        || PARAM_FILE_PUT_REQUEST.equals(sParam))
                 {
                     String sRenID = _FileObjectParseChairID(sObj);
                     String sID = "";
                     if (iErr != PG_ERR_Normal) {
                         _FileListSet(sRenID,sID, "Status", "0");
-                        _EventProc("FileReject", (iErr + ""), sRenID);
+                        _OnEvent(EVENT_FILE_REJECT, (iErr + ""), sRenID);
                         return 1;
                     }
                     else {
                         _FileListSet(sRenID,sID, "Status", "1");
-                        _EventProc("FileAccept", "0" , sRenID);
+                        _OnEvent(EVENT_FILE_ACCEPT, "0" , sRenID);
                         return 1;
                     }
                 }

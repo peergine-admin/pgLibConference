@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author ctkj
  * Node 对象初始化管理类
  */
-public class pgLibNode {
+public final class pgLibNode {
 
 	public pgLibNode() {
 	}

@@ -103,7 +103,7 @@
                 android:layout_weight="1"
                 android:hint="请找客服申请测试ID"
                 android:inputType=""
-                android:text="" />
+                android:text="hwq2016001" />
         </LinearLayout>
 
         <LinearLayout

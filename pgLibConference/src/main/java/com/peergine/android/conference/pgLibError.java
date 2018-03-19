@@ -14,7 +14,7 @@ package com.peergine.android.conference;
  * @author ctkj
  * 错误码常量的定义
  */
-public class pgLibError {
+public final class pgLibError {
 
 	/** 成功*/
 	public static final int PG_ERR_Normal = 0;
