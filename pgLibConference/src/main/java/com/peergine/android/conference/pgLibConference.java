@@ -230,7 +230,7 @@ public class pgLibConference {
      * 阻塞方式：非阻塞，立即返回
      * @param eventListener ：[IN] 实现了OnEventListner接口的对象，必须定义event函数。
      */
-    public void SetEventListener(OnEventListener eventListener) {
+    public void SetEventListener(pgLibConference.OnEventListener eventListener) {
         m_eventListener = eventListener;
     }
 
@@ -1039,6 +1039,21 @@ public class pgLibConference {
 
     /**
      * 开始录制
+     * @deprecated old
+     * @param sID 录制端ID ID为本身则录制本端视频，要求：视频通话正在进行。
+     * @param sAviPath 视频保存路径
+     * @return true 成功 false 失败
+     */
+    public boolean RecordStart( String sID, String sAviPath){
+        int iErr = RecordStart(sID,sAviPath,PG_RECORD_NORMAL);
+        if(iErr > PG_ERR_Normal){
+            return false;
+        }
+
+        return true;
+    }
+    /**
+     * 开始录制
      * @param sID 录制端ID ID为本身则录制本端视频，要求：视频通话正在进行。
      * @param sAviPath 视频保存路径
      * @param iMode 录制模式，0 同时录制视音频；1 只录制视频；2 只录制音频
@@ -1110,6 +1125,17 @@ public class pgLibConference {
         return PG_ERR_Normal;
     }
 
+
+    /**
+     * 停止录制
+     * @deprecated old
+     * @param sID 录制端ID ID为本身则录制本端视频，要求：视频通话正在进行
+     * @return true
+     */
+    public boolean RecordStop( String sID){
+        RecordStop(sID,PG_RECORD_NORMAL);
+        return true;
+    }
     /**
      * 停止录制
      * @param sID 录制ID ,本端录制填本端ID。

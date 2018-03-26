@@ -55,7 +55,16 @@ public class VideoAudioInputExternal {
         m_CameraView.setVisibility(View.GONE);
         Log.d("plugin Exter", "VideoStart: initialize capture");
     }
-
+    public void VideoInputExternalDisable(){
+        if(m_CameraView!=null){
+            if(m_View!=null){
+                m_View.removeAllViews();
+            }
+            m_CameraView.Clean();
+            m_CameraView = null;
+        }
+        Log.d("plugin Exter", "VideoStart: initialize capture");
+    }
     public void AudioInputExternalEnable(){
         pgDevAudioIn.SetCallback(m_oAudioInCB);
         SetAudioInExter(m_Node);

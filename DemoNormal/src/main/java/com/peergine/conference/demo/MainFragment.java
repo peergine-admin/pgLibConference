@@ -93,6 +93,8 @@ public class MainFragment extends SupportFragment {
             startForResult(FullScreenFragment.newInstance(videoview,iWndID),REQ_MSG);
         }
     };
+    private String sMode = "";
+    private VideoAudioInputExternal external=null;
     //R.id.layoutVideoS0,
 
     class MEMBER {
@@ -211,14 +213,14 @@ public class MainFragment extends SupportFragment {
         m_sVideoParam = args.getString("VideoParam");
 
         int iExpire = ParseInt(args.getString("Expire"), 10);
-        String sMode = args.getString("Mode");
+        sMode = args.getString("Mode");
         if (mConf == null) {
             mConf = new pgLibConference();
             mConf.SetEventListener(m_OnEvent);
 
             mConf.SetExpire(iExpire);
             PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
-
+            mNodeCfg.P2PTryTime = 65535;
             mConf.ConfigNode(mNodeCfg);
 
         }
@@ -246,7 +248,7 @@ public class MainFragment extends SupportFragment {
         mPreview = mConf.PreviewCreate(160, 120);
         if("1".equals(sMode)){
             int iVideoMode = ParseInt(mConf.GetNode().omlGetContent(m_sVideoParam,"Mode"),0);
-            VideoAudioInputExternal external = new VideoAudioInputExternal(mConf.GetNode(),mPreviewLayout,iVideoMode,getContext());
+            external = new VideoAudioInputExternal(mConf.GetNode(),mPreviewLayout,iVideoMode,getContext());
         	external.VideoInputExternalEnable();
         }else{
             mPreviewLayout.removeAllViews();
@@ -273,9 +275,13 @@ public class MainFragment extends SupportFragment {
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
+        if("1".equals(sMode)) {
+            external.VideoInputExternalDisable();
+        }
         pgStop();
         mConf.Clean();
+        super.onDestroyView();
+
     }
 
 
@@ -295,7 +301,13 @@ public class MainFragment extends SupportFragment {
             LinearLayout linearLayout = this.getView().findViewById(iWndID);
 
             if(R.id.layoutVideoS0 == iWndID){
-                linearLayout.addView(mPreview);
+                if("1".equals(sMode)){
+                    external.VideoInputExternalDisable();
+                    external.VideoInputExternalEnable();
+                }else{
+                    linearLayout.addView(mPreview);
+                }
+
             }
             else {
                 for (MEMBER oMemb : mListMemberS) {
@@ -678,9 +690,9 @@ public class MainFragment extends SupportFragment {
         String sName = msChair;
         mConf.Start(sName, msChair);
         int iVideoFlag = VIDEO_NORMAL;
-        if(msChair.equals(m_sUser)){
-            iVideoFlag = VIDEO_ONLY_INPUT;
-        }
+//        if(msChair.equals(m_sUser)){
+//            iVideoFlag = VIDEO_ONLY_INPUT;
+//        }
 
         mConf.VideoStart(iVideoFlag);
         mConf.AudioStart();
@@ -787,8 +799,8 @@ public class MainFragment extends SupportFragment {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String sDate = formatter.format(currentTime);
         String sPath = getSDCardDir() + "/test/record" + sDate + ".avi";
-        int iErr = mConf.RecordStart(msChair, sPath,PG_RECORD_NORMAL);
-        if ((iErr > PG_ERR_Normal)) {
+        boolean iErr = mConf.RecordStart(msChair, sPath);
+        if ((iErr = false)) {
             Toast.makeText(getContext(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
             mConf.RecordStop(msChair,PG_RECORD_NORMAL);
 
@@ -796,7 +808,7 @@ public class MainFragment extends SupportFragment {
     }
 
     private void pgRecordStop(){
-        mConf.RecordStop(msChair,PG_RECORD_NORMAL);
+        mConf.RecordStop(msChair);
     }
 
     //给所有加入会议的成员发送消息
@@ -822,6 +834,21 @@ public class MainFragment extends SupportFragment {
             m_bSpeechEnable = !m_bSpeechEnable;
         }
     }
+
+
+    public void SetCameraRate(int iCameraRate) {
+        pgLibJNINode Node = mConf.GetNode();
+        if (Node != null) {
+            if (Node.ObjectAdd("_aTemp", "PG_CLASS_Video", "", 0)) {
+
+                String sData = "(Item){4}(Value){"+ iCameraRate +"}";
+
+                Node.ObjectRequest("_aTemp", 2, sData, "");
+                Node.ObjectDelete("_aTemp");
+            }
+        }
+    }
+
 
     private final View.OnClickListener mOnclink = new View.OnClickListener() {
         @Override
