@@ -54,11 +54,17 @@ public class pgLibConferenceEvent {
      */
     public static final String EVENT_VIDEO_CLOSE_1 = "VideoCloseL";
     /**
-     * 视频状态信息上报
+     * 视频状态信息上报 ,
+     * Peer：指定上报视频统计的节点。
+     * Total：总发送的视频帧数
+     * Drop：丢弃的视频帧数
      */
     public static final String EVENT_VIDEO_FRAME_STAT = "VideoFrameStat";
     /**
      * 视频状态信息上报2
+     * Peer：指定上报视频统计的节点。
+     * Total：总发送的视频帧数
+     * Drop：丢弃的视频帧数
      */
     public static final String EVENT_VIDEO_FRAME_STAT_1 = "VideoFrameStatL";
 
