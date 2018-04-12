@@ -12,6 +12,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.peergine.plugin.android.pgDevAudioOut;
 import com.peergine.plugin.android.pgDevVideoOut;
 
 import java.nio.ByteBuffer;
@@ -32,6 +33,33 @@ public class VideoAudioOutputExternal {
         m_View.addView(m_wndPlay);
         m_wndPlay.setVisibility(View.VISIBLE);
     }
+
+    public void AudioOutputExternalEnable() {
+
+        pgDevAudioOut.SetCallback(m_oAudioOutCB);
+        Log.d("plugin Exter", "AudioStart: Set callback");
+    }
+
+    private pgDevAudioOut.OnCallback m_oAudioOutCB = new pgDevAudioOut.OnCallback() {
+        @Override
+        public int Open(int iDevNO, int uSampleBits, int uSampleRate, int uChannels, int uPackBytes) {
+            if (iDevNO < 2) {
+                return 1234;
+            }
+            return iDevNO;
+        }
+
+        @Override
+        public void Close(int iDevNO) {
+
+        }
+
+        @Override
+        public int Play(int iDevNO, byte[] bytes, int i1) {
+            return 0;
+        }
+    };
+
 
     private pgDevVideoOut.OnCallback m_oVideoOutCB = new pgDevVideoOut.OnCallback() {
 

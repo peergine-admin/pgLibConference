@@ -19,6 +19,8 @@ import static com.peergine.android.conference.pgLibConferenceEvent.*;
 import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_LOGOUT;
 import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_VIDEO_LOST;
 import static com.peergine.android.conference.pgLibError.*;
+import static com.peergine.android.conference.pgLibNode._AddrToReadable;
+
 /**
  * Copyright (C) 2014-2017, Peergine, All rights reserved.
  * www.peergine.com, www.pptun.com
@@ -81,12 +83,14 @@ public class pgLibConference {
     private static final String PARAM_AUDIO_CTRL_VOLUME = "AudioCtrlVolume";
     private static final String PARAM_LOGOUT = "NodeLogout";
     private static final String PARAM_SVR_REDIRECT = "SvrRedirect";
+    private static final String PARAM_PEER_GET_INFO = "PeerGetInfo";
 
 
     private int m_iLoginFailCount;
     private boolean m_bLogin;
     private int m_iLoginDelayMax;
     private int m_iIDTimerRelogin;
+    private boolean m_bReportPeerInfo = true;
 
 
     /**
@@ -1453,9 +1457,9 @@ public class pgLibConference {
 
     //log 打印
     private static void _OutString(String sOut) {
-        if (BuildConfig.DEBUG) {
+        //if (BuildConfig.DEBUG) {
             Log.d("pgLibConference", sOut);
-        }
+        //}
     }
 
     //定时器处理程序
@@ -1472,7 +1476,11 @@ public class pgLibConference {
             } else if ("ChairmanAdd".equals(sAct)) {
                 _ChairmanAdd();
             } else if ("Relogin".equals(sAct)) {
+                m_iIDTimerRelogin = -1;
                 _NodeLogin();
+            } else if ("PeerGetInfo".equals(sAct)) {
+                String sPeer = m_Node.omlGetContent(sParam, "Peer");
+                _NodePeerGetInfo(sPeer);
             }
 
         }
@@ -2463,11 +2471,16 @@ public class pgLibConference {
         _OutString("->SelfSync");
 
         String sAct = this.m_Node.omlGetContent(sData, "Action");
-        if (!"1".equals(sAct)) {
+        if ("1".equals(sAct)) {
+            if (sPeer.equals(this.m_Svr.sSvrName)) {
+                TimerStart("(Act){PeerGetInfo}(Peer){" + sPeer + "}", 5, false);
+            }
+        } else {
             if (sPeer.equals(this.m_Svr.sSvrName)) {
                 this._NodeRelogin(10);
             }
         }
+
     }
 
     private int _SelfCall(String sData, String sObjPeer, int iHandle) {
@@ -2543,47 +2556,110 @@ public class pgLibConference {
 
         if ("UserExtend".equals(sCmd)) {
             this._OnEvent(EVENT_SVR_NOTIFY, sParam, sObjPeer);
-        } else if ("Restart".equals(sCmd)) {
-            if (sParam.contains("redirect=1")) {
+            return 0;
+        }
+        if (sCmd.equals("Restart")) {
+            if (sParam.indexOf("redirect=1") >= 0) {
                 _NodeRedirectReset(3);
+            } else {
+                int iDelay = 3;
+                int iInd1 = sParam.indexOf("delay=");
+                if (iInd1 >= 0) {
+                    // Skip the leng of "delay="
+                    String sValue = sParam.substring(iInd1 + 6);
+                    int iValue = _ParseInt(sValue, 3);
+                    iDelay = (iValue < 3) ? 3 : iValue;
+                }
+                _NodeRelogin(iDelay);
+            }
+            return 0;
+        }
+
+
+        return 0;
+    }
+
+    private void _OnServerKickOut(String sData) {
+        String sParam = m_Node.omlGetContent(sData, "Param");
+        _OnEvent("KickOut", sParam, "");
+    }
+
+    private int _OnServerError(String sData, String sPeer) {
+        String sMeth = m_Node.omlGetContent(sData, "Meth");
+        if ("32".equals(sMeth)) {
+            String sError = m_Node.omlGetContent(sData, "Error");
+            if (sError.equals("" + PG_ERR_NoLogin)) {
+                _NodeRelogin(3);
+            } else if (sError.equals("" + PG_ERR_Network)
+                    || sError.equals("" + PG_ERR_Timeout)
+                    || sError.equals("" + PG_ERR_Busy)) {
+                _NodeRedirectReset(0);
             }
         }
 
         return 0;
     }
 
-    //服务器错误处理
-    private void _ServerError(String sData) {
-        _OutString("->ServerError");
-
-        String sMeth = m_Node.omlGetContent(sData, "Meth");
-        if ("32".equals(sMeth)) {
-            String sError = m_Node.omlGetContent(sData, "Error");
-            if ("10".equals(sError)) {
-                _NodeRelogin(3);
-            } else if ("11".equals(sError) || "12".equals(sError) || "14".equals(sError)) {
-                _NodeRedirectReset(0);
-            }
-        }
-    }
-
-    private void _ServerRelogin(String sData) {
-        _OutString("->ServerRelogin!");
-
+    private int _OnServerRelogin(String sData, String sPeer) {
         String sError = m_Node.omlGetContent(sData, "ErrCode");
-        if ("0".equals(sError)) {
+        if (sError.equals("" + PG_ERR_Normal)) {
             String sParam = m_Node.omlGetContent(sData, "Param");
             String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
             if (!"".equals(sRedirect)) {
                 _NodeRedirect(sRedirect);
-                return;
+                return 0;
             }
+
             m_iLoginFailCount = 0;
-            m_Status.bLogined = true;
-            _ChairPeerCheck();
-            _OnEvent(EVENT_LOGIN, "0", m_Svr.sSvrName);
+            m_bLogin = true;
+            _OnEvent(EVENT_LOGIN, "0", "");
+        } else if (sError.equals("" + PG_ERR_Network)
+                || sError.equals("" + PG_ERR_Timeout)
+                || sError.equals("" + PG_ERR_Busy)) {
+            _NodeRedirectReset(0);
+
+            m_bLogin = false;
+            _OnEvent(EVENT_LOGIN, sError, "");
+        } else {
+            m_bLogin = false;
+            _OnEvent(EVENT_LOGIN, sError, "");
         }
 
+        return 0;
+    }
+
+    private void _OnServerSync(String sData) {
+        String sAct = m_Node.omlGetContent(sData, "Action");
+        if (!"1".equals(sAct)) {
+            _NodeRelogin(3);
+        }
+    }
+
+    private void _OnPeerSync(String sObj, String sData) {
+        String sAct = this.m_Node.omlGetContent(sData, "Action");
+        if ("1".equals(sAct)) {
+            if (m_bReportPeerInfo) {
+                TimerStart("(Act){PeerGetInfo}(Peer){" + sObj + "}", 5, false);
+            }
+            //心跳包列表 添加
+            if (!m_Group.bEmpty && m_Group.bChairman) {
+                _KeepAdd(sObj);
+            }
+            this._OnEvent(EVENT_PEER_SYNC, sAct, sObj);
+        }
+    }
+
+    private void _OnPeerError(String sObj, String sData) {
+
+        String sMeth = this.m_Node.omlGetContent(sData, "Meth");
+        String sError = this.m_Node.omlGetContent(sData, "Error");
+        if ("34".equals(sMeth) && sError.equals("" + PG_ERR_BadUser)) {
+            //心跳包列表 删除
+            if (!m_Group.bEmpty && m_Group.bChairman) {
+                _KeepDel(sObj);
+            }
+            _PeerOffline(sObj, sError);
+        }
     }
 
     //会议成员更新   每加入一个新成员 其他成员获得他的信息  新成员获得其他所有成员的信息
@@ -2666,7 +2742,7 @@ public class pgLibConference {
             this._OnEvent(sAct, sError, sPeer);
             _ChairPeerStatic();
             if (!m_LanScan.bPeerCheckTimer) {
-                if (TimerStart("(Act){CapPeerCheck}", 3, false) >= 0) {
+                if (TimerStart("(Act){ChairPeerCheck}", 3, false) >= 0) {
                     m_LanScan.bPeerCheckTimer = true;
                 }
             }
@@ -2923,30 +2999,31 @@ public class pgLibConference {
         _OnEvent("FileAbort", "", sRenID);
     }
 
+
     private int _NodeOnExtRequest(String sObj, int uMeth, String sData, int iHandle, String sObjPeer) {
         if (!((!m_Group.bEmpty) && uMeth == 40 && (sObj.equals(m_Group.sObjV) || sObj.equals(m_Group.sObjLV)))) {
             _OutString("NodeOnExtRequest: " + sObj + ", " + uMeth + ", " + sData + ", " + sObjPeer);
         }
-
-        if (m_eventHook != null) {
-            int iErr = m_eventHook.OnExtRequest(sObj, uMeth, sData, iHandle, sObjPeer);
-            if (iErr != PG_ERR_Unknown) {
-                return iErr;
+        try {
+            if (m_eventHook != null) {
+                int iErr = m_eventHook.OnExtRequest(sObj, uMeth, sData, iHandle, sObjPeer);
+                if (iErr != PG_ERR_Unknown) {
+                    return iErr;
+                }
             }
+        } catch (Exception ex) {
+            _OutString("pgLibLiveMultiCapture._NodeOnExtRequest: call event hook. ex=" + ex.toString());
         }
 
         if (m_Node != null) {
             //Peer类相关
             if (sObj.equals(m_Svr.sSvrName)) {
                 if (uMeth == 0) {
-                    String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if (!"1".equals(sAct) && "".equals(this.m_Svr.sSvrName)) {
-                        this._NodeRelogin(10);
-                    }
+                    _OnServerSync(sData);
                 } else if (uMeth == 1) {
-                    this._ServerError(sData);
+                    _OnServerError(sData, sObjPeer);
                 } else if (uMeth == 46) {
-                    this._ServerRelogin(sData);
+                    _OnServerRelogin(sData, sObjPeer);
                 }
                 return 0;
             } else if (sObj.equals(m_Self.sObjSelf)) {
@@ -2962,7 +3039,9 @@ public class pgLibConference {
                     }
                 } else if (uMeth == 47) {
                     //ID冲突 被踢下线了
-                    _OnEvent(EVENT_LOGOUT, "47", "");
+                    if (sObjPeer.equals(m_Svr.sSvrName)) {
+                        _OnServerKickOut(sData);
+                    }
                 }
                 return 0;
             } else if (!m_Group.bEmpty && this.m_Group.sObjChair.equals(sObj)) {
@@ -2986,27 +3065,11 @@ public class pgLibConference {
                 return 0;
             } else if ("PG_CLASS_Peer".equals(this.m_Node.ObjectGetClass(sObj))) {
                 if (uMeth == 0) {
-                    String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if ("1".equals(sAct)) {
-
-                        //心跳包列表 添加
-                        if (!m_Group.bEmpty && m_Group.bChairman) {
-                            _KeepAdd(sObj);
-                        }
-                        this._OnEvent(EVENT_PEER_SYNC, sAct, sObj);
-                    }
+                    _OnPeerSync(sObj, sData);
                 } else if (uMeth == 1) {
-                    String sMeth = this.m_Node.omlGetContent(sData, "Meth");
-                    if ("34".equals(sMeth)) {
-                        String sError = this.m_Node.omlGetContent(sData, "Error");
-
-                        //心跳包列表 删除
-                        if (!m_Group.bEmpty && m_Group.bChairman) {
-                            _KeepDel(sObj);
-                        }
-                        _PeerOffline(sObj, sError);
-                    }
+                    _OnPeerError(sObj, sData);
                 }
+
                 return 0;
             }
 
@@ -3107,14 +3170,61 @@ public class pgLibConference {
         return 0;
     }
 
+    private void _OnPeerGetInfoReply(String sObj, int iErr, String sData) {
+        if (iErr != PG_ERR_Normal) {
+            return;
+        }
+
+        String sRenID = _ObjPeerParsePeer(sObj);
+        if (!sObj.equals(m_Svr.sSvrName)) {
+
+        } else {
+            sRenID = sObj;
+        }
+
+        String sThrough = m_Node.omlGetContent(sData, "Through");
+        String sProxy = _AddrToReadable(m_Node.omlGetContent(sData, "Proxy"));
+
+        String sAddrLcl = _AddrToReadable(m_Node.omlGetContent(sData, "AddrLcl"));
+
+        String sAddrRmt = _AddrToReadable(m_Node.omlGetContent(sData, "AddrRmt"));
+
+        String sTunnelLcl = _AddrToReadable(m_Node.omlGetContent(sData, "TunnelLcl"));
+
+        String sTunnelRmt = _AddrToReadable(m_Node.omlGetContent(sData, "TunnelRmt"));
+
+        String sPrivateRmt = _AddrToReadable(m_Node.omlGetContent(sData, "PrivateRmt"));
+
+        String sDataInfo = "16:(" + m_Node.omlEncode(sObj) + "){(Through){" + sThrough + "}(Proxy){"
+                + m_Node.omlEncode(sProxy) + "}(AddrLcl){" + m_Node.omlEncode(sAddrLcl) + "}(AddrRmt){"
+                + m_Node.omlEncode(sAddrRmt) + "}(TunnelLcl){" + m_Node.omlEncode(sTunnelLcl) + "}(TunnelRmt){"
+                + m_Node.omlEncode(sTunnelRmt) + "}(PrivateRmt){" + m_Node.omlEncode(sPrivateRmt) + "}}";
+
+        int iErrTemp = m_Node.ObjectRequest(m_Svr.sSvrName, 35, sDataInfo, "pgLibLiveMultiCapture.ReportPeerInfo");
+        if (iErrTemp > PG_ERR_Normal) {
+            _OutString("pgLibLiveMultiCapture._OnPeerGetInfoReply: iErr=" + iErrTemp);
+        }
+
+        // Report to app.
+        sDataInfo = "peer=" + sRenID + "&through=" + sThrough + "&proxy=" + sProxy
+                + "&addrlcl=" + sAddrLcl + "&addrrmt=" + sAddrRmt + "&tunnellcl=" + sTunnelLcl
+                + "&tunnelrmt=" + sTunnelRmt + "&privatermt=" + sPrivateRmt;
+        _OnEvent("PeerInfo", sDataInfo, sRenID);
+    }
+
+
     private int _NodeOnReply(String sObj, int iErr, String sData, String sParam) {
         _OutString("NodeOnReply: " + sObj + ", " + iErr + ", " + sData + ", " + sParam);
 
-        if (m_eventHook != null) {
-            int uErr = m_eventHook.OnReply(sObj, iErr, sData, sParam);
-            if (uErr >= 0) {
-                return iErr;
+        try {
+            if (m_eventHook != null) {
+                int uErr = m_eventHook.OnReply(sObj, iErr, sData, sParam);
+                if (uErr >= 0) {
+                    return iErr;
+                }
             }
+        } catch (Exception ex) {
+            _OutString("_NodeOnReply: call event hook. ex=" + ex.toString());
         }
 
         if (m_Node != null) {
@@ -3129,6 +3239,8 @@ public class pgLibConference {
                     _LanScanResult(sData);
                 } else if (PARAM_SVRREQUEST.equals(sParam)) {
                     _SvrReply(iErr, sData);
+                } else if (sParam.equals(PARAM_PEER_GET_INFO)) {
+                    _OnPeerGetInfoReply(sObj, iErr, sData);
                 }
 
                 return 1;
