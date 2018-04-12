@@ -107,8 +107,8 @@ import java.util.TimerTask;
 *  修改：
 *       VideoRecordStart 改成只能录制视频，
 *       AudioRecordStart 改成只能录制音频，
-*       VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不再公开
-*       AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不再公开
+*       VideoRecord 添加一个参数用来指定是否录制是包含音频，这个函数在未来某个版本将可能不在公开
+*       AudioRecord 添加一个参数用来指定是否录制是包含视频，这个函数在未来某个版本将可能不在公开
 *  添加：
 *       函数 RecordStart 为开始录制视音频
 *       函数 RecordStop 为停止录制视音频
@@ -255,7 +255,7 @@ public class pgLibConference {
             this.sName=sName;
             this.sChair = sChair;
             this.sUser = sUser;
-            if(this.sName.equals("")||this.sChair.equals("")){
+            if("".equals(this.sName) || "".equals(this.sChair)){
                 bEmpty=true;
             }
             else {
@@ -404,7 +404,7 @@ public class pgLibConference {
     //搜索加入会议的节点
     private PG_SYNC SyncPeerSearch(String sPeer) {
         try {
-            if (sPeer.equals("")) {
+            if ("".equals(sPeer)) {
                 OutString("VideoPeerSearch can't Search Start");
                 return null;
             }
@@ -425,10 +425,12 @@ public class pgLibConference {
             super();
         }
 
+        @Override
         public int OnReply(String sObj, int uErrCode, String sData, String sParam) {
             return NodeOnReply(sObj, uErrCode, sData, sParam);
         }
 
+        @Override
         public int OnExtRequest(String sObj, int uMeth, String sData, int uHandle, String sPeer) {
             return NodeOnExtRequest(sObj, uMeth, sData, uHandle, sPeer);
         }
@@ -561,12 +563,12 @@ public class pgLibConference {
                 return true;
             }
 
-            if (sUser.equals("") || sUser.length() > 128) {
+            if ("".equals(sUser) || sUser.length() > 128) {
                 return false;
             }
 
             // Check video parameters.
-            if (sVideoParam.equals("")) {
+            if ("".equals(sVideoParam)) {
                 OutString("Initialize: Invalid VideoParam" + sVideoParam);
                 return false;
             }
@@ -697,7 +699,7 @@ public class pgLibConference {
     * sPeer: 对端的节点名（用户名）
     */
     public boolean PeerAdd(String sPeer) {
-        if (sPeer.equals("")||m_Node==null) {
+        if ("".equals(sPeer) ||m_Node==null) {
             return false;
         }
 
@@ -707,11 +709,11 @@ public class pgLibConference {
         }
 
         String sClass = m_Node.ObjectGetClass(sPeerTemp);
-        if (sClass.equals("PG_CLASS_Peer")) {
+        if ("PG_CLASS_Peer".equals(sClass)) {
             return true;
         }
 
-        if (!sClass.equals("")) {
+        if (!"".equals(sClass)) {
             m_Node.ObjectDelete(sPeerTemp);
         }
 
@@ -722,7 +724,7 @@ public class pgLibConference {
     // 删除节点连接。（一般不用主动删除节点，因为如果没有通信，节点连接会自动老化。）
     // sPeer: 对端的节点名（用户名）
     public void PeerDelete(String sPeer) {
-        if (sPeer.equals("")||m_Node==null) {
+        if ("".equals(sPeer) ||m_Node==null) {
             return;
         }
 
@@ -751,7 +753,7 @@ public class pgLibConference {
                 return false;
             }
 
-            if (sMember.equals("")) {
+            if ("".equals(sMember)) {
                 OutString("No Group or sMember name");
                 return false;
             }
@@ -789,7 +791,7 @@ public class pgLibConference {
                 OutString("MemberAdd: no Chairman");
                 return;
             }
-            if (sMember.equals("")) {
+            if ("".equals(sMember)) {
                 OutString("No Group or sMember name");
                 return;
             }
@@ -953,7 +955,7 @@ public class pgLibConference {
                 return null;
             }
 
-            if (sPeer.equals("")) {
+            if ("".equals(sPeer)) {
                 OutString("sPeer no chars");
                 return null;
             }
@@ -1090,7 +1092,7 @@ public class pgLibConference {
             OutString(" Not initialize");
             return;
         }
-        if (sPeer.equals("")) {
+        if ("".equals(sPeer)) {
             OutString("sPeer no chars");
             return;
         }
@@ -1256,7 +1258,7 @@ public class pgLibConference {
             }
 
             int iFlag = bEnable ? 1 : 0;
-            if (sPeer.equals("")) {
+            if ("".equals(sPeer)) {
                 return false;
             }
 
@@ -1356,7 +1358,7 @@ public class pgLibConference {
                 sPeer = "_DEV_" + sPeer;
             }
             String sPathTemp = sPath;
-            if ((!sPathTemp.equals(""))&&sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
+            if ((!"".equals(sPathTemp))&&sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
                 sPathTemp += ".avi";
             }
 
@@ -1454,7 +1456,7 @@ public class pgLibConference {
             OutString("Audio not init");
             return false;
         }
-        if ((!sPeer.equals("")) && sPeer.indexOf("_DEV_") != 0) {
+        if ((!"".equals(sPeer)) && sPeer.indexOf("_DEV_") != 0) {
             sPeer = "_DEV_" + sPeer;
         }
 
@@ -1576,7 +1578,7 @@ public class pgLibConference {
                 sPeer = "_DEV_" + sPeer;
             }
             String sPathTemp = sPath;
-            if ((!sPathTemp.equals(""))&&sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
+            if ((!"".equals(sPathTemp))&&sPathTemp.lastIndexOf(".avi") < 0 && sPathTemp.lastIndexOf(".AVI") < 0) {
                 sPathTemp += ".avi";
             }
             int iHasVideo = bHasVideo?1:0;
@@ -1602,7 +1604,7 @@ public class pgLibConference {
      *
      * */
     public boolean RecordStart(String sPeer, String sPath){
-        if(VideoRecord(sPeer,sPath,true)&&AudioRecord(sPeer,sPath,true)){
+        if(AudioRecord(sPeer,sPath,true)&&VideoRecord(sPeer,sPath,true)){
             return true;
         }
         else {
@@ -1803,46 +1805,13 @@ public class pgLibConference {
         m_LanScan.bApiLanScan = true;
         return true;
     }
-    // /**
-    //  *  描述：指定客户端与P2P服务器的连网方式。
-    //  *      在手机系统上使用P2P时，如果手机休眠，则网络切换到“只使用Relay转发)”方式连接，
-    //  *      可增强手机APP在休眠状态下的在线能力。
-    //  *  阻塞方式：非阻塞，立即返回
-    //  *  iMode：[IN] 连网模式。0为自动选择，1为只用P2P穿透，2为只用Relay转发。
-    //  *  返回值： true 操作成功，false 操作失败
-    //  */
-    // public boolean ServerNetMode(int iMode) {
-    //     if (iMode > 2) {
-    //         return false;
-    //     }
-    //     if (m_Node == null) {
-    //         return false;
-    //     }
-    //     String sCls = m_Node.ObjectGetClass(m_Svr.sSvrName);
-    //     if (sCls.equals("")) {
-    //         OutString("ServerNetMode: Server peer object is invalid");
-    //         return false;
-    //     }
-    //     int iErr = m_Node.ObjectRequest(m_Svr.sSvrName, 2, "(Item){4}(Value){" + iMode + "}", "");
-    //     if (iErr > 0) {
-    //         OutString("ServerNetMode: iErr=" + iErr);
-    //         return false;
-    //     }
-    //     return true;
-    // }
-
-    //    public void TimerStart(String sAct,int iDelay,boolean  bRepeat, String sSession)
-    //    {
-    //        String sParam="(Act){"+sAct+":"+sSession+"}";
-    //        TimerStart(sParam,iDelay,bRepeat);
-    //    }
 
     ///------------------------------------------------------------------------
     // Static function
     //处理int
     private static int ParseInt(String sInt, int iDef) {
         try {
-            if (sInt.equals("")) {
+            if ("".equals(sInt)) {
                 return 0;
             }
             return Integer.parseInt(sInt);
@@ -1870,17 +1839,17 @@ public class pgLibConference {
         @Override
         public void TimerProc(String sParam) {
             String sAct = m_Node.omlGetContent(sParam, "Act");
-            if (sAct.equals("Keep")) {
+            if ("Keep".equals(sAct)) {
                 Keep();
-            } else if (sAct.equals("TimerActive")) {
+            } else if ("TimerActive".equals(sAct)) {
                 TimerActive();
             }
-            else if (sAct.equals("ChairPeerCheck")) {
+            else if ("ChairPeerCheck".equals(sAct)) {
                 ChairPeerCheckTimeout();
             }
-            else if (sAct.equals("ChairmanAdd")) {
+            else if ("ChairmanAdd".equals(sAct)) {
                 ChairmanAdd();
-            } else if (sAct.equals("Relogin")) {
+            } else if ("Relogin".equals(sAct)) {
                 NodeLogin();
             }
 
@@ -1979,7 +1948,7 @@ public class pgLibConference {
         m_Node.Local = "Addr=0:0:0:127.0.0.1:0:0";
         m_Node.Server = "Name=" + m_Svr.sSvrName + ";Addr=" + m_Svr.sSvrAddr + ";Digest=1";
         m_Node.NodeProc = m_NodeProc;
-        if (!m_Svr.sRelayAddr.equals("")) {
+        if (!"".equals(m_Svr.sRelayAddr)) {
             m_Node.Relay = "(Relay0){(Type){0}(Load){0}(Addr){" + m_Svr.sRelayAddr + "}}";
         } else {
             int iInd = m_Svr.sSvrAddr.lastIndexOf(':');
@@ -2110,7 +2079,7 @@ public class pgLibConference {
         NodeLogout();
 
         String sSvrName = m_Node.omlGetContent(sRedirect, "SvrName");
-        if (!sSvrName.equals("") && !sSvrName.equals(m_Svr.sSvrName)) {
+        if (!"".equals(sSvrName) && !sSvrName.equals(m_Svr.sSvrName)) {
             m_Node.ObjectDelete(m_Svr.sSvrName);
             if (!m_Node.ObjectAdd(sSvrName, "PG_CLASS_Peer", "", (0x10000 | 0x2))) {
                 OutString("pgLibConference.NodeRedirect: Add server object failed");
@@ -2120,7 +2089,7 @@ public class pgLibConference {
             m_Svr.sSvrAddr = "";
         }
         String sSvrAddr = m_Node.omlGetContent(sRedirect, "SvrAddr");
-        if (!sSvrAddr.equals("") && !sSvrAddr.equals( m_Svr.sSvrAddr)) {
+        if (!"".equals(sSvrAddr) && !sSvrAddr.equals( m_Svr.sSvrAddr)) {
             String sData = "(Addr){" + sSvrAddr + "}(Proxy){}";
             int iErr = m_Node.ObjectRequest(m_Svr.sSvrName, 37, sData, "pgLibConference.NodeRedirect");
             if (iErr > 0) {
@@ -2170,7 +2139,7 @@ public class pgLibConference {
             // Process redirect.
             String sParam = m_Node.omlGetContent(sData, "Param");
             String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
-            if (!sRedirect.equals("")) {
+            if (!"".equals(sRedirect)) {
                 NodeRedirect(sRedirect);
                 return 1;
             }
@@ -2189,7 +2158,7 @@ public class pgLibConference {
     private void ChairmanAdd() {
         OutString(" ->ChairmanAdd ");
         try {
-            if (m_Node.ObjectGetClass(m_Group.sObjChair).equals("PG_CLASS_Peer")) {
+            if ("PG_CLASS_Peer".equals(m_Node.ObjectGetClass(m_Group.sObjChair))) {
                 PeerSync(m_Group.sObjChair, "", 1);
                 ChairPeerCheck();
             } else {
@@ -2394,7 +2363,7 @@ public class pgLibConference {
         OutString("->KeepRecv sPeer=" + sPeer);
 
         if (m_Status.bServiceStart&&!m_Group.bEmpty) {
-           
+
             if (m_Group.bChairman) {
                 PG_SYNC oSync = SyncPeerSearch(sPeer);
                 if (oSync != null) {
@@ -2407,7 +2376,7 @@ public class pgLibConference {
                 m_Node.ObjectRequest(sPeer, 36, "Keep?", "pgLibConference.MessageSend");
                 m_Stamp.iKeepChainmanStamp = m_Stamp.iKeepStamp;
             }
-            
+
         }
     }
 
@@ -2487,7 +2456,7 @@ public class pgLibConference {
             return false;
         }
         if(!m_Group.bChairman){
-             ChairPeerCheck();
+            ChairPeerCheck();
         }
 
         m_Status.iVideoInitFlag = iFlag;
@@ -2636,7 +2605,7 @@ public class pgLibConference {
         OutString("->SelfSync");
 
         String sAct = this.m_Node.omlGetContent(sData, "Action");
-        if (!sAct.equals("1")) {
+        if (!"1".equals(sAct)) {
             if (sPeer.equals(this.m_Svr.sSvrName)) {
                 this.NodeRelogin(10);
             }
@@ -2655,7 +2624,7 @@ public class pgLibConference {
             } else {
                 sParam = sData;
             }
-            if (sCmd.equals("Msg")) {
+            if ("Msg".equals(sCmd)) {
                 this.EventProc("Message", sParam, sPeer);
             }
             m_Node.ObjectExtReply(sPeer, 0, "", iHandle);
@@ -2680,13 +2649,13 @@ public class pgLibConference {
                 sParam = sData;
             }
 
-            if (sCmd.equals("Join")) {
+            if ("Join".equals(sCmd)) {
                 this.EventProc("AskJoin", "", sPeer);
-            } else if (sCmd.equals("Leave")) {
+            } else if ("Leave".equals(sCmd)) {
                 this.EventProc("AskLeave", "", sPeer);
-            } else if (sCmd.equals("Msg")) {
+            } else if ("Msg".equals(sCmd)) {
                 this.EventProc("Message", sParam, sPeer);
-            } else if (sCmd.equals("Active")) {
+            } else if ("Active".equals(sCmd)) {
                 if (m_Status.bServiceStart) {
                     PG_PEER oPeer = VideoPeerSearch(sPeer);
                     if (oPeer != null) {
@@ -2696,7 +2665,7 @@ public class pgLibConference {
                 }
                 return 0;
 
-            } else if (sCmd.equals("Keep")) {
+            } else if ("Keep".equals(sCmd)) {
                 KeepRecv(sPeer);
             }
         } catch (Exception ex) {
@@ -2718,9 +2687,9 @@ public class pgLibConference {
             sParam = sData;
         }
 
-        if (sCmd.equals("UserExtend")) {
+        if ("UserExtend".equals(sCmd)) {
             this.EventProc("SvrNotify", sParam, sPeer);
-        } else if (sCmd.equals("Restart")) {
+        } else if ("Restart".equals(sCmd)) {
             if (sParam.contains("redirect=1")) {
                 NodeRedirectReset(3);
             }
@@ -2734,11 +2703,11 @@ public class pgLibConference {
         OutString("->ServerError");
 
         String sMeth = m_Node.omlGetContent(sData, "Meth");
-        if (sMeth.equals("32")) {
+        if ("32".equals(sMeth)) {
             String sError = m_Node.omlGetContent(sData, "Error");
-            if (sError.equals("10")) {
+            if ("10".equals(sError)) {
                 NodeRelogin(3);
-            } else if (sError.equals("11") || sError.equals("12") || sError.equals("14")) {
+            } else if ("11".equals(sError) || "12".equals(sError) || "14".equals(sError)) {
                 NodeRedirectReset(0);
             }
 //            if (sError.equals("8")) {
@@ -2764,10 +2733,10 @@ public class pgLibConference {
     private void ServerRelogin(String sData) {
         OutString("->ServerRelogin!");
         String sError = m_Node.omlGetContent(sData, "ErrCode");
-        if (sError.equals("0")) {
+        if ("0".equals(sError)) {
             String sParam = m_Node.omlGetContent(sData, "Param");
             String sRedirect = m_Node.omlGetEle(sParam, "Redirect.", 10, 0);
-            if (!sRedirect.equals("")) {
+            if (!"".equals(sRedirect)) {
                 NodeRedirect(sRedirect);
                 return;
             }
@@ -2788,7 +2757,7 @@ public class pgLibConference {
             int iInd = 0;
             while (true) {
                 String sEle = this.m_Node.omlGetEle(sPeerList, "", 1, iInd);
-                if (sEle.equals("")) {
+                if ("".equals(sEle)) {
                     break;
                 }
 
@@ -2796,7 +2765,7 @@ public class pgLibConference {
                 OutString("GroupUpdate: sAct=" + sAct + " sPeer=" + sPeerTemp);
                 if (sPeerTemp.indexOf("_DEV_") == 0) {
 
-                    if (sAct.equals("1")) {
+                    if ("1".equals(sAct)) {
                         EventProc("Join", "", sPeerTemp);
                     } else {
                         EventProc("Leave", "", sPeerTemp);
@@ -2815,7 +2784,7 @@ public class pgLibConference {
     private PG_PEER VideoPeerSearch(String sPeer) {
         OutString("->VideoPeerSearch");
         try {
-            if (sPeer.equals("")) {
+            if ("".equals(sPeer)) {
                 OutString("VideoPeerSearch can't Search Start");
                 return null;
             }
@@ -2940,7 +2909,7 @@ public class pgLibConference {
         if(m_Group.bEmpty||m_Group.bChairman){
             return false;
         }
-        if (m_Group.sObjChair.equals("")) {
+        if ("".equals(m_Group.sObjChair)) {
             return false;
         }
 
@@ -2950,7 +2919,7 @@ public class pgLibConference {
         boolean bAddSuccess = false;
         if (!m_Status.bLogined || bStatic) {
             String sEle = m_Node.omlGetEle(m_LanScan.sLanScanRes, m_Group.sObjChair, 1, 0);
-            if (!sEle.equals("")) {
+            if (!"".equals(sEle)) {
                 if (m_Node.ObjectAdd( m_Group.sObjChair, "PG_CLASS_Peer", "", (0x10000 | 0x4))) {
                     // Set static peer's address.
                     String sAddr = m_Node.omlGetContent(sEle, "");
@@ -3027,7 +2996,7 @@ public class pgLibConference {
         }
 
         String sEle = m_Node.omlGetEle(m_LanScan.sLanScanRes, m_Group.sObjChair, 1, 0);
-        if (!sEle.equals("")) {
+        if (!"".equals(sEle)) {
             String sAddr = m_Node.omlGetContent(sEle, "");
             if (!sAddr.equals(m_LanScan.sLanAddr)) {
                 ChairPeerAdd(true);
@@ -3045,7 +3014,7 @@ public class pgLibConference {
         int iInd = 0;
         while (true) {
             String sEle = m_Node.omlGetEle(sData, "PeerList.", 1, iInd);
-            if (sEle.equals("")) {
+            if ("".equals(sEle)) {
                 break;
             }
 
@@ -3065,7 +3034,7 @@ public class pgLibConference {
         }
 
         if (!m_Status.bLogined) {
-               ChairPeerStatic();
+            ChairPeerStatic();
         }
 
         m_LanScan.bApiLanScan = false;
@@ -3085,7 +3054,7 @@ public class pgLibConference {
             if (sObj.equals(m_Svr.sSvrName)) {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if (!sAct.equals("1") && this.m_Svr.sSvrName.equals("")) {
+                    if (!"1".equals(sAct) && "".equals(this.m_Svr.sSvrName)) {
                         this.NodeRelogin(10);
                     }
                 } else if (uMeth == 1) {
@@ -3116,14 +3085,14 @@ public class pgLibConference {
 
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if (sAct.equals("1")) {
+                    if ("1".equals(sAct)) {
                         KeepAdd(sObj);
                         m_LanScan.bPeerCheckTimer = false;
                         this.EventProc("ChairmanSync", sAct, sObj);
                     }
                 } else if (uMeth == 1) {
                     String sMeth = this.m_Node.omlGetContent(sData, "Meth");
-                    if (sMeth.equals("34")) {
+                    if ("34".equals(sMeth)) {
                         String sError = this.m_Node.omlGetContent(sData, "Error");
 
                         PeerOffline(sObj, sError);
@@ -3131,10 +3100,10 @@ public class pgLibConference {
                     }
                 }
                 return 0;
-            } else if (this.m_Node.ObjectGetClass(sObj).equals("PG_CLASS_Peer")) {
+            } else if ("PG_CLASS_Peer".equals(this.m_Node.ObjectGetClass(sObj))) {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if (sAct.equals("1")) {
+                    if ("1".equals(sAct)) {
 
                         //心跳包列表 添加
                         if (!m_Group.bEmpty&&m_Group.bChairman) {
@@ -3144,7 +3113,7 @@ public class pgLibConference {
                     }
                 } else if (uMeth == 1) {
                     String sMeth = this.m_Node.omlGetContent(sData, "Meth");
-                    if (sMeth.equals("34")) {
+                    if ("34".equals(sMeth)) {
                         String sError = this.m_Node.omlGetContent(sData, "Error");
 
                         //心跳包列表 删除
@@ -3184,7 +3153,7 @@ public class pgLibConference {
             if (!m_Group.bEmpty&&sObj.equals(m_Group.sObjV)) {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if (sAct.equals("1")) {
+                    if ("1".equals(sAct)) {
                         EventProc("VideoSync", "", sPeer);
                     }
 
@@ -3201,7 +3170,7 @@ public class pgLibConference {
             if (!m_Group.bEmpty&&sObj.equals(m_Group.sObjLV)) {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if (sAct.equals("1")) {
+                    if ("1".equals(sAct)) {
                         EventProc("VideoSyncL", "", sPeer);
                     }
                 } else if (uMeth == 35) {
@@ -3218,7 +3187,7 @@ public class pgLibConference {
             if (!m_Group.bEmpty && sObj.equals(m_Group.sObjA)) {
                 if (uMeth == 0) {
                     String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if (sAct.equals("1")) {
+                    if ("1".equals(sAct)) {
                         EventProc("AudioSync", "", sPeer);
                     }
                 }
@@ -3238,13 +3207,13 @@ public class pgLibConference {
                 return 1;
             }
             if (sObj.equals(m_Svr.sSvrName)) {
-                if (sParam.equals("NodeLogin")) {
+                if ("NodeLogin".equals(sParam)) {
                     NodeLoginReply(iErr, sData);
                 }
-                else if (sParam.equals("LanScan")) {
+                else if ("LanScan".equals(sParam)) {
                     LanScanResult(sData);
                 }
-                else if (sParam.equals("SvrRequest")) {
+                else if ("SvrRequest".equals(sParam)) {
                     SvrReply(iErr, sData);
                 }
 
@@ -3277,7 +3246,7 @@ public class pgLibConference {
             }
 
             if (!m_Group.bEmpty&&sObj.equals(m_Group.sObjA)) {
-                if (sParam.equals("AudioCtrlVolume")) { // Cancel file
+                if ("AudioCtrlVolume".equals(sParam)) { // Cancel file
                     EventProc("AudioCtrlVolume", Integer.valueOf(iErr).toString(), sObj);
                 }
             }
@@ -3348,6 +3317,7 @@ public class pgLibConference {
             super();
         }
 
+        @Override
         public void run() {
             try {
                 if (m_timerHandler != null) {

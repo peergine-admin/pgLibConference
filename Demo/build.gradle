@@ -7,12 +7,12 @@ static def releaseTime() {
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
-    android.applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            def fileName = "${rootDir}/DemoApp/Demo_v${defaultConfig.versionName}_${releaseTime()}.apk"
-            output.outputFile = new File(fileName);
-        }
-    }
+//    android.applicationVariants.all { variant ->
+//        variant.outputs.each { output ->
+//            def fileName = "${rootDir}/DemoApp/Demo_v${defaultConfig.versionName}_${releaseTime()}.apk"
+//            output.outputFileN = new File(fileName);
+//        }
+//    }
     defaultConfig {
         applicationId "com.peergine.conference.demo"
         minSdkVersion 15
