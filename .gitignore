@@ -1,7 +1,7 @@
 *.iml
-.gradle
+/.gradle
 .idea
-.settings
+/.settings
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
@@ -38,3 +38,5 @@ pgPluginLibExter/.settings/org.eclipse.buildship.core.prefs
 /DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestChairman.java
 /DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestDialing.java
 /DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestMember.java
+/Demo
+/.idea
