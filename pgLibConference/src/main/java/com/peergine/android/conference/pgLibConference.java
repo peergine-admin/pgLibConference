@@ -16,7 +16,6 @@ import java.util.TimerTask;
 
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 import static com.peergine.android.conference.pgLibConferenceEvent.*;
-import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_LOGOUT;
 import static com.peergine.android.conference.pgLibConferenceEvent.EVENT_VIDEO_LOST;
 import static com.peergine.android.conference.pgLibError.*;
 import static com.peergine.android.conference.pgLibNode._AddrToReadable;
@@ -1746,13 +1745,10 @@ public class pgLibConference {
     }
 
     private void _NodePeerGetInfo(String sPeer) {
-        if (!m_Status.bServiceStart) {
-            return;
-        }
 
-        int iErr = m_Node.ObjectRequest(sPeer, 38, "", "PeerGetInfo");
+        int iErr = m_Node.ObjectRequest(sPeer, 38, "", PARAM_PEER_GET_INFO);
         if (iErr > PG_ERR_Normal) {
-            _OutString("pgLibLiveMultiCapture._NodePeerGetInfo: iErr=" + iErr);
+            _OutString("_NodePeerGetInfo: iErr=" + iErr);
         }
     }
 
@@ -2467,16 +2463,16 @@ public class pgLibConference {
     }
 
     //自身登录事件处理
-    private void _SelfSync(String sData, String sPeer) {
+    private void _SelfSync(String sData, String sObjPeer) {
         _OutString("->SelfSync");
 
         String sAct = this.m_Node.omlGetContent(sData, "Action");
         if ("1".equals(sAct)) {
-            if (sPeer.equals(this.m_Svr.sSvrName)) {
-                TimerStart("(Act){PeerGetInfo}(Peer){" + sPeer + "}", 5, false);
+            if (sObjPeer.equals(this.m_Svr.sSvrName)) {
+                TimerStart("(Act){PeerGetInfo}(Peer){" + sObjPeer + "}", 5, false);
             }
         } else {
-            if (sPeer.equals(this.m_Svr.sSvrName)) {
+            if (sObjPeer.equals(this.m_Svr.sSvrName)) {
                 this._NodeRelogin(10);
             }
         }
@@ -2635,6 +2631,28 @@ public class pgLibConference {
         }
     }
 
+    private void _OnChairPeerSync(String sObj, String sData){
+        String sAct = this.m_Node.omlGetContent(sData, "Action");
+        if ("1".equals(sAct)) {
+            if (m_bReportPeerInfo) {
+                TimerStart("(Act){PeerGetInfo}(Peer){" + sObj + "}", 5, false);
+            }
+
+            _KeepAdd(sObj);
+            m_LanScan.bPeerCheckTimer = false;
+            this._OnEvent(EVENT_CHAIRMAN_SYNC, sAct, sObj);
+        }
+    }
+    private void _OnChairPeerError(String sObj, String sData){
+        String sMeth = this.m_Node.omlGetContent(sData, "Meth");
+        if ("34".equals(sMeth)) {
+            String sError = this.m_Node.omlGetContent(sData, "Error");
+
+            _PeerOffline(sObj, sError);
+            _KeepDel(sObj);
+        }
+    }
+
     private void _OnPeerSync(String sObj, String sData) {
         String sAct = this.m_Node.omlGetContent(sData, "Action");
         if ("1".equals(sAct)) {
@@ -2763,17 +2781,17 @@ public class pgLibConference {
     }
 
     private void _VideoCameraReply(String sData) {
-        if (!m_Status.bApiVideoStart) {
-            return;
+        if ( m_Node != null) {
+
+            String sObjPeer = m_Node.omlGetContent(sData, "Peer");
+            String sPath = m_Node.omlGetContent(sData, "Path");
+            String sPeer = _ObjPeerParsePeer(sObjPeer);
+            _OnEvent(EVENT_VIDEO_CAMERA, sPath, sPeer);
         }
-        String sObjPeer = m_Node.omlGetContent(sData, "Peer");
-        String sPath = m_Node.omlGetContent(sData, "Path");
-        String sPeer = _ObjPeerParsePeer(sObjPeer);
-        _OnEvent(EVENT_VIDEO_CAMERA, sPath, sPeer);
     }
 
     private void _VideoRecordReply(String sData) {
-        if (m_Status.bApiVideoStart) {
+        if (m_Node != null) {
             String sObjPeer = m_Node.omlGetContent(sData, "Peer");
             String sPath = m_Node.omlGetContent(sData, "Path");
             String sPeer = _ObjPeerParsePeer(sObjPeer);
@@ -3047,20 +3065,10 @@ public class pgLibConference {
             } else if (!m_Group.bEmpty && this.m_Group.sObjChair.equals(sObj)) {
 
                 if (uMeth == 0) {
-                    String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if ("1".equals(sAct)) {
-                        _KeepAdd(sObj);
-                        m_LanScan.bPeerCheckTimer = false;
-                        this._OnEvent(EVENT_CHAIRMAN_SYNC, sAct, sObj);
-                    }
+                    _OnChairPeerSync(sObj,sData);
                 } else if (uMeth == 1) {
-                    String sMeth = this.m_Node.omlGetContent(sData, "Meth");
-                    if ("34".equals(sMeth)) {
-                        String sError = this.m_Node.omlGetContent(sData, "Error");
+                    _OnChairPeerError(sObj,sData);
 
-                        _PeerOffline(sObj, sError);
-                        _KeepDel(sObj);
-                    }
                 }
                 return 0;
             } else if ("PG_CLASS_Peer".equals(this.m_Node.ObjectGetClass(sObj))) {
@@ -3133,10 +3141,8 @@ public class pgLibConference {
             //音频类相关
             if (!m_Group.bEmpty && sObj.equals(m_Group.sObjA)) {
                 if (uMeth == 0) {
-                    String sAct = this.m_Node.omlGetContent(sData, "Action");
-                    if ("1".equals(sAct)) {
-                        _OnEvent(EVENT_AUDIO_SYNC, "", sObjPeer);
-                    }
+                    _OnAudioSync(sData,sObjPeer);
+
                 }
             }
 
@@ -3170,17 +3176,21 @@ public class pgLibConference {
         return 0;
     }
 
+    private void _OnAudioSync(String sData, String sObjPeer) {
+        String sAct = this.m_Node.omlGetContent(sData, "Action");
+        if ("1".equals(sAct)) {
+            String sPeer = _ObjPeerParsePeer(sObjPeer);
+            _OnEvent(EVENT_AUDIO_SYNC, "", sPeer);
+        }
+    }
+
     private void _OnPeerGetInfoReply(String sObj, int iErr, String sData) {
         if (iErr != PG_ERR_Normal) {
             return;
         }
 
-        String sRenID = _ObjPeerParsePeer(sObj);
-        if (!sObj.equals(m_Svr.sSvrName)) {
+        String sPeer = _ObjPeerParsePeer(sObj);
 
-        } else {
-            sRenID = sObj;
-        }
 
         String sThrough = m_Node.omlGetContent(sData, "Through");
         String sProxy = _AddrToReadable(m_Node.omlGetContent(sData, "Proxy"));
@@ -3200,16 +3210,16 @@ public class pgLibConference {
                 + m_Node.omlEncode(sAddrRmt) + "}(TunnelLcl){" + m_Node.omlEncode(sTunnelLcl) + "}(TunnelRmt){"
                 + m_Node.omlEncode(sTunnelRmt) + "}(PrivateRmt){" + m_Node.omlEncode(sPrivateRmt) + "}}";
 
-        int iErrTemp = m_Node.ObjectRequest(m_Svr.sSvrName, 35, sDataInfo, "pgLibLiveMultiCapture.ReportPeerInfo");
+        int iErrTemp = m_Node.ObjectRequest(m_Svr.sSvrName, 35, sDataInfo, "ReportPeerInfo");
         if (iErrTemp > PG_ERR_Normal) {
-            _OutString("pgLibLiveMultiCapture._OnPeerGetInfoReply: iErr=" + iErrTemp);
+            _OutString("_OnPeerGetInfoReply: iErr=" + iErrTemp);
         }
 
         // Report to app.
-        sDataInfo = "peer=" + sRenID + "&through=" + sThrough + "&proxy=" + sProxy
+        sDataInfo = "peer=" + sPeer + "&through=" + sThrough + "&proxy=" + sProxy
                 + "&addrlcl=" + sAddrLcl + "&addrrmt=" + sAddrRmt + "&tunnellcl=" + sTunnelLcl
                 + "&tunnelrmt=" + sTunnelRmt + "&privatermt=" + sPrivateRmt;
-        _OnEvent("PeerInfo", sDataInfo, sRenID);
+        _OnEvent("PeerInfo", sDataInfo, sPeer);
     }
 
 
@@ -3229,6 +3239,11 @@ public class pgLibConference {
 
         if (m_Node != null) {
 
+            if (sParam.equals(PARAM_PEER_GET_INFO)) {
+                _OnPeerGetInfoReply(sObj, iErr, sData);
+                return 1;
+            }
+
             if (sObj.equals(m_Svr.sSvrName)) {
                 if (PARAM_LOGIN.equals(sParam)) {
                     int iRet = _NodeLoginReply(iErr, sData);
@@ -3239,42 +3254,16 @@ public class pgLibConference {
                     _LanScanResult(sData);
                 } else if (PARAM_SVRREQUEST.equals(sParam)) {
                     _SvrReply(iErr, sData);
-                } else if (sParam.equals(PARAM_PEER_GET_INFO)) {
-                    _OnPeerGetInfoReply(sObj, iErr, sData);
                 }
 
                 return 1;
             }
+
+
+
             if (sParam.indexOf(PARAM_PRE_CALLSEND) == 0) {
-                String sSession;
-                sSession = sParam.substring(9);
-                _OnEvent(EVENT_CALLSEND_RESULT, sSession + ":" + iErr, sObj);
+                _OnPrcRelay(sObj, iErr, sParam);
                 return 1;
-            }
-
-            if (m_Group.bEmpty) {
-                _OutString("NodeOnReply: Group Init faile");
-                return 1;
-            }
-
-            if (sParam.indexOf(PARAM_PRE_VIDEO_OPEN) == 0) {
-                //视频加入通知
-                this._OnEvent(EVENT_VIDEO_JOIN, "" + iErr, sParam.substring(10));
-                return 1;
-            }
-            if (sParam.indexOf(EVENT_VIDEO_CAMERA) == 0) {
-                _VideoCameraReply(sData);
-                return 1;
-            }
-            if (sParam.indexOf(EVENT_VIDEO_RECORD) == 0) {
-                _VideoRecordReply(sData);
-                return 1;
-            }
-
-            if (!m_Group.bEmpty && sObj.equals(m_Group.sObjA)) {
-                if (PARAM_AUDIO_CTRL_VOLUME.equals(sParam)) { // Cancel file
-                    _OnEvent(EVENT_AUDIO_CTRL_VOLUME, Integer.valueOf(iErr).toString(), sObj);
-                }
             }
 
             if (_FileObjectIs(sObj)) {
@@ -3297,8 +3286,36 @@ public class pgLibConference {
 
                 return 1;
             }
+
+            if (sParam.indexOf(PARAM_PRE_VIDEO_OPEN) == 0) {
+                //视频加入通知
+                this._OnEvent(EVENT_VIDEO_JOIN, "" + iErr, sParam.substring(10));
+                return 1;
+            }
+            if (sParam.indexOf(EVENT_VIDEO_CAMERA) == 0) {
+                _VideoCameraReply(sData);
+                return 1;
+            }
+            if (sParam.indexOf(EVENT_VIDEO_RECORD) == 0) {
+                _VideoRecordReply(sData);
+                return 1;
+            }
+
+
+            if (PARAM_AUDIO_CTRL_VOLUME.equals(sParam)) {
+                // Cancel file
+                _OnEvent(EVENT_AUDIO_CTRL_VOLUME, Integer.valueOf(iErr).toString(), sObj);
+            }
+
         }
         return 1;
+    }
+
+    private void _OnPrcRelay(String sObj, int iErr, String sParam) {
+        String sSession;
+        sSession = sParam.substring(9);
+        String sPeer = _ObjPeerParsePeer(sObj);
+        _OnEvent(EVENT_CALLSEND_RESULT, sSession + ":" + iErr, sPeer);
     }
 
     // PG Node callback class.

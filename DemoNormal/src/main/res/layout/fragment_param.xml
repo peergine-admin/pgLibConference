@@ -161,7 +161,7 @@
                 android:inputType="text"
                 android:selectAllOnFocus="false"
                 android:singleLine="false"
-                android:text="(Code){3}(Mode){3}(FrmRate){66}(LCode){3}(LMode){3}(LFrmRate){66}(Portrait){1}(Rotate){0}(BitRate){600}(CameraNo){1}(AudioSpeechDisable){0}"
+                android:text="(Code){3}(Mode){2}(FrmRate){66}(LCode){3}(LMode){3}(LFrmRate){66}(Portrait){1}(Rotate){0}(BitRate){600}(CameraNo){1}(AudioSpeechDisable){0}"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:visibility="visible" />
         </LinearLayout>
