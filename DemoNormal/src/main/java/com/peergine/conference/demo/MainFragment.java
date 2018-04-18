@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
-import com.peergine.android.conference.pgLibTimer;
 import com.peergine.plugin.exter.VideoAudioInputExternal;
 import com.peergine.plugin.lib.pgLibJNINode;
 
@@ -31,11 +30,6 @@ import me.yokeyword.fragmentation.SupportFragment;
 
 import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
-import static com.peergine.android.conference.pgLibConference.PG_RECORD_NORMAL;
-import static com.peergine.android.conference.pgLibConference.VIDEO_NORMAL;
-import static com.peergine.android.conference.pgLibConference.VIDEO_ONLY_INPUT;
-import static com.peergine.android.conference.pgLibConferenceEvent.*;
-import static com.peergine.android.conference.pgLibError.PG_ERR_Normal;
 
 /**
  * Updata 2017 02 15 V13
@@ -44,6 +38,45 @@ import static com.peergine.android.conference.pgLibError.PG_ERR_Normal;
  */
 
 public class MainFragment extends SupportFragment {
+
+
+    public static final String EVENT_LOGIN = "Login";
+    public static final String EVENT_LOGOUT = "Logout";
+    public static final String EVENT_VIDEO_LOST = "VideoLost";
+
+    public static final String EVENT_AUDIO_SYNC = "AudioSync";
+    public static final String EVENT_AUDIO_CTRL_VOLUME = "AudioCtrlVolume";
+    public static final String EVENT_VIDEO_SYNC = "VideoSync";
+    public static final String EVENT_VIDEO_SYNC_1 = "VideoSyncL";
+    public static final String EVENT_VIDEO_OPEN = "VideoOpen";
+    public static final String EVENT_VIDEO_OPEN_1 = "VideoOpenL";
+    public static final String EVENT_VIDEO_CLOSE = "VideoClose";
+    public static final String EVENT_VIDEO_CLOSE_1 = "VideoCloseL";
+    public static final String EVENT_VIDEO_FRAME_STAT = "VideoFrameStat";
+    public static final String EVENT_VIDEO_FRAME_STAT_1 = "VideoFrameStatL";
+    public static final String EVENT_VIDEO_JOIN = "VideoJoin";
+    public static final String EVENT_VIDEO_CAMERA = "VideoCamera";
+    public static final String EVENT_VIDEO_RECORD = "VideoRecord";
+
+    public static final String EVENT_CHAIRMAN_SYNC = "ChairmanSync";
+    public static final String EVENT_CHAIRMAN_OFFLINE = "ChairmanOffline";
+    public static final String EVENT_PEER_SYNC = "PeerSync";
+    public static final String EVENT_PEER_OFFLINE = "PeerOffline";
+
+
+    public static final String EVENT_ASK_JOIN = "AskJoin";
+    public static final String EVENT_ASK_LEAVE = "AskLeave";
+    public static final String EVENT_JOIN = "Join";
+    public static final String EVENT_LEAVE = "Leave";
+
+    public static final String EVENT_MESSAGE = "Message";
+    public static final String EVENT_NOTIFY = "Notify";
+    public static final String EVENT_SVR_NOTIFY = "SvrNotify";
+    public static final String EVENT_SVR_REPLYR_ERROR = "SvrReplyError";
+    public static final String EVENT_SVR_RELAY = "SvrReply";
+    public static final String EVENT_CALLSEND_RESULT = "CallSend";
+
+    public static final String EVENT_LAN_SCAN_RESULT = "LanScanResult";
 
     private String mSGroup = "";
     private String msChair = "";
@@ -108,11 +141,10 @@ public class MainFragment extends SupportFragment {
     private static ArrayList<MEMBER> mListMemberS = new ArrayList<>();
 
     //定时器例子 超时处理实现
-    final pgLibTimer mTimer = new pgLibTimer();
 
-    final pgLibTimer.OnTimeOut timerOut = new pgLibTimer.OnTimeOut() {
+    final pgLibConference.TimerOut timerOut = new pgLibConference.TimerOut() {
         @Override
-        public void onTimeOut(String sParam) {
+        public void TimerProc(String sParam) {
             if (m_Node == null) {
                 return;
             }
@@ -256,10 +288,9 @@ public class MainFragment extends SupportFragment {
         }
 
         m_Node = mConf.GetNode();
-        if(!mTimer.timerInit(timerOut)){
-            showInfo("定时器初始化失败！");
-            pop();
-        }
+
+        mConf.TimerOutAdd(timerOut);
+
         return view;
     }
 
@@ -463,7 +494,7 @@ public class MainFragment extends SupportFragment {
         showInfo(sPeer + "加入会议");
         /*这个是开始一个定时器*/
         String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
-        mTimer.timerStart(sParam, 1);
+        mConf.TimerStart(sParam, 1,false);
 
         mConf.NotifySend(sPeer + " : join ");
         Log.d("", sPeer + " 加入会议");
@@ -599,59 +630,11 @@ public class MainFragment extends SupportFragment {
                 EventSvrReplyError(sAct, sData, sObjPeer);
             } else if (sAct.equals(EVENT_LAN_SCAN_RESULT)) {
                 EventLanScanResult(sAct, sData, sObjPeer);
-            } else if (sAct.equals(EVENT_FILE_ACCEPT)) {
-                EventFileAccept(sAct, sData, sObjPeer);
-            } else if (sAct.equals(EVENT_FILE_REJECT)) {
-                EventFileReject(sAct, sData, sObjPeer);
-            } else if (sAct.equals(EVENT_FILE_ABORT)) {
-                EventFileAbrot(sAct, sData, sObjPeer);
-            } else if (sAct.equals(EVENT_FILE_FINISH)) {
-                EventFileFinish(sAct, sData, sObjPeer);
-            } else if (sAct.equals(EVENT_FILE_PROGRESS)) {
-                EventFileProgress(sAct, sData, sObjPeer);
-            }else if (sAct.equals(EVENT_FILE_PUT_REQUEST)) {
-                EventFilePutRequest(sAct, sData, sObjPeer);
-            }else if (sAct.equals(EVENT_FILE_GET_REQUEST)) {
-                EventFileGetRequest(sAct, sData, sObjPeer);
             }else {
                 showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
             }
         }
     };
-
-    private void EventFileGetRequest(String sAct, String sData, String sObjPeer) {
-        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
-        mConf.FileAccept(msChair,sObjPeer,"/sdcard/test/test.avi" );
-    }
-
-    private void EventFilePutRequest(String sAct, String sData, String sObjPeer) {
-        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String sDate = formatter.format(currentTime);
-        //sData = "peerpath=xxxxxxxxx" so xxxxxxx = sData.substring(9)
-        mConf.FileAccept(msChair,sObjPeer,"/sdcard/test/GetFile_" + sDate + sData.substring(9) );
-    }
-
-    private void EventFileProgress(String sAct, String sData, String sObjPeer) {
-        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
-    }
-
-    private void EventFileFinish(String sAct, String sData, String sObjPeer) {
-        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
-    }
-
-    private void EventFileAbrot(String sAct, String sData, String sObjPeer) {
-        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
-    }
-
-    private void EventFileReject(String sAct, String sData, String sObjPeer) {
-        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
-    }
-
-    private void EventFileAccept(String sAct, String sData, String sObjPeer) {
-        showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sObjPeer);
-    }
 
     private void EventCallSend(String sAct, String sData, String sPeer) {
         // CallSend （具有回执的信息） 最终结果
@@ -689,11 +672,7 @@ public class MainFragment extends SupportFragment {
         }
         String sName = msChair;
         mConf.Start(sName, msChair);
-        int iVideoFlag = VIDEO_NORMAL;
-//        if(msChair.equals(m_sUser)){
-//            iVideoFlag = VIDEO_ONLY_INPUT;
-//        }
-
+        int iVideoFlag = 0;
         mConf.VideoStart(iVideoFlag);
         mConf.AudioStart();
     }
@@ -802,7 +781,7 @@ public class MainFragment extends SupportFragment {
         boolean iErr = mConf.RecordStart(msChair, sPath);
         if ((iErr = false)) {
             Toast.makeText(getContext(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
-            mConf.RecordStop(msChair,PG_RECORD_NORMAL);
+            mConf.RecordStop(msChair);
 
         }
     }
@@ -901,19 +880,6 @@ public class MainFragment extends SupportFragment {
                 }
                 case R.id.btn_test: {
                     test();
-                    break;
-
-                }case R.id.btn_file_put: {
-
-                    mConf.FilePutRequest(msChair,m_sUser,"/sdcard/test/test.avi","");
-
-                    break;
-
-                }case R.id.btn_file_get: {
-                    Date currentTime = new Date();
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-                    String sDate = formatter.format(currentTime);
-                    mConf.FileGetRequest(msChair,m_sUser,"/sdcard/test/GetFile_" + sDate + ".avi","");
                     break;
 
                 }

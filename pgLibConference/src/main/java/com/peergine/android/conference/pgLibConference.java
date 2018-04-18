@@ -158,6 +158,7 @@ public class pgLibConference {
         public int SKTBufSize1=64;//音频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
         public int SKTBufSize2=256;//视频流的Socket队列长度（报文个数），取值范围：1 ~ 32768
         public int SKTBufSize3 = 64;//文件流的Socket队列长度（报文个数），取值范围：1 ~ 32768
+        public int P2PTryTime = 3;
 
         public PG_NODE_CFG(){
             Type=0;
@@ -171,6 +172,7 @@ public class pgLibConference {
             SKTBufSize1=64;
             SKTBufSize2=256;
             SKTBufSize3 = 64;
+            P2PTryTime = 3;
         }
     }
     private class PG_SELF{
@@ -506,7 +508,8 @@ public class pgLibConference {
                 ";SKTBufSize0="+mNodeCfg.SKTBufSize0+
                 ";SKTBufSize1="+mNodeCfg.SKTBufSize1+
                 ";SKTBufSize2="+mNodeCfg.SKTBufSize2+
-                ";SKTBufSize3="+mNodeCfg.SKTBufSize3;
+                ";SKTBufSize3="+mNodeCfg.SKTBufSize3+
+                ";P2PTryTime=" +mNodeCfg.P2PTryTime;
         return true;
     }
     /**

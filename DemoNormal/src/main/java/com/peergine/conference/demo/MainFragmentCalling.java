@@ -17,11 +17,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
-import com.peergine.android.conference.pgLibTimer;
+
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.util.ArrayList;
@@ -31,8 +30,6 @@ import me.yokeyword.fragmentation.SupportFragment;
 
 import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
-import static com.peergine.android.conference.pgLibConference.VIDEO_NORMAL;
-import static com.peergine.android.conference.pgLibConferenceEvent.*;
 
 /**
  * Updata 2017 02 15 V13
@@ -41,6 +38,45 @@ import static com.peergine.android.conference.pgLibConferenceEvent.*;
  */
 
 public class MainFragmentCalling extends SupportFragment {
+
+    public static final String EVENT_LOGIN = "Login";
+    public static final String EVENT_LOGOUT = "Logout";
+    public static final String EVENT_VIDEO_LOST = "VideoLost";
+
+    public static final String EVENT_AUDIO_SYNC = "AudioSync";
+    public static final String EVENT_AUDIO_CTRL_VOLUME = "AudioCtrlVolume";
+    public static final String EVENT_VIDEO_SYNC = "VideoSync";
+    public static final String EVENT_VIDEO_SYNC_1 = "VideoSyncL";
+    public static final String EVENT_VIDEO_OPEN = "VideoOpen";
+    public static final String EVENT_VIDEO_OPEN_1 = "VideoOpenL";
+    public static final String EVENT_VIDEO_CLOSE = "VideoClose";
+    public static final String EVENT_VIDEO_CLOSE_1 = "VideoCloseL";
+    public static final String EVENT_VIDEO_FRAME_STAT = "VideoFrameStat";
+    public static final String EVENT_VIDEO_FRAME_STAT_1 = "VideoFrameStatL";
+    public static final String EVENT_VIDEO_JOIN = "VideoJoin";
+    public static final String EVENT_VIDEO_CAMERA = "VideoCamera";
+    public static final String EVENT_VIDEO_RECORD = "VideoRecord";
+
+    public static final String EVENT_CHAIRMAN_SYNC = "ChairmanSync";
+    public static final String EVENT_CHAIRMAN_OFFLINE = "ChairmanOffline";
+    public static final String EVENT_PEER_SYNC = "PeerSync";
+    public static final String EVENT_PEER_OFFLINE = "PeerOffline";
+
+
+    public static final String EVENT_ASK_JOIN = "AskJoin";
+    public static final String EVENT_ASK_LEAVE = "AskLeave";
+    public static final String EVENT_JOIN = "Join";
+    public static final String EVENT_LEAVE = "Leave";
+
+    public static final String EVENT_MESSAGE = "Message";
+    public static final String EVENT_NOTIFY = "Notify";
+    public static final String EVENT_SVR_NOTIFY = "SvrNotify";
+    public static final String EVENT_SVR_REPLYR_ERROR = "SvrReplyError";
+    public static final String EVENT_SVR_RELAY = "SvrReply";
+    public static final String EVENT_CALLSEND_RESULT = "CallSend";
+
+    public static final String EVENT_LAN_SCAN_RESULT = "LanScanResult";
+
 
     private String m_sGroup = "";
     private String m_sChair = "";
@@ -84,11 +120,10 @@ public class MainFragmentCalling extends SupportFragment {
 
 
     //定时器例子 超时处理实现
-    final pgLibTimer timer = new pgLibTimer();
 
-    final pgLibTimer.OnTimeOut timerOut = new pgLibTimer.OnTimeOut() {
+    final pgLibConference.TimerOut timerOut = new pgLibConference.TimerOut() {
         @Override
-        public void onTimeOut(String sParam) {
+        public void TimerProc(String sParam) {
             if (m_Node == null) {
                 return;
             }
@@ -176,10 +211,7 @@ public class MainFragmentCalling extends SupportFragment {
 
         //初始化定时器
         m_Node = m_Conf.GetNode();
-        if (!timer.timerInit(timerOut)) {
-            showInfo("定时器初始化失败！");
-            pop();
-        }
+
         return view;
     }
 
@@ -441,7 +473,7 @@ public class MainFragmentCalling extends SupportFragment {
         // TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
         showInfo(sPeer + "加入会议");
         String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
-        timer.timerStart(sParam, 1);
+        m_Conf.TimerStart(sParam, 1,true);
 
         m_Conf.NotifySend(sPeer + " : join ");
         Log.d("", sPeer + " 加入会议");
@@ -616,7 +648,7 @@ public class MainFragmentCalling extends SupportFragment {
         }
         String sName = sChair;
         m_Conf.Start(sName, sChair);
-        m_Conf.VideoStart(VIDEO_NORMAL);
+        m_Conf.VideoStart(0);
         m_Conf.AudioStart();
         bStarted = true;
     }
