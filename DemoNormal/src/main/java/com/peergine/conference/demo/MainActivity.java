@@ -3,6 +3,7 @@ package com.peergine.conference.demo;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.view.KeyEvent;
+import android.view.WindowManager;
 
 import me.yokeyword.fragmentation.SupportActivity;
 import me.yokeyword.fragmentation.anim.DefaultHorizontalAnimator;
@@ -13,6 +14,7 @@ public class MainActivity extends SupportActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
         if(findFragment(ParamFragment.class) == null){
             loadRootFragment(R.id.fragment,ParamFragment.newInstance());
