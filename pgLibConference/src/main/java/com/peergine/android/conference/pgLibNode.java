@@ -27,6 +27,110 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class pgLibNode {
 
+	public static final String PG_CLASS_Peer = "PG_CLASS_Peer";
+	public static final String PG_CLASS_Group = "PG_CLASS_Group";
+	public static final String PG_CLASS_Data = "PG_CLASS_Data";
+	public static final String PG_CLASS_File = "PG_CLASS_File";
+	public static final String PG_CLASS_Audio = "PG_CLASS_Audio";
+	public static final String PG_CLASS_Video = "PG_CLASS_Video";
+
+	public static final int PG_ADD_COMMON_Sync = 0x10000;
+	public static final int PG_ADD_COMMON_Error = 0x20000;
+	public static final int PG_ADD_COMMON_Encrypt = 0x40000;
+	public static final int PG_ADD_COMMON_Compress = 0x80000;
+
+
+	public static final int PG_ADD_PEER_Self = 0x1;
+	public static final int PG_ADD_PEER_Server = 0x2;
+	public static final int PG_ADD_PEER_Static = 0x4;
+	public static final int PG_ADD_PEER_Digest = 0x8;
+	public static final int PG_ADD_PEER_Disable = 0x10;
+
+	public static final int PG_ADD_GROUP_Master =0x1;
+	public static final int PG_ADD_GROUP_Refered = 0x2;
+	public static final int PG_ADD_GROUP_NearPeer = 0x4;
+	public static final int PG_ADD_GROUP_Modify = 0x8;
+	public static final int PG_ADD_GROUP_Index = 0x10;
+	public static final int PG_ADD_GROUP_Offline = 0x20;
+	public static final int PG_ADD_GROUP_HearOnly = 0x40;
+
+	public static final int PG_ADD_FILE_TcpSock = 0x1;
+	public static final int PG_ADD_FILE_Flush = 0x2;
+	public static final int PG_ADD_FILE_PeerStop = 0x4;
+
+	public static final int PG_ADD_AUDIO_Conference = 0x1;
+	public static final int PG_ADD_AUDIO_ShowVolume = 0x2;
+	public static final int PG_ADD_AUDIO_OnlyInput =0x4;
+	public static final int PG_ADD_AUDIO_OnlyOutput = 0x8;
+	public static final int PG_ADD_AUDIO_SendReliable = 0x10;
+	public static final int PG_ADD_AUDIO_NoSpeechSelf = 0x20;
+	public static final int PG_ADD_AUDIO_NoSpeechPeer = 0x40;
+	public static final int PG_ADD_AUDIO_MuteInput = 0x80;
+	public static final int PG_ADD_AUDIO_MuteOutput = 0x100;
+
+	public static final int PG_ADD_VIDEO_Conference = 0x1;
+	public static final int PG_ADD_VIDEO_Preview = 0x2;
+	public static final int PG_ADD_VIDEO_OnlyInput = 0x4;
+	public static final int PG_ADD_VIDEO_OnlyOutput = 0x8;
+	public static final int PG_ADD_VIDEO_FrameStat = 0x10;
+	public static final int PG_ADD_VIDEO_DrawThread = 0x20 ;
+	public static final int PG_ADD_VIDEO_OutputExternal = 0x40;
+	public static final int PG_ADD_VIDEO_OutputExtCmp = 0x80;
+	public static final int PG_ADD_VIDEO_FilterDecode = 0x100;
+
+	public static final int  PG_METH_COMMON_Sync = 0;
+	public static final int  PG_METH_COMMON_Error = 1;
+	public static final int  PG_METH_COMMON_SetOption = 2;
+	public static final int  PG_METH_COMMON_GetOption = 3;
+
+	public static final int PG_METH_PEER_Login = 32;
+	public static final int PG_METH_PEER_Logout=33;
+	public static final int PG_METH_PEER_Status=34;
+	public static final int PG_METH_PEER_Call=35;
+	public static final int PG_METH_PEER_Message=36;
+	public static final int PG_METH_PEER_SetAddr=37;
+	public static final int PG_METH_PEER_GetAddr=38;
+	public static final int PG_METH_PEER_DigGen=39;
+	public static final int PG_METH_PEER_DigVerify=40;
+	public static final int PG_METH_PEER_CheckInfo=41;
+	public static final int PG_METH_PEER_LanScan = 42;
+	public static final int PG_METH_PEER_AgentLogin = 43;
+	public static final int PG_METH_PEER_AgentLogout = 44;
+	public static final int PG_METH_PEER_AgentMessage = 45;
+	public static final int PG_METH_PEER_ReloginReply = 46;
+	public static final int PG_METH_PEER_KickOut = 47;
+	public static final int PG_METH_PEER_AccessCtrl = 48;
+	public static final int PG_METH_PEER_PushOption = 49;
+
+
+	public static final int PG_METH_GROUP_Modify=32;
+	public static final int PG_METH_GROUP_Update=33;
+	public static final int PG_METH_GROUP_Master=34;
+
+	public static final int PG_METH_DATA_Message = 32;
+
+	public static final int PG_METH_FILE_Put = 32;
+	public static final int PG_METH_FILE_Get = 33;
+	public static final int PG_METH_FILE_Status = 34;
+	public static final int PG_METH_FILE_Cancel = 35;
+
+	public static final int PG_METH_AUDIO_Open = 32;
+	public static final int PG_METH_AUDIO_Close = 33;
+	public static final int PG_METH_AUDIO_CtrlVolume = 34;
+	public static final int PG_METH_AUDIO_ShowVolume = 35;
+	public static final int PG_METH_AUDIO_Speech = 36;
+	public static final int PG_METH_AUDIO_Record = 37;
+
+	public static final int PG_METH_VIDEO_Open = 32;
+	public static final int PG_METH_VIDEO_Close =33;
+	public static final int PG_METH_VIDEO_Move = 34;
+	public static final int PG_METH_VIDEO_Join = 35;
+	public static final int PG_METH_VIDEO_Leave = 36;
+	public static final int PG_METH_VIDEO_Camera =37;
+	public static final int PG_METH_VIDEO_Record =38;
+	public static final int PG_METH_VIDEO_Transfer = 39;
+	public static final int PG_METH_VIDEO_FrameStat = 40;
+
 	public pgLibNode() {
 	}
 
@@ -53,7 +157,7 @@ public final class pgLibNode {
 			return bResult;
 		}
 		catch (Exception e) {
-			_OutString("pgLibNode.NodeLibInit: e=" + e.toString());
+			outString("pgLibNode.NodeLibInit: e=" + e.toString());
 			return false;
 		}
 	}
@@ -73,7 +177,7 @@ public final class pgLibNode {
 			}
 		}
 		catch (Exception e) {
-			_OutString("pgLibNode.NodeLibClean: e=" + e.toString());
+			outString("pgLibNode.NodeLibClean: e=" + e.toString());
 		}		
 	}
 
@@ -84,7 +188,7 @@ public final class pgLibNode {
 	 * 打印日志
 	 * @param sOut 日志内容
 	 */
-	public static void _OutString(String sOut) {
+	public static void outString(String sOut) {
 		System.out.println(sOut);
 	}
 
@@ -94,7 +198,7 @@ public final class pgLibNode {
 	 * @param idefVal 默认值 转换失败使用。
 	 * @return 转换后的int
 	 */
-	public static int _ParseInt(String sVal, int idefVal) {
+	public static int parseInt(String sVal, int idefVal) {
 		try {
 			if ("".equals(sVal)) {
 				return idefVal;
@@ -111,7 +215,7 @@ public final class pgLibNode {
 	 * @param sAddr 地址
 	 * @return 地址
 	 */
-	public static String _AddrToReadable(String sAddr) {
+	public static String addrToReadable(String sAddr) {
 		try {
 			String[] sAddrSect = sAddr.split(":", 6);
 			if (sAddrSect.length < 6) {

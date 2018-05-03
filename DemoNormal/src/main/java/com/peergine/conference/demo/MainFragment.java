@@ -109,7 +109,12 @@ public class MainFragment extends SupportFragment {
 
     //定时器例子 超时处理实现
     final pgLibTimer mTimer = new pgLibTimer();
-
+    private String _ObjPeerBuild(String sPeer) {
+        if (sPeer.indexOf("_DEV_") != 0) {
+            return "_DEV_" + sPeer;
+        }
+        return sPeer;
+    }
     final pgLibTimer.OnTimeOut timerOut = new pgLibTimer.OnTimeOut() {
         @Override
         public void onTimeOut(String sParam) {
@@ -126,14 +131,21 @@ public class MainFragment extends SupportFragment {
                 //Demo 是为了演示方便 在这里实现自动打开视频的功能
                 //所以才做了这个ID大的主动打开视频
                 //实际情况中建议从Join出得到设备列表，或者本地保存列表，用ListView显示，点击某个ID然后开始打开视频
-
-                if (m_sUser.compareTo(sPeer) > 0) {
+                String sObjUser = _ObjPeerBuild(m_sUser);
+                if (sObjUser.compareTo(sPeer) > 0) {
                     showInfo(" 发起视频请求");
                     pgVideoOpen(sPeer);
                 }
             }
         }
     };
+
+    private void TimerStartOpen(String sPeer) {
+        String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
+        mTimer.timerStart(sParam, 1);
+    }
+
+
 
     public static MainFragment newInstance(String sUser, String sPass, String sSvrAddr, String sRelayAddr,
                                            String sInitParam, String sVideoParam, String sExpire ,String sMode) {
@@ -462,12 +474,14 @@ public class MainFragment extends SupportFragment {
         // TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
         showInfo(sPeer + "加入会议");
         /*这个是开始一个定时器*/
-        String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
-        mTimer.timerStart(sParam, 1);
+        TimerStartOpen(sPeer);
+
 
         mConf.NotifySend(sPeer + " : join ");
         Log.d("", sPeer + " 加入会议");
     }
+
+
 
     //sPeer的离线消息
     private void EventLeave(String sAct, String sData, String sPeer) {
@@ -544,9 +558,6 @@ public class MainFragment extends SupportFragment {
             // TODO Auto-generated method stub
 
             String sObjPeer = sPeer;
-            if(sObjPeer.contains("_DEV_")){
-                sObjPeer = sPeer.substring(5);
-            }
 
             //
             if (sAct.equals(EVENT_VIDEO_FRAME_STAT)) {
