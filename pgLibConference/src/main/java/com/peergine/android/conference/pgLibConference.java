@@ -232,7 +232,7 @@ public class pgLibConference {
     //======================================================================
 
     private static final String ID_PREFIX = "_DEV_";
-    private static final String LIB_VER = "19";
+    private static final String LIB_VER = "20";
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
@@ -321,7 +321,7 @@ public class pgLibConference {
         /**
          * P2P尝试时间。
          */
-        public int P2PTryTime = 1;
+        public int P2PTryTime = 3;
 
         public PG_NODE_CFG() {
             Type = 0;
@@ -335,6 +335,7 @@ public class pgLibConference {
             SKTBufSize1 = 64;
             SKTBufSize2 = 256;
             SKTBufSize3 = 64;
+            P2PTryTime = 3;
         }
     }
 
@@ -686,7 +687,7 @@ public class pgLibConference {
             }
             String sObjMember = _ObjPeerBuild(sMember);
 
-            String sDataMdf = "(Action){0}(PeerList){(" + m_Node.omlEncode(sObjMember) + "){}}";
+            String sDataMdf = "(Action){0}(PeerList){(" + m_Node.omlEncode(sObjMember) + "){0}}";
 
             int iErr = this.m_Node.ObjectRequest(m_Group.sObjG, PG_METH_GROUP_Modify, sDataMdf, "");
             if (iErr > 0) {
@@ -2340,7 +2341,21 @@ public class pgLibConference {
         }
 
         return "";
+    }
 
+    private boolean _GroupObjectAdd(String sGroupName,String sGroup,int uFlag){
+        if (!m_Node.ObjectAdd(sGroupName, PG_CLASS_Group, sGroup, uFlag)) {
+            _OutString("ServiceStart: Add group object failed");
+            return false
+                    ;
+        }
+
+        return true;
+    }
+
+    private int _GroupModify(){
+
+        return PG_ERR_Normal;
     }
 
     //
