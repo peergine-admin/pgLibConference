@@ -262,6 +262,7 @@ public class pgLibConference {
     private int m_iIDTimerRelogin;
     private boolean m_bReportPeerInfo = true;
     private boolean m_EventOutObjPeer = false;
+    private String m_sListVideo = "";
 
 
     /**
@@ -800,6 +801,10 @@ public class pgLibConference {
         return VideoOpen(sPeer, iW, iH, false);
     }
 
+    public SurfaceView VideoOpenResponse(String sPeer, int iW, int iH) {
+        return VideoOpen(sPeer, iW, iH, false);
+    }
+
     /**
      * 描述：以不同流打开某一成员的视频（请求端有效）
      * 阻塞方式：非阻塞，立即返回
@@ -812,99 +817,8 @@ public class pgLibConference {
         return VideoOpen(sPeer, iW, iH, true);
     }
 
-
-    private SurfaceView VideoOpen(String sPeer, int iW, int iH, boolean bLarge) {
-        _OutString("VideoOpen :sObjPeer=" + sPeer + "; iW=" + iW + "; iH=" + iH);
-        SurfaceView retView = null;
-        PG_PEER oPeer;
-        if (m_Status.bApiVideoStart && !"".equals(sPeer)) {
-            do {
-                String sObjPeer = _ObjPeerBuild(sPeer);
-
-
-                oPeer = _VideoPeerSearch(sObjPeer);
-                if (oPeer == null) {
-                    try {
-                        oPeer = new PG_PEER(sObjPeer);
-                    } catch (Exception ex) {
-                        break;
-                    }
-                    m_listVideoPeer.add(oPeer);
-                }
-
-                int iErr = PG_ERR_Normal;
-                String sData;
-
-                // Create the node and view.专门用来显示视频的node
-                if (oPeer.Node == null) {
-                    try {
-                        oPeer.Node = new pgLibJNINode();
-                    } catch (Exception ex) {
-                        oPeer.Node = null;
-                        m_listVideoPeer.remove(oPeer);
-                        break;
-                    }
-                }
-                if (oPeer.View == null) {
-                    oPeer.View = (SurfaceView) oPeer.Node.WndNew(0, 0, iW, iH);
-                }
-                //
-                if (oPeer.View != null) {
-                    sData = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Wnd){" + oPeer.Node.utilGetWndRect() + "}";
-                    _OutString("VideoOpen: sData=" + sData);
-                } else {
-                    iErr = PG_ERR_Reject;
-                    sData = "";
-                    _OutString("pgLibConference.VideoOpen: New node wnd failed!");
-                }
-
-                String sObjV;
-                boolean bJoinRes = false;
-                if (oPeer.iHandle > 0) {
-                    if (oPeer.bLarge) {
-                        sObjV = m_Group.sObjLV;
-                    } else {
-                        sObjV = m_Group.sObjV;
-                    }
-                    _OutString("Video open Relay iHandle=" + oPeer.iHandle);
-                    int iErrTemp = this.m_Node.ObjectExtReply(sObjV, iErr, sData, oPeer.iHandle);
-                    if (iErrTemp <= 0) {
-                        if (iErr == 0) {
-                            bJoinRes = true;
-                        }
-                    } else {
-                        _OutString("pgLibConference.VideoOpen: Reply, iErr=" + iErrTemp);
-                    }
-                } else {
-
-                    if (bLarge) {
-                        sObjV = m_Group.sObjLV;
-                    } else {
-                        sObjV = m_Group.sObjV;
-                    }
-                    oPeer.bLarge = bLarge;
-                    String sParamTmp = "VideoOpen:" + sPeer;
-                    int iErrTemp = m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Join, sData, sParamTmp);
-                    if (iErrTemp <= 0) {
-                        bJoinRes = true;
-                    } else {
-                        _OutString("pgLibConference.VideoOpen: Request, iErr=" + iErrTemp);
-                    }
-                }
-                if (bJoinRes) {
-                    oPeer.iActStamp = m_Stamp.iActiveStamp;
-                    // Reset request status.
-                    oPeer.iStamp = 0;
-                    oPeer.iHandle = 0;
-                    retView = oPeer.View;
-                    _OutString("VideoOpen: scussce");
-                } else {
-                    oPeer.Node.WndDelete();
-                    m_listVideoPeer.remove(oPeer);
-                }
-            } while (false);
-        }
-        return retView;
+    public SurfaceView VideoOpenResponseL(String sPeer, int iW, int iH) {
+        return VideoOpen(sPeer, iW, iH, true);
     }
 
     /**
@@ -933,23 +847,26 @@ public class pgLibConference {
                 return;
             }
 
-            String sObjV;
+            String sObjV = "";
+            int iErr = PG_ERR_Reject;
+            int iHandle = 0;
             if (oPeer.iHandle > 0) {
-                // Join reply.
-                if (oPeer.bLarge) {
-                    sObjV = m_Group.sObjLV;
-                } else {
-                    sObjV = m_Group.sObjV;
-                }
-                _OutString("Video open Relay iHandle=" + oPeer.iHandle);
-                int iErrTemp = this.m_Node.ObjectExtReply(sObjV, PG_ERR_Reject, "", oPeer.iHandle);
+
+                iHandle = oPeer.iHandle;
+                sObjV = m_Group.sObjV;
+
+            }else if (oPeer.iHandleL > 0){
+                sObjV = m_Group.sObjLV;
+                iHandle = oPeer.iHandleL;
+            }
+
+            if(!"".equals(sObjV)) {
+                int iErrTemp = VideoJoinResponse(sObjV, iErr, "", iHandle);
                 if (iErrTemp > 0) {
                     _OutString("pgLibConference.VideoReject: Reply, iErr=" + iErrTemp);
                 }
-
-                oPeer.restore(m_Stamp.iActiveStamp);
-                m_listVideoPeer.remove(oPeer);
             }
+
         }
     }
 
@@ -958,12 +875,18 @@ public class pgLibConference {
      * 阻塞方式：非阻塞，立即返回
      * @param sPeer 节点ID或对象
      */
-    public void VideoClose(String sPeer) {
+    public void VideoClose(String sPeer){
+        VideoClose(sPeer,false);
+    }
+    public void VideoCloseL(String sPeer){
+        VideoClose(sPeer,true);
+    }
+    public void VideoClose(String sPeer,boolean bLarge) {
 
         if (m_Status.bApiVideoStart) {
             String sObjPeer = _ObjPeerBuild(sPeer);
             PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
-            _VideoClose(oPeer);
+            _VideoClose(oPeer,bLarge );
         } else {
             _OutString("VideoClose: m_Status.bApiVideoStart false!");
         }
@@ -1054,9 +977,14 @@ public class pgLibConference {
      * 阻塞方式：非阻塞，立即返回
      * @param sPeer 节点名
      * @param sPath 路径
+
      * @return true 成功 false 失败
      */
-    public boolean VideoCamera(String sPeer, String sPath) {
+
+    public boolean VideoCamera(String sPeer, String sPath){
+        return VideoCamera(sPeer, sPath, false);
+    }
+    public boolean VideoCamera(String sPeer, String sPath, boolean bLarge) {
         boolean bRet = false;
         if (m_Status.bApiVideoStart) {
             String sObjPeer = _ObjPeerBuild(sPeer);
@@ -1070,7 +998,7 @@ public class pgLibConference {
             PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
             if (oPeer != null) {
 
-                if (oPeer.bLarge) {
+                if (bLarge) {
                     sObjV = m_Group.sObjLV;
                 } else {
                     sObjV = m_Group.sObjV;
@@ -1219,7 +1147,7 @@ public class pgLibConference {
      * @return true 成功 false 失败
      */
     public boolean RecordStart( String sID, String sAviPath){
-        int iErr = RecordStart(sID,sAviPath,PG_RECORD_NORMAL);
+        int iErr = RecordStart(sID,sAviPath,PG_RECORD_NORMAL, false);
         if(iErr > PG_ERR_Normal){
             return false;
         }
@@ -1231,9 +1159,10 @@ public class pgLibConference {
      * @param sID 录制端ID ID为本身则录制本端视频，要求：视频通话正在进行。
      * @param sAviPath 视频保存路径
      * @param iMode 录制模式，0 同时录制视音频；1 只录制视频；2 只录制音频
+     * @param bLarge
      * @return 错误码 @link pgLibError
      */
-    public int RecordStart( String sID, String sAviPath,int iMode) {
+    public int RecordStart(String sID, String sAviPath, int iMode, boolean bLarge) {
         if (!m_Status.bServiceStart) {
             _OutString("RecordStart: Not initialize");
             return PG_ERR_BadStatus;
@@ -1255,7 +1184,7 @@ public class pgLibConference {
         String sObjVideo = m_Group.sObjV;
         PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
         if (oPeer != null) {
-            if (oPeer.bLarge) {
+            if (bLarge) {
                 sObjVideo = m_Group.sObjLV;
             } else {
                 sObjVideo = m_Group.sObjV;
@@ -1307,15 +1236,16 @@ public class pgLibConference {
      * @return true
      */
     public boolean RecordStop( String sID){
-        RecordStop(sID,PG_RECORD_NORMAL);
+        RecordStop(sID,PG_RECORD_NORMAL, false);
         return true;
     }
     /**
      * 停止录制
      * @param sID 录制ID ,本端录制填本端ID。
      * @param iMode 录制模式
+     * @param bLarge
      */
-    public void RecordStop(String sID,int iMode) {
+    public void RecordStop(String sID, int iMode, boolean bLarge) {
         if (!m_Status.bServiceStart) {
             _OutString("RecordStop: Not initialize");
             return;
@@ -1333,7 +1263,7 @@ public class pgLibConference {
             String sObjVideo = m_Group.sObjV;
             PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
             if (oPeer != null) {
-                if (oPeer.bLarge) {
+                if (bLarge) {
                     sObjVideo = m_Group.sObjLV;
                 } else {
                     sObjVideo = m_Group.sObjV;
@@ -1980,45 +1910,6 @@ public class pgLibConference {
 
     //登录回复信息
 
-
-    //添加主席节点  使之能在加入会议前与主席通信，发送Join信号
-    private void _ChairmanAdd() {
-        if (!m_Group.bEmpty) {
-            if (PG_CLASS_Peer.equals(m_Node.ObjectGetClass(m_Group.sObjChair))) {
-                _PeerSync(m_Group.sObjChair, "", 1);
-                _ChairPeerCheck();
-            } else {
-                if (!this.m_Node.ObjectAdd(this.m_Group.sObjChair, PG_CLASS_Peer, "", PG_ADD_COMMON_Sync )) {
-                    _OutString("ChairmanAdd:  failed.");
-                }
-            }
-        }
-    }
-
-    private void _PeerSync(String sObject, String sPeer, int uAction) {
-        _OutString(" ->PeerSync Act=" + uAction);
-        if (m_Node != null) {
-            uAction = (uAction <= 0) ? 0 : 1;
-            try {
-                m_Node.ObjectSync(sObject, sPeer, uAction);
-            } catch (Exception ex) {
-                _OutString("->PeerSync ex = " + ex.toString());
-            }
-        }
-    }
-
-    //删除主席节点  使能在添加主席节点失败后能重新添加
-    private void _ChairmanDel() {
-        _OutString(" ->ChairmanDel ");
-        if (m_Node != null) {
-            try {
-                this.m_Node.ObjectDelete(this.m_Group.sObjChair);
-            } catch (Exception ex) {
-                _OutString("->ChairmanDel ex = " + ex.toString());
-            }
-        }
-    }
-
     // 建立通讯组 视音频通讯类
     private int _ServiceStart() {
         if (m_Node != null && !m_Group.bEmpty) {
@@ -2131,7 +2022,7 @@ public class pgLibConference {
         for (int i = 0; i < m_listVideoPeer.size(); i++) {
 
             PG_PEER oPeer = m_listVideoPeer.get(i);
-            if ((!oPeer.sObjPeer.equals(m_Self.sObjSelf)) && (oPeer.Node != null)) {
+            if ((!oPeer.sObjPeer.equals(m_Self.sObjSelf)) && (oPeer.View != null)) {
 
                 // 超过3倍心跳周期，没有接收到对端的心跳应答，说明与对端之间连接断开了
                 if ((m_Stamp.iActiveStamp - oPeer.iActStamp) > (m_Stamp.iActiveExpire * 3) && (!oPeer.bVideoLost)) {
@@ -2293,6 +2184,25 @@ public class pgLibConference {
         return oPeer;
     }
 
+    private int _VideoPeerAdd(String sObjPeer){
+        try {
+            PG_PEER oPeer = new PG_PEER(sObjPeer);
+            m_listVideoPeer.add(oPeer);
+        } catch (Exception ex) {
+            return PG_ERR_System;
+        }
+        return PG_ERR_Normal;
+    }
+
+    private void  _VideoPeerDelete(String sObjPeer){
+        PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
+        if(oPeer!=null){
+            oPeer.Release();
+            m_listVideoPeer.remove(oPeer);
+        }
+
+    }
+
     private final ArrayList<String> m_listLostPeer = new ArrayList<>();
 
     private class PG_SYNC {
@@ -2322,485 +2232,61 @@ public class pgLibConference {
         return oSync;
     }
 
-    private String _GroupBuildObject(String sGroup) {
-        String sObjVideo = ("_G_" + sGroup);
-        if (sObjVideo.length() > 127) {
-            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
+    private int _SyncPeerAdd(String sObjPeer,int iCurrentStamp){
+        try {
+            PG_SYNC oPeer = new PG_SYNC(sObjPeer,iCurrentStamp);
+            m_listSyncPeer.add(oPeer);
+        } catch (Exception ex) {
+            return PG_ERR_System;
         }
-        return sObjVideo;
-    }
-
-    private boolean _GroupObjectIs(String sObject) {
-        return (sObject.indexOf("_G_") == 0);
-    }
-
-    private String _GroupObjectParseGroup(String sObject) {
-
-        if (sObject.indexOf("_G_") == 0) {
-            return sObject.substring(3);
-        }
-
-        return "";
-    }
-
-    private boolean _GroupObjectAdd(String sGroupName,String sGroup,int uFlag){
-        if (!m_Node.ObjectAdd(sGroupName, PG_CLASS_Group, sGroup, uFlag)) {
-            _OutString("ServiceStart: Add group object failed");
-            return false
-                    ;
-        }
-
-        return true;
-    }
-
-    private int _GroupModify(){
-
         return PG_ERR_Normal;
     }
 
-    //
-    private String _PrvwBuild() {
-        return "Prvw";
-    }
-
-    private String _VideoBuildObject(String sGroup) {
-        String sObjVideo = ("_V_" + sGroup);
-        if (sObjVideo.length() > 127) {
-            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
-        }
-        return sObjVideo;
-    }
-
-    private boolean _VideoObjectIs(String sObject) {
-        return (sObject.indexOf("_V_") == 0);
-    }
-
-    private String _VideoObjectParseGroup(String sObject) {
-
-        if (sObject.indexOf("_V_") == 0) {
-            return sObject.substring(3);
-        }
-
-        return "";
-
-    }
-
-    private String _VideoLBuildObject(String sGroup) {
-        String sObjVideo = ("_LV_" + sGroup);
-        if (sObjVideo.length() > 127) {
-            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
-        }
-        return sObjVideo;
-    }
-
-    private boolean _VideoLObjectIs(String sObject) {
-        return (sObject.indexOf("_LV_") == 0);
-    }
-
-    private String _VideoLObjectParseGroup(String sObject) {
-
-        if (sObject.indexOf("_LV_") == 0) {
-            return sObject.substring(4);
-        }
-        return "";
-    }
-
-    private int _VideoFlagGet(int iFlag){
-        int uFlag = PG_ADD_COMMON_Sync | PG_ADD_VIDEO_Conference|PG_ADD_VIDEO_FrameStat|PG_ADD_VIDEO_DrawThread;
-        switch (iFlag) {
-            case VIDEO_ONLY_INPUT: {
-                uFlag = uFlag | PG_ADD_VIDEO_OnlyInput;
-                break;
-            }
-            case VIDEO_ONLY_OUTPUT: {
-                uFlag = uFlag | PG_ADD_VIDEO_OnlyOutput;
-                break;
-            }
-            case VIDEO_NORMAL:
-            default:
-        }
-        return uFlag;
-    }
-
-    private int _VideoPrvwStart(int iPrvwMode){
-        this.m_Node.ObjectAdd(_PrvwBuild(), "PG_CLASS_Video", "", PG_ADD_VIDEO_Preview);
-
-        String sWndRect = "(Code){0}(Mode){"+ iPrvwMode +"}(Rate){40}(Wnd){}";
-
-        return this.m_Node.ObjectRequest(_PrvwBuild(), 32, sWndRect, "pgLibConference.PrvwStart");
-    }
-
-    private int _VideoViewStart(String sGroup , String sObjV, int uFlag, int iCode, int iMode, int iRate){
-
-        if (!this.m_Node.ObjectAdd(sObjV, PG_CLASS_Video, sGroup, uFlag)) {
-            _OutString("pgLibConference.VideoInit: Add 'Video' failed.");
-            return PG_ERR_System;
-        }
-
-        String sData = "(Code){" + iCode + "}(Mode){" + iMode + "}(Rate){" + iRate+ "}";
-
-        _OutString("VideoInit ->  sData = " + sData);
-
-        return this.m_Node.ObjectRequest(sObjV, 32, sData, "pgLibConference.VideoStart");
-
-    }
-
-    //视频相关初始化
-    private boolean _VideoInit(int iFlag) {
-        _OutString("->VideoInit iFlag = " + iFlag);
-
-        this._VideoOption();
-        if (m_Status.bServiceStart) {
-
-            if (!m_Group.bChairman) {
-                _ChairPeerCheck();
-            }
-
-            m_Status.iVideoInitFlag = iFlag;
-
-            int uFlag = _VideoFlagGet(m_Status.iVideoInitFlag);
-
-            //预览
-            int iPrvwMode =  ((m_Self.iVideoMode>m_Self.iLVideoMode)?(m_Self.iVideoMode):(m_Self.iLVideoMode));
-            int iErr = _VideoPrvwStart(iPrvwMode);
-            if(iErr>PG_ERR_Normal){
-                _OutString("pgLibConference.VideoInit: VideoPrvwStart failed.");
-                return false;
-            }
-
-            //======================================================================================
-
-            iErr = _VideoViewStart(this.m_Group.sObjG,this.m_Group.sObjV,uFlag,this.m_Self.iVideoCode,this.m_Self.iVideoMode,this.m_Self.iVideoFrmRate);
-            if (iErr > 0) {
-                _OutString("pgLibConference.VideoInit: VideoViewStart failed. iErr=" + iErr);
-                return false;
-            }
-
-            iErr = _VideoViewStart(this.m_Group.sObjG,this.m_Group.sObjLV,uFlag,this.m_Self.iLVideoCode,this.m_Self.iLVideoMode,this.m_Self.iLVideoFrmRate);
-            if (iErr > 0) {
-                _OutString("pgLibConference.VideoInit: VideoViewStart L failed. iErr=" + iErr);
-                return false;
-            }
-
-            // 开始视频连接状态检测定时器
-            m_Group.iActiveTimer = TimerStartActive();
-            m_Stamp.iActiveStamp = 0;
-            return true;
-        }
-        return false;
-    }
-
-    private int _VideoLeave(String sObjV, String sObjPeer){
-        String sData = "(Peer){" + this.m_Node.omlEncode(sObjPeer) + "}";
-        return this.m_Node.ObjectRequest(sObjV, 36, sData, "VideoClose:" + sObjPeer);
-    }
-
-    private boolean _VideoClose(PG_PEER oPeer) {
-        boolean bRet = false;
-        if (oPeer != null && m_Status.bApiVideoStart) {
-            if (oPeer.Node != null || oPeer.iHandle > 0) {
-                String sObjV;
-                if (oPeer.bLarge) {
-                    sObjV = m_Group.sObjLV;
-                } else {
-                    sObjV = m_Group.sObjV;
-                }
-                int iErr = _VideoLeave(sObjV,oPeer.sObjPeer);
-                if (iErr != 0) {
-                    return false;
-                }
-            }
-            oPeer.restore(m_Stamp.iActiveStamp);
+    private void  _SyncPeerDelete(String sObjPeer){
+        PG_SYNC oPeer = _SyncPeerSearch(sObjPeer);
+        if(oPeer!=null){
             m_listVideoPeer.remove(oPeer);
         }
-        return bRet;
     }
 
-    private void _VideoObjectDelete(String sObjV){
-        this.m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Close, "", "VideoClean:"+sObjV);
-        this.m_Node.ObjectDelete(sObjV);
-    }
-
-    //视频相关清理
-    private void _VideoClean() {
-        _OutString("->VideoClean");
-        if (m_Status.bApiVideoStart) {
-            if (m_Group.iActiveTimer > 0) {
-                TimerStop(m_Group.iActiveTimer);
-            }
-
-            _VideoObjectDelete(this.m_Group.sObjLV);
-            _VideoObjectDelete(this.m_Group.sObjV);
-
-            _VideoObjectDelete(_PrvwBuild());
-
-        }
-        m_Status.bApiVideoStart = false;
-    }
-
-    private String _AudioBuildObject(String sGroup) {
-        String sObjVideo = ("_A_" + sGroup);
-        if (sObjVideo.length() > 127) {
-            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
-        }
-        return sObjVideo;
-    }
-
-    private boolean _AudioObjectIs(String sObject) {
-        return (sObject.indexOf("_A_") == 0);
-    }
-
-    private String _AudioObjectParseGroup(String sObject) {
-
-        if (sObject.indexOf("_A_") == 0) {
-            return sObject.substring(3);
-        }
-
-        return "";
-
-    }
-
-    private int _AudioFlagGet(int iFlag){
-        int uFlag = PG_ADD_COMMON_Sync| PG_ADD_AUDIO_Conference;
-        switch (iFlag) {
-            case AUDIO_NO_SPEECH_SELF:
-                uFlag = uFlag |  PG_ADD_AUDIO_NoSpeechSelf;
-                break;
-            case AUDIO_NO_SPEECH_PEER:
-                uFlag = uFlag |  PG_ADD_AUDIO_NoSpeechPeer;
-                break;
-            case AUDIO_NO_SPEECH_SELF_AND_PEER:
-                uFlag = uFlag | PG_ADD_AUDIO_NoSpeechSelf | PG_ADD_AUDIO_NoSpeechPeer;
-                break;
-            case AUDIO_SPEECH:
-            default:
-                break;
-        }
-        return uFlag;
-    }
-
-    private int _AudioOpen(String sGroup , String sObjA , int uFlag){
-        if (!this.m_Node.ObjectAdd(sObjA, "PG_CLASS_Audio", sGroup, uFlag)) {
-            _OutString("pgLibConference.m_AudioInit: Add Audio failed.");
-            return PG_ERR_System;
-        }
-
-        return this.m_Node.ObjectRequest(sObjA, PG_METH_AUDIO_Open , "(Code){1}(Mode){0}", "pgLibConference.AudioInit");
-    }
-
-    private void _AudioClose(String sObjA){
-        this.m_Node.ObjectRequest(sObjA, PG_METH_AUDIO_Close , "", "pgLibConference.AudioClean");
-        this.m_Node.ObjectDelete(sObjA);
-    }
-
-    //音频相关初始化
-    private boolean _AudioInit() {
-        _OutString("->AudioInit");
-
-        int uFlag =  _AudioFlagGet( m_Self.iAudioSpeechDisable);
-
-        int iErr = _AudioOpen(this.m_Group.sObjG,this.m_Group.sObjA,uFlag);
-        if (iErr > 0) {
-            _OutString("pgLibConference.AudioInit: Open audio failed. iErr=" + iErr);
-            return false;
-        }
-        return true;
-    }
-
-    //音频相关清理
-    private void _AudioClean() {
-        _OutString("->AudioClean");
-
-        _AudioClose(this.m_Group.sObjA);
-    }
-
-    //------------------------------------------------------
-    // Record list handles
-
-    private String m_sListRecord = "";
-
-    private String _RecordListSearch(int iMode,String sID) {
-        return m_Node.omlGetEle(m_sListRecord, ("\n*" + iMode + "_" + sID), 1, 0);
-    }
-
-    private void _RecordListAdd(int iMode, String sID) {
-        String sRec = _RecordListSearch(iMode,sID);
-        if ("".equals(sRec)) {
-            m_sListRecord += "(" + m_Node.omlEncode(iMode + "_" + sID)
-                    + "){}";
-        }
-    }
-
-    private boolean _RecordListDelete(int iMode,String sID) {
-        String sRec = _RecordListSearch(iMode,sID);
-        if (!"".equals(sRec)) {
-            m_sListRecord = m_Node.omlDeleteEle(m_sListRecord, ("\n*" + iMode + "_" + sID), 1, 0);
-            return true;
-        }
-        return false;
-    }
-
-    //------------------------------------------------------
-    // File handles.
-
-    private String m_sListFile = "";
-
-    private String _FileBuildObject(String sChairID,String sID) {
-        String sObjFile = ("File_" + sChairID + "\n" + sID);
-        if (sObjFile.length() > 127) {
-            _OutString("_FileBuildObject: '" + sObjFile + "' to long !");
-        }
-        return sObjFile;
-    }
-
-    private boolean _FileObjectIs(String sObject) {
-        return (sObject.indexOf("File_") == 0);
-    }
-
-    private String _FileObjectParseChairID(String sObject) {
-
-        String sCapRender = "";
-        if (sObject.indexOf("File_") == 0) {
-            sCapRender = sObject.substring(5);
-        }
-        int iInd = sCapRender.indexOf("\n");
-        if (iInd > 0) {
-            return sCapRender.substring(0, iInd);
-        }
-        return "";
-
-    }
-    private String _FileObjectParseMemberID(String sObject) {
-
-        String sCapRender = "";
-        if (sObject.indexOf("File_") == 0) {
-            sCapRender = sObject.substring(5);
-        }
-        int iInd = sCapRender.indexOf("\n");
-        if (iInd > 0) {
-            return sCapRender.substring(iInd+1);
-        }
-        return "";
-
-    }
-
-    private String _FileListSearch(String sChairID,String sID) {
-        return m_Node.omlGetEle(m_sListFile, ("\n*" + sChairID + "_" + sID), 1, 0);
-    }
-
-    private boolean _FileListAdd(String sChairID,String sID,boolean bChairman) {
-        String sFile = _FileListSearch(sChairID,sID);
-        if ("".equals(sFile)) {
-            m_sListFile += "(" + m_Node.omlEncode(sChairID + "_" + sID) + "){(Status){0}(Handle){0}}";
-        }
-
-        String sObjFile = _FileBuildObject(sChairID , sID);
-
-        if (!"PG_CLASS_File".equals(m_Node.ObjectGetClass(sObjFile))) {
-            String sObj = bChairman?_ObjPeerBuild(sID):_ObjPeerBuild(sChairID);
-            if (!m_Node.ObjectAdd(sObjFile, "PG_CLASS_File", sObj, 0x10000)) {
-                _OutString("_FileListAdd: Add '" + sObjFile + "' failed!");
-                return false;
+    //添加主席节点  使之能在加入会议前与主席通信，发送Join信号
+    private void _ChairmanAdd() {
+        if (!m_Group.bEmpty) {
+            if (PG_CLASS_Peer.equals(m_Node.ObjectGetClass(m_Group.sObjChair))) {
+                _PeerSync(m_Group.sObjChair, "", 1);
+                _ChairPeerCheck();
+            } else {
+                if (!this.m_Node.ObjectAdd(this.m_Group.sObjChair, PG_CLASS_Peer, "", PG_ADD_COMMON_Sync )) {
+                    _OutString("ChairmanAdd:  failed.");
+                }
             }
         }
-
-        return true;
     }
 
-    private boolean _FileListDelete(String sChairID,String sID) {
-        String sObjFile = _FileBuildObject(sChairID,sID);
-
-        m_Node.ObjectRequest(sObjFile, 35, "", "");
-        m_Node.ObjectDelete(sObjFile);
-
-        String sFile = _FileListSearch(sChairID,sID);
-        if (!"".equals(sFile)) {
-            m_sListFile = m_Node.omlDeleteEle(m_sListFile, ("\n*" + sChairID + "_" + sID), 1, 0);
-            return true;
+    private void _PeerSync(String sObject, String sPeer, int uAction) {
+        _OutString(" ->PeerSync Act=" + uAction);
+        if (m_Node != null) {
+            uAction = (uAction <= 0) ? 0 : 1;
+            try {
+                m_Node.ObjectSync(sObject, sPeer, uAction);
+            } catch (Exception ex) {
+                _OutString("->PeerSync ex = " + ex.toString());
+            }
         }
-
-        return false;
     }
 
-    private boolean _FileListSet(String sChairID,String sID, String sItem, String sValue) {
-        String sFile = _FileListSearch(sChairID,sID);
-        if (!"".equals(sFile)) {
-            String sPath = "\n*" +  sChairID + "_" + sID + "*" + sItem;
-            m_sListFile = m_Node.omlSetContent(m_sListFile, sPath, sValue);
-            return true;
+    //删除主席节点  使能在添加主席节点失败后能重新添加
+    private void _ChairmanDel() {
+        _OutString(" ->ChairmanDel ");
+        if (m_Node != null) {
+            try {
+                this.m_Node.ObjectDelete(this.m_Group.sObjChair);
+            } catch (Exception ex) {
+                _OutString("->ChairmanDel ex = " + ex.toString());
+            }
         }
-        return false;
     }
 
-    private String _FileListGet(String sChairID,String sID, String sItem) {
-        String sPath = "\n*" + sChairID + "_" + sID + "*" + sItem;
-        return m_Node.omlGetContent(m_sListFile, sPath);
-    }
-
-    private int _FileRequest(String sChairID,String sID, String sPath, String sPeerPath, int iMethod) {
-        if ("1".equals(_FileListGet(sChairID,sID, "Status"))) {
-            return PG_ERR_Opened;
-        }
-
-        String sData = "(Path){" + m_Node.omlEncode(sPath) + "}(PeerPath){"
-                + m_Node.omlEncode(sPeerPath) + "}(TimerVal){1}(Offset){0}(Size){0}";
-
-        String sParam = (iMethod == 32) ? "FilePutRequest" : "FileGetRequest";
-
-        String sObjFile = _FileBuildObject(sChairID,sID);
-        int iErr =  m_Node.ObjectRequest(sObjFile, iMethod, sData, sParam);
-        if (iErr > PG_ERR_Normal) {
-            _OutString("_FileRequest: iMethod=" + iMethod + ", iErr=" + iErr);
-            return iErr;
-        }
-
-        _FileListSet(sChairID,sID, "Status", "1");
-        return iErr;
-    }
-
-    private int _FileReply(int iErrReply, String sChairID,String sID, String sPath) {
-
-        String sData = "";
-        if (iErrReply != PG_ERR_Normal) {
-            _FileListSet(sChairID,sID, "Status", "0");
-        }
-        else {
-            _FileListSet(sChairID,sID, "Status", "1");
-            sData = "(Path){" + m_Node.omlEncode(sPath) + "}(TimerVal){1}";
-        }
-
-        _OutString("_FileReply: iErrReply=" + iErrReply + ", sChairID=" + sChairID + ", sData=" + sData);
-
-        String sHandle = _FileListGet(sChairID,sID, "Handle");
-        _OutString("_FileReply: sHandle=" + sHandle);
-
-        int iHandle = _ParseInt(sHandle, 0);
-        if (iHandle == 0) {
-            _FileListSet(sChairID, sID, "Status", "0");
-            return PG_ERR_BadStatus;
-        }
-
-
-        String sObjFile = _FileBuildObject(sChairID,sID);
-        int iErr = m_Node.ObjectExtReply(sObjFile, iErrReply, sData, iHandle);
-        if (iErr <= PG_ERR_Normal) {
-            _FileListSet(sChairID,sID, "Handle", "0");
-        }
-
-        _OutString("_FileReply: iErr=" + iErr);
-        return iErr;
-    }
-
-    private int _FileCancel(String sChairID,String sID) {
-
-        String sObjFile = _FileBuildObject(sChairID,sID);
-        int iErr = m_Node.ObjectRequest(sObjFile, 35, "", "FileCancel");
-        if (iErr <= PG_ERR_Normal) {
-            _FileListSet(sChairID,sID, "Status", "0");
-        }
-
-        return iErr;
-    }
 
     //自身登录事件处理
     private void _SelfSync(String sData, String sObjPeer) {
@@ -3042,124 +2528,7 @@ public class pgLibConference {
         }
     }
 
-    //会议成员更新   每加入一个新成员 其他成员获得他的信息  新成员获得其他所有成员的信息
-    private void _GroupUpdate(String sData) {
-        _OutString("->GroupUpdate");
-        if (m_Node != null) {
-            String sAct = this.m_Node.omlGetContent(sData, "Action");
-            String sPeerList = this.m_Node.omlGetEle(sData, "PeerList.", 256, 0);
-            _OutString("GroupUpdate: sAct=" + sAct + " sPeerList=" + sPeerList);
-            int iInd = 0;
-            while (true) {
-                String sEle = this.m_Node.omlGetEle(sPeerList, "", 1, iInd);
-                if ("".equals(sEle)) {
-                    break;
-                }
 
-                String sObjPeer = this.m_Node.omlGetName(sEle, "");
-                _OutString("GroupUpdate: sAct=" + sAct + " sObjPeer=" + sObjPeer);
-                if (sObjPeer.indexOf(ID_PREFIX) == 0) {
-                    String sPeer = _ObjPeerParsePeer(sObjPeer);
-                    if ("1".equals(sAct)) {
-                        _FileListAdd(m_Group.sChair,sPeer,m_Group.bChairman);
-                        _OnEvent(EVENT_JOIN, "", sObjPeer);
-                    } else {
-                        _FileListDelete(m_Group.sChair,sPeer);
-                        _OnEvent(EVENT_LEAVE, "", sObjPeer);
-                    }
-                }
-
-                iInd++;
-            }
-        }
-    }
-
-    private void _VideoSync(String sObj , String sData , String sObjPeer){
-        String sEventAct = EVENT_VIDEO_SYNC;
-
-        if(_VideoObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_SYNC;
-        }else if(_VideoLObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_SYNC_1;
-        }
-
-        String sAct = this.m_Node.omlGetContent(sData, "Action");
-        if ("1".equals(sAct)) {
-            _OnEvent(sEventAct, "", sObjPeer);
-        }
-    }
-
-    //保存对端视频请求句柄
-    private void _VideoJoin(String sObj, String sData, int iHandle, String sObjPeer) {
-        _OutString("->VideoJoin");
-
-        String sEventAct =  EVENT_VIDEO_OPEN;
-        if(_VideoObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_OPEN;
-        }else if(_VideoLObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_OPEN_1;
-        }
-        PG_PEER oCtrl = _VideoPeerSearch(sObjPeer);
-        if (oCtrl == null) {
-            try {
-                oCtrl = new PG_PEER(sObjPeer);
-            } catch (Exception ex) {
-                _OutString("->VideoJoin ex = " + ex.toString());
-                return;
-            }
-            m_listVideoPeer.add(oCtrl);
-        }
-
-        oCtrl.iStamp = m_iCurStamp;
-        oCtrl.iHandle = iHandle;
-        if (sObj.indexOf("_LV_") == 0) {
-            oCtrl.bLarge = true;
-        }
-        _OnEvent(sEventAct, sData, sObjPeer);
-    }
-
-    //初始化节点
-    private void _VideoLeave(String sObj, String sData, int iHandle, String sObjPeer) {
-        _OutString("->VideoLeave");
-
-        String sEventAct =  EVENT_VIDEO_CLOSE;
-        if(_VideoObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_CLOSE;
-        }else if(_VideoLObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_CLOSE_1;
-        }
-
-        _OnEvent(sEventAct, sData, sObjPeer);
-
-        PG_PEER oCtrl = _VideoPeerSearch(sObjPeer);
-        if (oCtrl != null) {
-            oCtrl.restore(m_Stamp.iActiveStamp);
-            m_listVideoPeer.remove(oCtrl);
-        }
-    }
-
-    //上报发送视频帧信息
-    private void _VideoFrameStat(String sObj, String sData) {
-        //OutString("->VideoFrameStat");
-        String sEventAct =  EVENT_VIDEO_FRAME_STAT;
-        if(_VideoObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_FRAME_STAT;
-        }else if(_VideoLObjectIs(sObj)){
-            sEventAct = EVENT_VIDEO_FRAME_STAT_1;
-        }
-        String sObjPeerTemp = m_Node.omlGetContent(sData, "Peer");
-        String sFrmTotal = m_Node.omlGetContent(sData, "Total");
-        String sFrmDrop = m_Node.omlGetContent(sData, "Drop");
-
-        _OnEvent(sEventAct, ("total=" + sFrmTotal + "&drop=" + sFrmDrop), sObjPeerTemp);
-    }
-
-    private void _OnAudioSync(String sData, String sObjPeer) {
-        String sAct = this.m_Node.omlGetContent(sData, "Action");
-        if ("1".equals(sAct)) {
-            _OnEvent(EVENT_AUDIO_SYNC, "", sObjPeer);
-        }
-    }
 
     private boolean _ChairPeerAdd(boolean bStatic) {
         if (m_Node == null) {
@@ -3294,6 +2663,695 @@ public class pgLibConference {
 
         m_LanScan.bApiLanScan = false;
     }
+    //---------------------------------------------Group
+
+    private String _GroupBuildObject(String sGroup) {
+        String sObjVideo = ("_G_" + sGroup);
+        if (sObjVideo.length() > 127) {
+            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
+        }
+        return sObjVideo;
+    }
+
+    private boolean _GroupObjectIs(String sObject) {
+        return (sObject.indexOf("_G_") == 0);
+    }
+
+    private String _GroupObjectParseGroup(String sObject) {
+
+        if (sObject.indexOf("_G_") == 0) {
+            return sObject.substring(3);
+        }
+
+        return "";
+    }
+
+    private boolean _GroupObjectAdd(String sGroupName,String sGroup,int uFlag){
+        if (!m_Node.ObjectAdd(sGroupName, PG_CLASS_Group, sGroup, uFlag)) {
+            _OutString("ServiceStart: Add group object failed");
+            return false
+                    ;
+        }
+
+        return true;
+    }
+
+    private int _GroupModify(){
+
+        return PG_ERR_Normal;
+    }
+
+    //会议成员更新   每加入一个新成员 其他成员获得他的信息  新成员获得其他所有成员的信息
+    private void _GroupUpdate(String sData) {
+        _OutString("->GroupUpdate");
+        if (m_Node != null) {
+            String sAct = this.m_Node.omlGetContent(sData, "Action");
+            String sPeerList = this.m_Node.omlGetEle(sData, "PeerList.", 256, 0);
+            _OutString("GroupUpdate: sAct=" + sAct + " sPeerList=" + sPeerList);
+            int iInd = 0;
+            while (true) {
+                String sEle = this.m_Node.omlGetEle(sPeerList, "", 1, iInd);
+                if ("".equals(sEle)) {
+                    break;
+                }
+
+                String sObjPeer = this.m_Node.omlGetName(sEle, "");
+                _OutString("GroupUpdate: sAct=" + sAct + " sObjPeer=" + sObjPeer);
+                if (sObjPeer.indexOf(ID_PREFIX) == 0) {
+                    String sPeer = _ObjPeerParsePeer(sObjPeer);
+                    if ("1".equals(sAct)) {
+                        _FileListAdd(m_Group.sChair,sPeer,m_Group.bChairman);
+                        _OnEvent(EVENT_JOIN, "", sObjPeer);
+                    } else {
+                        _FileListDelete(m_Group.sChair,sPeer);
+                        _OnEvent(EVENT_LEAVE, "", sObjPeer);
+                    }
+                }
+
+                iInd++;
+            }
+        }
+    }
+
+    //-------------------------------------------Video
+
+    private String _PrvwBuild() {
+        return "Prvw";
+    }
+
+    private String _VideoBuildObject(String sGroup) {
+        String sObjVideo = ("_V_" + sGroup);
+        if (sObjVideo.length() > 127) {
+            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
+        }
+        return sObjVideo;
+    }
+
+    private boolean _VideoObjectIs(String sObject) {
+        return (sObject.indexOf("_V_") == 0);
+    }
+
+    private String _VideoObjectParseGroup(String sObject) {
+
+        if (sObject.indexOf("_V_") == 0) {
+            return sObject.substring(3);
+        }
+
+        return "";
+
+    }
+
+    private String _VideoLBuildObject(String sGroup) {
+        String sObjVideo = ("_LV_" + sGroup);
+        if (sObjVideo.length() > 127) {
+            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
+        }
+        return sObjVideo;
+    }
+
+    private boolean _VideoLObjectIs(String sObject) {
+        return (sObject.indexOf("_LV_") == 0);
+    }
+
+    private String _VideoLObjectParseGroup(String sObject) {
+
+        if (sObject.indexOf("_LV_") == 0) {
+            return sObject.substring(4);
+        }
+        return "";
+    }
+
+    private int _VideoFlagGet(int iFlag){
+        int uFlag = PG_ADD_COMMON_Sync | PG_ADD_VIDEO_Conference|PG_ADD_VIDEO_FrameStat|PG_ADD_VIDEO_DrawThread;
+        switch (iFlag) {
+            case VIDEO_ONLY_INPUT: {
+                uFlag = uFlag | PG_ADD_VIDEO_OnlyInput;
+                break;
+            }
+            case VIDEO_ONLY_OUTPUT: {
+                uFlag = uFlag | PG_ADD_VIDEO_OnlyOutput;
+                break;
+            }
+            case VIDEO_NORMAL:
+            default:
+        }
+        return uFlag;
+    }
+
+    private int _VideoPrvwStart(int iPrvwMode){
+        this.m_Node.ObjectAdd(_PrvwBuild(), "PG_CLASS_Video", "", PG_ADD_VIDEO_Preview);
+
+        String sWndRect = "(Code){0}(Mode){"+ iPrvwMode +"}(Rate){40}(Wnd){}";
+
+        return this.m_Node.ObjectRequest(_PrvwBuild(), 32, sWndRect, "pgLibConference.PrvwStart");
+    }
+
+    private int _VideoViewStart(String sGroup , String sObjV, int uFlag, int iCode, int iMode, int iRate){
+
+        if (!this.m_Node.ObjectAdd(sObjV, PG_CLASS_Video, sGroup, uFlag)) {
+            _OutString("pgLibConference.VideoInit: Add 'Video' failed.");
+            return PG_ERR_System;
+        }
+
+        String sData = "(Code){" + iCode + "}(Mode){" + iMode + "}(Rate){" + iRate+ "}";
+
+        _OutString("VideoInit ->  sData = " + sData);
+
+        return this.m_Node.ObjectRequest(sObjV, 32, sData, "pgLibConference.VideoStart");
+
+    }
+
+    //视频相关初始化
+    private boolean _VideoInit(int iFlag) {
+        _OutString("->VideoInit iFlag = " + iFlag);
+
+        this._VideoOption();
+        if (m_Status.bServiceStart) {
+
+            if (!m_Group.bChairman) {
+                _ChairPeerCheck();
+            }
+
+            m_Status.iVideoInitFlag = iFlag;
+
+            int uFlag = _VideoFlagGet(m_Status.iVideoInitFlag);
+
+            //预览
+            int iPrvwMode =  ((m_Self.iVideoMode>m_Self.iLVideoMode)?(m_Self.iVideoMode):(m_Self.iLVideoMode));
+            int iErr = _VideoPrvwStart(iPrvwMode);
+            if(iErr>PG_ERR_Normal){
+                _OutString("pgLibConference.VideoInit: VideoPrvwStart failed.");
+                return false;
+            }
+
+            //======================================================================================
+
+            iErr = _VideoViewStart(this.m_Group.sObjG,this.m_Group.sObjV,uFlag,this.m_Self.iVideoCode,this.m_Self.iVideoMode,this.m_Self.iVideoFrmRate);
+            if (iErr > 0) {
+                _OutString("pgLibConference.VideoInit: VideoViewStart failed. iErr=" + iErr);
+                return false;
+            }
+
+            iErr = _VideoViewStart(this.m_Group.sObjG,this.m_Group.sObjLV,uFlag,this.m_Self.iLVideoCode,this.m_Self.iLVideoMode,this.m_Self.iLVideoFrmRate);
+            if (iErr > 0) {
+                _OutString("pgLibConference.VideoInit: VideoViewStart L failed. iErr=" + iErr);
+                return false;
+            }
+
+            // 开始视频连接状态检测定时器
+            m_Group.iActiveTimer = TimerStartActive();
+            m_Stamp.iActiveStamp = 0;
+            return true;
+        }
+        return false;
+    }
+
+
+    private int VideoJoinRequest(String sObjV,String sData,String sParam){
+
+        return m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Join, sData, sParam);
+    }
+
+    private int VideoJoinResponse(String sObjV,int iErr, String sData, int iHandle){
+        _OutString("Video open Relay iHandle=" + iHandle);
+        return this.m_Node.ObjectExtReply(sObjV, iErr, sData, iHandle);
+    }
+
+    private boolean _VideoJoin(String sObjV,String sPeer, int iResErr, String sData, int iHandle){
+        boolean bJoinRes = false;
+        if (iHandle > 0) {
+
+            int iErrTemp = VideoJoinResponse(sObjV,iResErr,sData,iHandle);
+            if (iErrTemp <= 0) {
+                if (iResErr == 0) {
+                    bJoinRes = true;
+                }
+            } else {
+                _OutString("pgLibConference.VideoOpen: Reply, iErr=" + iErrTemp);
+            }
+        } else {
+
+            String sParamTmp = "VideoOpen:" + sPeer;
+            int iErrTemp = VideoJoinRequest(sObjV,sData,sParamTmp);
+            if (iErrTemp <= 0) {
+                bJoinRes = true;
+            } else {
+                _OutString("pgLibConference.VideoOpen: Request, iErr=" + iErrTemp);
+            }
+        }
+        return bJoinRes;
+    }
+
+    private SurfaceView VideoOpen(String sPeer, int iW, int iH, boolean bLarge) {
+        _OutString("VideoOpen :sObjPeer=" + sPeer + "; iW=" + iW + "; iH=" + iH);
+        SurfaceView retView = null;
+        PG_PEER oPeer;
+        if (m_Status.bApiVideoStart && !"".equals(sPeer)) {
+            do {
+                String sObjPeer = _ObjPeerBuild(sPeer);
+                oPeer = _VideoPeerSearch(sObjPeer);
+                if (oPeer == null) {
+                    if(_VideoPeerAdd(sObjPeer) > PG_ERR_Normal){
+                       break;
+                    }
+                    oPeer.iActStamp = m_Stamp.iActiveStamp;
+                }
+
+
+                String sObjV;
+                int iResErr;
+                String sData;
+                String sEndEle ;
+                int iHandle;
+
+                if(!bLarge){
+                    sEndEle = oPeer.GetWndEle(iW,iH);
+                    sObjV = m_Group.sObjV;
+                    iHandle = oPeer.iHandle;
+                    retView = oPeer.View;
+                }else{
+                    sEndEle = oPeer.GetWndEleL(iW,iH);
+                    sObjV = m_Group.sObjLV;
+                    iHandle = oPeer.iHandleL;
+                    retView = oPeer.ViewL;
+                }
+
+                //
+                if (!"".equals(sEndEle)) {
+                    iResErr = PG_ERR_Normal;
+                    sData = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Wnd){" + sEndEle + "}";
+                    _OutString("VideoOpen: sData=" + sData);
+                } else {
+                    iResErr = PG_ERR_Reject;
+                    sData = "";
+                    _OutString("pgLibConference.VideoOpen: New node wnd failed!");
+                }
+
+
+                boolean  bJoinRes = _VideoJoin(sObjV,sPeer,iResErr,sData,iHandle);
+
+                if (bJoinRes) {
+                    _OutString("VideoOpen: scussce");
+                }
+            } while (false);
+        }
+        return retView;
+    }
+
+    private int _VideoLeave(String sObjV, String sObjPeer){
+        String sData = "(Peer){" + this.m_Node.omlEncode(sObjPeer) + "}";
+        return this.m_Node.ObjectRequest(sObjV, 36, sData, "VideoClose:" + sObjPeer);
+    }
+
+    private boolean _VideoClose(PG_PEER oPeer, boolean bLarge) {
+        boolean bRet = false;
+        if (oPeer != null && m_Status.bApiVideoStart) {
+
+            String sObjV;
+            if (bLarge) {
+                oPeer.VideoLeaveL();
+                sObjV = m_Group.sObjLV;
+            } else {
+                oPeer.VideoLeave();
+                sObjV = m_Group.sObjV;
+            }
+            int iErr = _VideoLeave(sObjV,oPeer.sObjPeer);
+            if (iErr != 0) {
+                return false;
+            }
+        }
+        return bRet;
+    }
+
+    private void _VideoObjectDelete(String sObjV){
+        this.m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Close, "", "VideoClean:"+sObjV);
+        this.m_Node.ObjectDelete(sObjV);
+    }
+
+    //视频相关清理
+    private void _VideoClean() {
+        _OutString("->VideoClean");
+        if (m_Status.bApiVideoStart) {
+            if (m_Group.iActiveTimer > 0) {
+                TimerStop(m_Group.iActiveTimer);
+            }
+
+            _VideoObjectDelete(this.m_Group.sObjLV);
+            _VideoObjectDelete(this.m_Group.sObjV);
+
+            _VideoObjectDelete(_PrvwBuild());
+
+        }
+        m_Status.bApiVideoStart = false;
+    }
+
+    private void _OnVideoSync(String sObj , String sData , String sObjPeer){
+
+        String sAct = this.m_Node.omlGetContent(sData, "Action");
+        if ("1".equals(sAct)) {
+            String sEventAct = EVENT_VIDEO_SYNC;
+
+            if(_VideoObjectIs(sObj)){
+                sEventAct = EVENT_VIDEO_SYNC;
+            }else if(_VideoLObjectIs(sObj)){
+                sEventAct = EVENT_VIDEO_SYNC_1;
+            }
+            _OnEvent(sEventAct, "", sObjPeer);
+        }
+    }
+
+    //保存对端视频请求句柄
+    private void _OnVideoJoin(String sObj, String sData, int iHandle, String sObjPeer) {
+        _OutString("->VideoJoin");
+
+        PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
+        if (oPeer == null) {
+            if(_VideoPeerAdd(sObjPeer)>PG_ERR_Normal){
+                VideoJoinResponse(sObj,PG_ERR_System,sData,iHandle);
+                return;
+            }
+            oPeer.iActStamp = m_Stamp.iActiveStamp;
+        }
+
+        String sEventAct =  EVENT_VIDEO_OPEN;
+        if(_VideoObjectIs(sObj)){
+            oPeer.VideoJoin(iHandle,m_iCurStamp);
+            sEventAct = EVENT_VIDEO_OPEN;
+        }else if(_VideoLObjectIs(sObj)){
+            sEventAct = EVENT_VIDEO_OPEN_1;
+            oPeer.VideoJoinL(iHandle,m_iCurStamp);
+        }
+        _OnEvent(sEventAct, sData, sObjPeer);
+    }
+
+    //初始化节点
+    private void _OnVideoLeave(String sObj, String sData, int iHandle, String sObjPeer) {
+        _OutString("->VideoLeave");
+        PG_PEER oCtrl = _VideoPeerSearch(sObjPeer);
+        String sEventAct =  EVENT_VIDEO_CLOSE;
+        if(_VideoObjectIs(sObj)){
+            sEventAct = EVENT_VIDEO_CLOSE;
+            if(oCtrl!=null){
+                oCtrl.VideoLeave();
+            }
+        }else if(_VideoLObjectIs(sObj)){
+            sEventAct = EVENT_VIDEO_CLOSE_1;
+
+            if(oCtrl!=null){
+                oCtrl.VideoLeaveL();
+            }
+        }
+
+        _OnEvent(sEventAct, sData, sObjPeer);
+    }
+
+    //上报发送视频帧信息
+    private void _VideoFrameStat(String sObj, String sData) {
+        //OutString("->VideoFrameStat");
+        String sEventAct =  EVENT_VIDEO_FRAME_STAT;
+        if(_VideoObjectIs(sObj)){
+            sEventAct = EVENT_VIDEO_FRAME_STAT;
+        }else if(_VideoLObjectIs(sObj)){
+            sEventAct = EVENT_VIDEO_FRAME_STAT_1;
+        }
+        String sObjPeerTemp = m_Node.omlGetContent(sData, "Peer");
+        String sFrmTotal = m_Node.omlGetContent(sData, "Total");
+        String sFrmDrop = m_Node.omlGetContent(sData, "Drop");
+
+        _OnEvent(sEventAct, ("total=" + sFrmTotal + "&drop=" + sFrmDrop), sObjPeerTemp);
+    }
+    //-----------------------------------------------------
+
+    private String _AudioBuildObject(String sGroup) {
+        String sObjVideo = ("_A_" + sGroup);
+        if (sObjVideo.length() > 127) {
+            _OutString("_FileBuildObject: '" + sObjVideo + "' to long !");
+        }
+        return sObjVideo;
+    }
+
+    private boolean _AudioObjectIs(String sObject) {
+        return (sObject.indexOf("_A_") == 0);
+    }
+
+    private String _AudioObjectParseGroup(String sObject) {
+
+        if (sObject.indexOf("_A_") == 0) {
+            return sObject.substring(3);
+        }
+
+        return "";
+
+    }
+
+    private int _AudioFlagGet(int iFlag){
+        int uFlag = PG_ADD_COMMON_Sync| PG_ADD_AUDIO_Conference;
+        switch (iFlag) {
+            case AUDIO_NO_SPEECH_SELF:
+                uFlag = uFlag |  PG_ADD_AUDIO_NoSpeechSelf;
+                break;
+            case AUDIO_NO_SPEECH_PEER:
+                uFlag = uFlag |  PG_ADD_AUDIO_NoSpeechPeer;
+                break;
+            case AUDIO_NO_SPEECH_SELF_AND_PEER:
+                uFlag = uFlag | PG_ADD_AUDIO_NoSpeechSelf | PG_ADD_AUDIO_NoSpeechPeer;
+                break;
+            case AUDIO_SPEECH:
+            default:
+                break;
+        }
+        return uFlag;
+    }
+
+    private int _AudioOpen(String sGroup , String sObjA , int uFlag){
+        if (!this.m_Node.ObjectAdd(sObjA, "PG_CLASS_Audio", sGroup, uFlag)) {
+            _OutString("pgLibConference.m_AudioInit: Add Audio failed.");
+            return PG_ERR_System;
+        }
+
+        return this.m_Node.ObjectRequest(sObjA, PG_METH_AUDIO_Open , "(Code){1}(Mode){0}", "pgLibConference.AudioInit");
+    }
+
+    private void _AudioClose(String sObjA){
+        this.m_Node.ObjectRequest(sObjA, PG_METH_AUDIO_Close , "", "pgLibConference.AudioClean");
+        this.m_Node.ObjectDelete(sObjA);
+    }
+
+    //音频相关初始化
+    private boolean _AudioInit() {
+        _OutString("->AudioInit");
+
+        int uFlag =  _AudioFlagGet( m_Self.iAudioSpeechDisable);
+
+        int iErr = _AudioOpen(this.m_Group.sObjG,this.m_Group.sObjA,uFlag);
+        if (iErr > 0) {
+            _OutString("pgLibConference.AudioInit: Open audio failed. iErr=" + iErr);
+            return false;
+        }
+        return true;
+    }
+
+    //音频相关清理
+    private void _AudioClean() {
+        _OutString("->AudioClean");
+
+        _AudioClose(this.m_Group.sObjA);
+    }
+
+    private void _OnAudioSync(String sData, String sObjPeer) {
+        String sAct = this.m_Node.omlGetContent(sData, "Action");
+        if ("1".equals(sAct)) {
+            _OnEvent(EVENT_AUDIO_SYNC, "", sObjPeer);
+        }
+    }
+
+    //------------------------------------------------------
+    // Record list handles
+
+    private String m_sListRecord = "";
+
+    private String _RecordListSearch(int iMode,String sID) {
+        return m_Node.omlGetEle(m_sListRecord, ("\n*" + iMode + "_" + sID), 1, 0);
+    }
+
+    private void _RecordListAdd(int iMode, String sID) {
+        String sRec = _RecordListSearch(iMode,sID);
+        if ("".equals(sRec)) {
+            m_sListRecord += "(" + m_Node.omlEncode(iMode + "_" + sID)
+                    + "){}";
+        }
+    }
+
+    private boolean _RecordListDelete(int iMode,String sID) {
+        String sRec = _RecordListSearch(iMode,sID);
+        if (!"".equals(sRec)) {
+            m_sListRecord = m_Node.omlDeleteEle(m_sListRecord, ("\n*" + iMode + "_" + sID), 1, 0);
+            return true;
+        }
+        return false;
+    }
+
+    //------------------------------------------------------
+    // File handles.
+
+    private String m_sListFile = "";
+
+    private String _FileBuildObject(String sChairID,String sID) {
+        String sObjFile = ("File_" + sChairID + "\n" + sID);
+        if (sObjFile.length() > 127) {
+            _OutString("_FileBuildObject: '" + sObjFile + "' to long !");
+        }
+        return sObjFile;
+    }
+
+    private boolean _FileObjectIs(String sObject) {
+        return (sObject.indexOf("File_") == 0);
+    }
+
+    private String _FileObjectParseChairID(String sObject) {
+
+        String sCapRender = "";
+        if (sObject.indexOf("File_") == 0) {
+            sCapRender = sObject.substring(5);
+        }
+        int iInd = sCapRender.indexOf("\n");
+        if (iInd > 0) {
+            return sCapRender.substring(0, iInd);
+        }
+        return "";
+
+    }
+    private String _FileObjectParseMemberID(String sObject) {
+
+        String sCapRender = "";
+        if (sObject.indexOf("File_") == 0) {
+            sCapRender = sObject.substring(5);
+        }
+        int iInd = sCapRender.indexOf("\n");
+        if (iInd > 0) {
+            return sCapRender.substring(iInd+1);
+        }
+        return "";
+
+    }
+
+    private String _FileListSearch(String sChairID,String sID) {
+        return m_Node.omlGetEle(m_sListFile, ("\n*" + sChairID + "_" + sID), 1, 0);
+    }
+
+    private boolean _FileListAdd(String sChairID,String sID,boolean bChairman) {
+        String sFile = _FileListSearch(sChairID,sID);
+        if ("".equals(sFile)) {
+            m_sListFile += "(" + m_Node.omlEncode(sChairID + "_" + sID) + "){(Status){0}(Handle){0}}";
+        }
+
+        String sObjFile = _FileBuildObject(sChairID , sID);
+
+        if (!"PG_CLASS_File".equals(m_Node.ObjectGetClass(sObjFile))) {
+            String sObj = bChairman?_ObjPeerBuild(sID):_ObjPeerBuild(sChairID);
+            if (!m_Node.ObjectAdd(sObjFile, "PG_CLASS_File", sObj, 0x10000)) {
+                _OutString("_FileListAdd: Add '" + sObjFile + "' failed!");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean _FileListDelete(String sChairID,String sID) {
+        String sObjFile = _FileBuildObject(sChairID,sID);
+
+        m_Node.ObjectRequest(sObjFile, 35, "", "");
+        m_Node.ObjectDelete(sObjFile);
+
+        String sFile = _FileListSearch(sChairID,sID);
+        if (!"".equals(sFile)) {
+            m_sListFile = m_Node.omlDeleteEle(m_sListFile, ("\n*" + sChairID + "_" + sID), 1, 0);
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean _FileListSet(String sChairID,String sID, String sItem, String sValue) {
+        String sFile = _FileListSearch(sChairID,sID);
+        if (!"".equals(sFile)) {
+            String sPath = "\n*" +  sChairID + "_" + sID + "*" + sItem;
+            m_sListFile = m_Node.omlSetContent(m_sListFile, sPath, sValue);
+            return true;
+        }
+        return false;
+    }
+
+    private String _FileListGet(String sChairID,String sID, String sItem) {
+        String sPath = "\n*" + sChairID + "_" + sID + "*" + sItem;
+        return m_Node.omlGetContent(m_sListFile, sPath);
+    }
+
+    private int _FileRequest(String sChairID,String sID, String sPath, String sPeerPath, int iMethod) {
+        if ("1".equals(_FileListGet(sChairID,sID, "Status"))) {
+            return PG_ERR_Opened;
+        }
+
+        String sData = "(Path){" + m_Node.omlEncode(sPath) + "}(PeerPath){"
+                + m_Node.omlEncode(sPeerPath) + "}(TimerVal){1}(Offset){0}(Size){0}";
+
+        String sParam = (iMethod == 32) ? "FilePutRequest" : "FileGetRequest";
+
+        String sObjFile = _FileBuildObject(sChairID,sID);
+        int iErr =  m_Node.ObjectRequest(sObjFile, iMethod, sData, sParam);
+        if (iErr > PG_ERR_Normal) {
+            _OutString("_FileRequest: iMethod=" + iMethod + ", iErr=" + iErr);
+            return iErr;
+        }
+
+        _FileListSet(sChairID,sID, "Status", "1");
+        return iErr;
+    }
+
+    private int _FileReply(int iErrReply, String sChairID,String sID, String sPath) {
+
+        String sData = "";
+        if (iErrReply != PG_ERR_Normal) {
+            _FileListSet(sChairID,sID, "Status", "0");
+        }
+        else {
+            _FileListSet(sChairID,sID, "Status", "1");
+            sData = "(Path){" + m_Node.omlEncode(sPath) + "}(TimerVal){1}";
+        }
+
+        _OutString("_FileReply: iErrReply=" + iErrReply + ", sChairID=" + sChairID + ", sData=" + sData);
+
+        String sHandle = _FileListGet(sChairID,sID, "Handle");
+        _OutString("_FileReply: sHandle=" + sHandle);
+
+        int iHandle = _ParseInt(sHandle, 0);
+        if (iHandle == 0) {
+            _FileListSet(sChairID, sID, "Status", "0");
+            return PG_ERR_BadStatus;
+        }
+
+
+        String sObjFile = _FileBuildObject(sChairID,sID);
+        int iErr = m_Node.ObjectExtReply(sObjFile, iErrReply, sData, iHandle);
+        if (iErr <= PG_ERR_Normal) {
+            _FileListSet(sChairID,sID, "Handle", "0");
+        }
+
+        _OutString("_FileReply: iErr=" + iErr);
+        return iErr;
+    }
+
+    private int _FileCancel(String sChairID,String sID) {
+
+        String sObjFile = _FileBuildObject(sChairID,sID);
+        int iErr = m_Node.ObjectRequest(sObjFile, 35, "", "FileCancel");
+        if (iErr <= PG_ERR_Normal) {
+            _FileListSet(sChairID,sID, "Status", "0");
+        }
+
+        return iErr;
+    }
 
     private int _OnFileRequest(String sObj, int iMethod, String sData, int iHandle) {
         String sChairID = _FileObjectParseChairID(sObj);
@@ -3375,12 +3433,12 @@ public class pgLibConference {
         //接收视频类方法
 
         if (uMeth == PG_METH_COMMON_Sync) {
-            _VideoSync(sObj,sData,sObjPeer);
+            _OnVideoSync(sObj,sData,sObjPeer);
         } else if (uMeth == PG_METH_VIDEO_Join) {
-            _VideoJoin(sObj, sData, iHandle, sObjPeer);
+            _OnVideoJoin(sObj, sData, iHandle, sObjPeer);
             return -1;
         } else if (uMeth == PG_METH_VIDEO_Leave) {
-            _VideoLeave(sObj, sData, iHandle, sObjPeer);
+            _OnVideoLeave(sObj, sData, iHandle, sObjPeer);
         } else if (uMeth == PG_METH_VIDEO_FrameStat) {
             _VideoFrameStat(sObj, sData);
 
@@ -4043,43 +4101,92 @@ public class pgLibConference {
     private class PG_PEER {
 
         String sObjPeer = "";
-        int iStamp = 0;
 
-        //保证Video关闭前退出会议
-        //boolean bRequest = false;
-        boolean bLarge = false;
+        //------------
 
         int iActStamp = 0;
         int iRequestStamp = 0;
+        //------------
         Boolean bVideoLost = false;
 
+        //------------
+        //
+        int iOnVideoJoinStamp = 0;
+
         int iHandle = 0;
-        pgLibJNINode Node = null;
+
         SurfaceView View = null;
 
+        //------------
+        int iOnVideoJoinStampL = 0;
+
         int iHandleL = 0;
-        pgLibJNINode NodeL = null;
+
         SurfaceView ViewL = null;
+
+        //------------
 
         PG_PEER(String sObjPeer1) {
             sObjPeer = sObjPeer1;
         }
 
-        //清理Video相关的数据和状态
-        void restore(int iActiveStamp) {
-            if (Node != null) {
-                if (View != null) {
-                    View = null;
-                    Node.WndDelete();
-                }
-                Node = null;
+        String GetWndEle(int iW,int iH){
+            // Create the node and view.专门用来显示视频的node
+
+            if (View == null) {
+                View = (SurfaceView) pgLibView.Get("v1");
             }
-            iHandle = 0;
-            //bRequest = false;
-            bLarge = false;
-            iActStamp = iActiveStamp;
-            bVideoLost = false;
+
+            if(View!=null){
+                return pgLibView.GetNodeByView(View).utilGetWndRect();
+            }
+            return "";
         }
+
+        String GetWndEleL(int iW,int iH){
+            // Create the node and view.专门用来显示视频的node
+
+            if ( ViewL == null) {
+                ViewL = (SurfaceView) pgLibView.Get("v2");
+            }
+
+            if(ViewL!=null){
+                return  pgLibView.GetNodeByView(ViewL).utilGetWndRect();
+            }
+            return "";
+        }
+
+        void VideoJoin(int iHandle, int iStamp){
+            this.iHandle = iHandle;
+            iOnVideoJoinStamp = iStamp;
+        }
+
+        void VideoLeave(){
+            iHandle = 0;
+            iOnVideoJoinStamp = 0;
+        }
+
+        void VideoJoinL(int iHandle, int iStamp){
+            iHandleL = iHandle;
+            iOnVideoJoinStampL = iStamp;
+        }
+
+        void VideoLeaveL(){
+            iHandleL = 0;
+            iOnVideoJoinStampL = 0;
+        }
+
+        void Release(){
+            if (View != null) {
+                pgLibView.Release(View);
+                View = null;
+            }
+            if (ViewL != null) {
+                pgLibView.Release(ViewL);
+                ViewL = null;
+            }
+        }
+
     }
 
 
@@ -4279,8 +4386,11 @@ public class pgLibConference {
 
         for (int i = 0; i < m_listVideoPeer.size(); i++) {
             PG_PEER oCtrl = m_listVideoPeer.get(i);
-            if (oCtrl.iHandle > 0 && (m_iCurStamp - oCtrl.iStamp) > 20) {
-                _DropPeerHelper(oCtrl.sObjPeer);
+            if (oCtrl.iHandle > 0 && (m_iCurStamp - oCtrl.iOnVideoJoinStamp) > 20) {
+                VideoClose(oCtrl.sObjPeer,false);
+            }
+            if (oCtrl.iHandleL > 0 && (m_iCurStamp - oCtrl.iOnVideoJoinStampL) > 20) {
+                VideoClose(oCtrl.sObjPeer,true);
             }
         }
 

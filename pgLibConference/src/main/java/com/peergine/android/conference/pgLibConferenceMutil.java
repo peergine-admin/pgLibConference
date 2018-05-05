@@ -2332,7 +2332,7 @@ public class pgLibConferenceMutil {
 //            m_listVideoPeer.add(oCtrl);
 //        }
 //
-//        oCtrl.iStamp = m_iCurStamp;
+//        oCtrl.iOnVideoJoinStamp = m_iCurStamp;
 //        oCtrl.iHandle = iHandle;
 //        if (sObj.indexOf("_LV_") == 0) {
 //            oCtrl.bLarge = true;
