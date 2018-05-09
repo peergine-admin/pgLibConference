@@ -128,6 +128,11 @@ public class pgLibConference {
      * 请求视频通话结果上报事件
      */
     public static final String EVENT_VIDEO_JOIN = "VideoJoin";
+
+    /**
+     * 请求视频通话结果上报事件
+     */
+    public static final String EVENT_VIDEO_JOIN_1 = "VideoJoinL";
     /**
      * 拍照结果事件
      */
@@ -254,6 +259,13 @@ public class pgLibConference {
     private static final String TIME_OUT_ACT_CHAIRMAN_ADD = "ChairmanAdd";
     private static final String TIME_OUT_ACT_RELOGIN = "Relogin";
     private static final String TIME_OUT_ACT_PEER_GET_INFO = "PeerGetInfo";
+
+
+    private static final int   VIDEO_PEER_MODE_Leave  =0;
+    private static final int    VIDEO_PEER_MODE_Request = 1;
+    private static final int    VIDEO_PEER_MODE_Response = 2;
+    private static final int   VIDEO_PEER_MODE_Join = 3;
+    private static final int VIDEO_RESPONSE_TIMEOUT = 30;
 
 
     private int m_iLoginFailCount;
@@ -827,7 +839,13 @@ public class pgLibConference {
      * 返回值： true 操作成功，false 操作失败
      * @param sPeer 成员节点名
      */
-    public void VideoReject(String sPeer) {
+    public void VideoReject(String sPeer){
+        VideoReject(sPeer,false,PG_ERR_Reject);
+    }
+    public void VideoRejectL(String sPeer){
+        VideoReject(sPeer,true,PG_ERR_Reject);
+    }
+    public void VideoReject(String sPeer,boolean bLagre,int iResErr) {
         _OutString("->VideoReject");
         if (m_Status.bApiVideoStart) {
 
@@ -848,16 +866,16 @@ public class pgLibConference {
             }
 
             String sObjV = "";
-            int iErr = PG_ERR_Reject;
+            int iErr = iResErr;
             int iHandle = 0;
-            if (oPeer.iHandle > 0) {
-
+            if (!bLagre) {
                 iHandle = oPeer.iHandle;
                 sObjV = m_Group.sObjV;
-
-            }else if (oPeer.iHandleL > 0){
+                oPeer.VideoLeaveL();
+            }else{
                 sObjV = m_Group.sObjLV;
                 iHandle = oPeer.iHandleL;
+                oPeer.VideoLeaveL();
             }
 
             if(!"".equals(sObjV)) {
@@ -1238,6 +1256,9 @@ public class pgLibConference {
     public boolean RecordStop( String sID){
         RecordStop(sID,PG_RECORD_NORMAL, false);
         return true;
+    }
+    public void RecordStop(String sID, int iMode){
+        RecordStop(sID,iMode, false);
     }
     /**
      * 停止录制
@@ -2022,6 +2043,10 @@ public class pgLibConference {
         for (int i = 0; i < m_listVideoPeer.size(); i++) {
 
             PG_PEER oPeer = m_listVideoPeer.get(i);
+            if(oPeer.bModeL == VIDEO_PEER_MODE_Leave && oPeer.bMode == VIDEO_PEER_MODE_Leave){
+                 m_listVideoPeer.remove(oPeer);
+                 continue;
+            }
             if ((!oPeer.sObjPeer.equals(m_Self.sObjSelf)) && (oPeer.View != null)) {
 
                 // 超过3倍心跳周期，没有接收到对端的心跳应答，说明与对端之间连接断开了
@@ -2184,14 +2209,15 @@ public class pgLibConference {
         return oPeer;
     }
 
-    private int _VideoPeerAdd(String sObjPeer){
+    private PG_PEER _VideoPeerAdd(String sObjPeer){
+        PG_PEER oPeer = null;
         try {
-            PG_PEER oPeer = new PG_PEER(sObjPeer);
+            oPeer = new PG_PEER(sObjPeer);
             m_listVideoPeer.add(oPeer);
         } catch (Exception ex) {
-            return PG_ERR_System;
+            return null;
         }
-        return PG_ERR_Normal;
+        return oPeer;
     }
 
     private void  _VideoPeerDelete(String sObjPeer){
@@ -2232,14 +2258,15 @@ public class pgLibConference {
         return oSync;
     }
 
-    private int _SyncPeerAdd(String sObjPeer,int iCurrentStamp){
+    private PG_SYNC _SyncPeerAdd(String sObjPeer,int iCurrentStamp){
+        PG_SYNC oPeer = null;
         try {
-            PG_SYNC oPeer = new PG_SYNC(sObjPeer,iCurrentStamp);
+            oPeer = new PG_SYNC(sObjPeer,iCurrentStamp);
             m_listSyncPeer.add(oPeer);
         } catch (Exception ex) {
-            return PG_ERR_System;
+            return null;
         }
-        return PG_ERR_Normal;
+        return oPeer;
     }
 
     private void  _SyncPeerDelete(String sObjPeer){
@@ -2289,7 +2316,7 @@ public class pgLibConference {
 
 
     //自身登录事件处理
-    private void _SelfSync(String sData, String sObjPeer) {
+    private void _OnSelfSync(String sData, String sObjPeer) {
         _OutString("->SelfSync");
 
         String sAct = this.m_Node.omlGetContent(sData, "Action");
@@ -2308,7 +2335,7 @@ public class pgLibConference {
 
 
 
-    private int _SelfCall(String sData, String sObjPeer, int iHandle) {
+    private int _OnSelfCall(String sData, String sObjPeer, int iHandle) {
         _OutString("->SelfCall");
 
         String sCmd = "";
@@ -2329,7 +2356,7 @@ public class pgLibConference {
     }
 
     //自身消息处理
-    private int _SelfMessage(String sData, String sObjPeer) {
+    private int _OnSelfMessage(String sData, String sObjPeer) {
         _OutString("->SelfMessage");
 
         String sCmd = "";
@@ -2365,7 +2392,7 @@ public class pgLibConference {
     }
 
     //服务器消息处理
-    private int _ServerMessage(String sData, String sObjPeer) {
+    private int _OnServerMessage(String sData, String sObjPeer) {
         _OutString("->ServerMessage");
         String sCmd = "";
         String sParam;
@@ -2911,7 +2938,8 @@ public class pgLibConference {
                 String sObjPeer = _ObjPeerBuild(sPeer);
                 oPeer = _VideoPeerSearch(sObjPeer);
                 if (oPeer == null) {
-                    if(_VideoPeerAdd(sObjPeer) > PG_ERR_Normal){
+                    oPeer = _VideoPeerAdd(sObjPeer);
+                    if(oPeer ==  null){
                        break;
                     }
                     oPeer.iActStamp = m_Stamp.iActiveStamp;
@@ -2929,11 +2957,13 @@ public class pgLibConference {
                     sObjV = m_Group.sObjV;
                     iHandle = oPeer.iHandle;
                     retView = oPeer.View;
+                    oPeer.iHandle = 0;
                 }else{
                     sEndEle = oPeer.GetWndEleL(iW,iH);
                     sObjV = m_Group.sObjLV;
                     iHandle = oPeer.iHandleL;
                     retView = oPeer.ViewL;
+                    oPeer.iHandleL = 0;
                 }
 
                 //
@@ -2951,8 +2981,24 @@ public class pgLibConference {
                 boolean  bJoinRes = _VideoJoin(sObjV,sPeer,iResErr,sData,iHandle);
 
                 if (bJoinRes) {
+                    if(iHandle>0) {
+                        if (iResErr == PG_ERR_Normal) {
+                            if (bLarge) {
+                                oPeer.bModeL = VIDEO_PEER_MODE_Join;
+                            } else {
+                                oPeer.bMode = VIDEO_PEER_MODE_Join;
+                            }
+                        }
+                    }else{
+                        if (bLarge) {
+                            oPeer.bModeL = VIDEO_PEER_MODE_Request;
+                        } else {
+                            oPeer.bMode = VIDEO_PEER_MODE_Request;
+                        }
+                    }
                     _OutString("VideoOpen: scussce");
                 }
+
             } while (false);
         }
         return retView;
@@ -3026,7 +3072,8 @@ public class pgLibConference {
 
         PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
         if (oPeer == null) {
-            if(_VideoPeerAdd(sObjPeer)>PG_ERR_Normal){
+            oPeer = _VideoPeerAdd(sObjPeer);
+            if(oPeer == null){
                 VideoJoinResponse(sObj,PG_ERR_System,sData,iHandle);
                 return;
             }
@@ -3042,6 +3089,33 @@ public class pgLibConference {
             oPeer.VideoJoinL(iHandle,m_iCurStamp);
         }
         _OnEvent(sEventAct, sData, sObjPeer);
+    }
+
+    private void _OnVideoJoinReply(String sObj, int iErr, String sData, String sParam) {
+        //视频加入通知
+        String sPeer = sParam.substring(10);
+        String sObjPeer = _ObjPeerBuild(sPeer);
+
+        PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
+        if (oPeer == null) {
+            _VideoLeave(sObj,sObjPeer);
+            return;
+        }
+
+        String sEventAct = EVENT_VIDEO_JOIN;
+        if(_VideoObjectIs(sObj)){
+            oPeer.bMode = VIDEO_PEER_MODE_Join;
+            sEventAct = EVENT_VIDEO_JOIN;
+        }else if(_VideoLObjectIs(sObj)){
+            sEventAct = EVENT_VIDEO_JOIN_1;
+            oPeer.bModeL = VIDEO_PEER_MODE_Join;
+        }
+
+
+        this._OnEvent(sEventAct, "" + iErr, sObjPeer );
+
+
+
     }
 
     //初始化节点
@@ -3526,14 +3600,14 @@ public class pgLibConference {
 
         } else if (sObj.equals(m_Self.sObjSelf)) {
             if (uMeth == PG_METH_COMMON_Sync) {
-                _SelfSync(sData, sObjPeer);
+                _OnSelfSync(sData, sObjPeer);
             } else if (uMeth == PG_METH_PEER_Call) {
-                return this._SelfCall(sData, sObjPeer, iHandle);
+                return this._OnSelfCall(sData, sObjPeer, iHandle);
             } else if (uMeth == PG_METH_PEER_Message ) {
                 if (sObjPeer.equals(m_Svr.sSvrName)) {
-                    return this._ServerMessage(sData, sObjPeer);
+                    return this._OnServerMessage(sData, sObjPeer);
                 } else {
-                    return this._SelfMessage(sData, sObjPeer);
+                    return this._OnSelfMessage(sData, sObjPeer);
                 }
             } else if (uMeth == PG_METH_PEER_KickOut) {
                 //ID冲突 被踢下线了
@@ -3675,8 +3749,8 @@ public class pgLibConference {
 
     private int _NodeOnReplyVideo(String sObj, int iErr, String sData, String sParam) {
         if (sParam.indexOf(PARAM_PRE_VIDEO_OPEN) == 0) {
-            //视频加入通知
-            this._OnEvent(EVENT_VIDEO_JOIN, "" + iErr, sParam.substring(10));
+            _OnVideoJoinReply(sObj,iErr,sData,sParam);
+
             return 1;
         }
         if (sParam.indexOf(EVENT_VIDEO_CAMERA) == 0) {
@@ -3689,6 +3763,8 @@ public class pgLibConference {
         }
         return 1;
     }
+
+
 
     private int _NodeOnReplyAudio(String sObj, int iErr, String sData, String sParam) {
 
@@ -4117,12 +4193,15 @@ public class pgLibConference {
 
         SurfaceView View = null;
 
+        int bMode = VIDEO_PEER_MODE_Leave;
         //------------
         int iOnVideoJoinStampL = 0;
 
         int iHandleL = 0;
 
         SurfaceView ViewL = null;
+
+        int bModeL = VIDEO_PEER_MODE_Leave;
 
         //------------
 
@@ -4159,21 +4238,25 @@ public class pgLibConference {
         void VideoJoin(int iHandle, int iStamp){
             this.iHandle = iHandle;
             iOnVideoJoinStamp = iStamp;
+            this.bMode = VIDEO_PEER_MODE_Response;
         }
 
         void VideoLeave(){
             iHandle = 0;
             iOnVideoJoinStamp = 0;
+            this.bMode = VIDEO_PEER_MODE_Leave;
         }
 
         void VideoJoinL(int iHandle, int iStamp){
             iHandleL = iHandle;
             iOnVideoJoinStampL = iStamp;
+            this.bModeL = VIDEO_PEER_MODE_Response;
         }
 
         void VideoLeaveL(){
             iHandleL = 0;
             iOnVideoJoinStampL = 0;
+            this.bModeL = VIDEO_PEER_MODE_Leave;
         }
 
         void Release(){
@@ -4303,12 +4386,6 @@ public class pgLibConference {
 
     //=======================================================
 
-    //VideoOpen 超时清理
-    private void _DropPeerHelper(String sPeer) {
-        _OutString("->DropPeerHelper");
-        VideoReject(sPeer);
-    }
-
     // 定时器相关
 
     public interface TimerOut {
@@ -4386,11 +4463,13 @@ public class pgLibConference {
 
         for (int i = 0; i < m_listVideoPeer.size(); i++) {
             PG_PEER oCtrl = m_listVideoPeer.get(i);
-            if (oCtrl.iHandle > 0 && (m_iCurStamp - oCtrl.iOnVideoJoinStamp) > 20) {
-                VideoClose(oCtrl.sObjPeer,false);
+            if (oCtrl.bMode == VIDEO_PEER_MODE_Response && (m_iCurStamp - oCtrl.iOnVideoJoinStamp) > VIDEO_RESPONSE_TIMEOUT) {
+                VideoJoinResponse(m_Group.sObjV,PG_ERR_Timeout,"",oCtrl.iHandle);
+                oCtrl.VideoLeave();
             }
-            if (oCtrl.iHandleL > 0 && (m_iCurStamp - oCtrl.iOnVideoJoinStampL) > 20) {
-                VideoClose(oCtrl.sObjPeer,true);
+            if (oCtrl.bModeL == VIDEO_PEER_MODE_Response && (m_iCurStamp - oCtrl.iOnVideoJoinStampL) > VIDEO_RESPONSE_TIMEOUT) {
+                VideoJoinResponse(m_Group.sObjLV,PG_ERR_Timeout,"",oCtrl.iHandleL);
+                oCtrl.VideoLeaveL();
             }
         }
 

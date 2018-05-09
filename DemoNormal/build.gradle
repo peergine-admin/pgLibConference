@@ -36,6 +36,7 @@ android {
 dependencies {
     implementation 'com.android.support:support-v4:26.1.0'
     //implementation project(':permission')//'com.yanzhenjie:permission:2.0.0-rc2'
+    implementation 'com.android.support:recyclerview-v7:26.1.0'
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':pgLibConference')
     compile 'com.android.support:appcompat-v7:26.1.0'
