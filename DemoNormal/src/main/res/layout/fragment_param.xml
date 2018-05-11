@@ -176,7 +176,21 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Demo"
+                android:text="Demo默认"
+                tools:ignore="ButtonStyle" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnInitDouble"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Demo2视频流"
                 tools:ignore="ButtonStyle" />
 
             <Button
@@ -184,16 +198,17 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Demo呼叫"
+                android:text="Demo模拟呼叫"
                 tools:ignore="ButtonStyle" />
 
             <Button
                 android:id="@+id/btnInitExter"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.5"
-                android:text="Demo外部采集"
+                android:layout_weight="1"
+                android:text="DemoExter"
                 tools:ignore="ButtonStyle" />
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -109,12 +109,14 @@ public class MainFragment extends SupportFragment {
 
     //定时器例子 超时处理实现
     final pgLibTimer mTimer = new pgLibTimer();
+
     private String _ObjPeerBuild(String sPeer) {
         if (sPeer.indexOf("_DEV_") != 0) {
             return "_DEV_" + sPeer;
         }
         return sPeer;
     }
+
     final pgLibTimer.OnTimeOut timerOut = new pgLibTimer.OnTimeOut() {
         @Override
         public void onTimeOut(String sParam) {

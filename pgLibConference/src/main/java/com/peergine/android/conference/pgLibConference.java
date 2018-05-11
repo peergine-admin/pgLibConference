@@ -842,9 +842,11 @@ public class pgLibConference {
     public void VideoReject(String sPeer){
         VideoReject(sPeer,false,PG_ERR_Reject);
     }
+
     public void VideoRejectL(String sPeer){
         VideoReject(sPeer,true,PG_ERR_Reject);
     }
+
     public void VideoReject(String sPeer,boolean bLagre,int iResErr) {
         _OutString("->VideoReject");
         if (m_Status.bApiVideoStart) {
@@ -916,14 +918,22 @@ public class pgLibConference {
      * @param sPeer 节点ID或对象
      * 返回值： true 操作成功，false 操作失败
      */
-    public SurfaceView VideoGetView(String sPeer) {
+    public SurfaceView VideoGetView(String sPeer ){
+        return VideoGetView(sPeer,false);
+    }
+    public SurfaceView VideoGetView(String sPeer ,boolean bLagre) {
         SurfaceView view = null;
         if (m_Status.bApiVideoStart) {
             String sObjPeer = _ObjPeerBuild(sPeer);
 
             PG_PEER oCtrl = _VideoPeerSearch(sObjPeer);
             if (oCtrl != null) {
-                view = oCtrl.View;
+                if(!bLagre) {
+                    view = oCtrl.View;
+                }else
+                {
+                    view = oCtrl.ViewL;
+                }
             }
         } else {
             _OutString("VideoClose: Video no start!");
@@ -931,37 +941,7 @@ public class pgLibConference {
         return view;
     }
 
-    /**
-     * 描述：摄像头切换
-     * 阻塞方式：非阻塞，立即返回
-     *
-     * @param iCameraNo ：摄像头编号
-     * @return true成功，false失败
-     */
-    public boolean VideoSource(int iCameraNo) {
-        if (m_Node != null) {
-            if (m_Node.ObjectAdd("_vTemp_1", "PG_CLASS_Video", "", 0x2)) {
-                m_Node.ObjectRequest("_vTemp_1", PG_METH_COMMON_SetOption, "(Item){0}(Value){" + iCameraNo + "}", "");
-                m_Node.ObjectDelete("_vTemp_1");
-                return true;
-            }
-        }
-        return false;
-    }
 
-    /**
-     * 描述:采集图像角度切换
-     * 阻塞方式：非阻塞，立即返回
-     * @param  iAngle :角度
-     */
-    public void VideoSetRotate(int iAngle) {
-        if (m_Node != null) {
-            if (m_Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
-                m_Node.ObjectRequest("_vTemp", PG_METH_COMMON_SetOption, "(Item){2}(Value){" + iAngle + "}", "");
-                m_Node.ObjectDelete("_vTemp");
-            }
-        }
-    }
 
     /**
      * 描述：控制成员的视频流
@@ -969,7 +949,10 @@ public class pgLibConference {
      * @param sPeer 节点ID或对象
      * @param bEnable 是否接收和发送视频流
      */
-    public boolean VideoControl(String sPeer, boolean bEnable) {
+    public boolean VideoControl(String sPeer, boolean bEnable){
+        return VideoControl(sPeer,bEnable,false);
+    }
+    public boolean VideoControl(String sPeer, boolean bEnable,boolean bLagre) {
 
         if (m_Status.bApiVideoStart) {
             if ("".equals(sPeer)) {
@@ -978,11 +961,11 @@ public class pgLibConference {
             String sObjPeer = _ObjPeerBuild(sPeer);
 
             int iFlag = bEnable ? 1 : 0;
-
+            String sObjV = _VideoObjectGet(bLagre);
 
             String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Local){" + iFlag + "}(Remote){" + iFlag + "}";
-            m_Node.ObjectRequest(m_Group.sObjLV, PG_METH_VIDEO_Transfer, sIn, "VideoControl");
-            m_Node.ObjectRequest(m_Group.sObjV, PG_METH_VIDEO_Transfer, sIn, "VideoControl");
+            m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Transfer, sIn, "VideoControl");
+
             return true;
         } else {
             _OutString("VideoControl -> Video Not Start");
@@ -1016,11 +999,7 @@ public class pgLibConference {
             PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
             if (oPeer != null) {
 
-                if (bLarge) {
-                    sObjV = m_Group.sObjLV;
-                } else {
-                    sObjV = m_Group.sObjV;
-                }
+                sObjV = _VideoObjectGet(bLarge);
                 String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sPathTemp) + "}";
                 int iErr = m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Camera, sIn, "VideoCamera:" + sPeer);
                 if (iErr != 0) {
@@ -1033,6 +1012,38 @@ public class pgLibConference {
             }
         }
         return bRet;
+    }
+
+    /**
+     * 描述：摄像头切换
+     * 阻塞方式：非阻塞，立即返回
+     *
+     * @param iCameraNo ：摄像头编号
+     * @return true成功，false失败
+     */
+    public boolean VideoSource(int iCameraNo) {
+        if (m_Node != null) {
+            if (m_Node.ObjectAdd("_vTemp_1", "PG_CLASS_Video", "", 0x2)) {
+                m_Node.ObjectRequest("_vTemp_1", PG_METH_COMMON_SetOption, "(Item){0}(Value){" + iCameraNo + "}", "");
+                m_Node.ObjectDelete("_vTemp_1");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 描述:采集图像角度切换
+     * 阻塞方式：非阻塞，立即返回
+     * @param  iAngle :角度
+     */
+    public void VideoSetRotate(int iAngle) {
+        if (m_Node != null) {
+            if (m_Node.ObjectAdd("_vTemp", "PG_CLASS_Video", "", 0)) {
+                m_Node.ObjectRequest("_vTemp", PG_METH_COMMON_SetOption, "(Item){2}(Value){" + iAngle + "}", "");
+                m_Node.ObjectDelete("_vTemp");
+            }
+        }
     }
 
     // Start and stop audio
@@ -2808,6 +2819,16 @@ public class pgLibConference {
         return "";
     }
 
+    private String _VideoObjectGet(boolean bLagre){
+        String sObjV;
+        if (bLagre) {
+            sObjV = m_Group.sObjLV;
+        } else {
+            sObjV = m_Group.sObjV;
+        }
+        return sObjV;
+    }
+
     private int _VideoFlagGet(int iFlag){
         int uFlag = PG_ADD_COMMON_Sync | PG_ADD_VIDEO_Conference|PG_ADD_VIDEO_FrameStat|PG_ADD_VIDEO_DrawThread;
         switch (iFlag) {
@@ -2858,11 +2879,12 @@ public class pgLibConference {
             if (!m_Group.bChairman) {
                 _ChairPeerCheck();
             }
+            if(iFlag > VIDEO_NORMAL) {
+                m_Self.iVideoInitFlag = iFlag;
+            }
 
-            m_Status.iVideoInitFlag = iFlag;
-
-            int uFlag = _VideoFlagGet(m_Status.iVideoInitFlag);
-
+            int uFlag = _VideoFlagGet(m_Self.iVideoInitFlag);
+            int uFlagL = _VideoFlagGet(m_Self.iLVideoInitFlag);
             //预览
             int iPrvwMode =  ((m_Self.iVideoMode>m_Self.iLVideoMode)?(m_Self.iVideoMode):(m_Self.iLVideoMode));
             int iErr = _VideoPrvwStart(iPrvwMode);
@@ -2879,7 +2901,7 @@ public class pgLibConference {
                 return false;
             }
 
-            iErr = _VideoViewStart(this.m_Group.sObjG,this.m_Group.sObjLV,uFlag,this.m_Self.iLVideoCode,this.m_Self.iLVideoMode,this.m_Self.iLVideoFrmRate);
+            iErr = _VideoViewStart(this.m_Group.sObjG,this.m_Group.sObjLV,uFlagL,this.m_Self.iLVideoCode,this.m_Self.iLVideoMode,this.m_Self.iLVideoFrmRate);
             if (iErr > 0) {
                 _OutString("pgLibConference.VideoInit: VideoViewStart L failed. iErr=" + iErr);
                 return false;
@@ -3968,6 +3990,8 @@ public class pgLibConference {
          * 视频参数保存
          */
         String sVideoParam = "";
+
+        int iVideoInitFlag = 0;
         /**
          * 视频帧格式类型
          */
@@ -3976,6 +4000,8 @@ public class pgLibConference {
          * 视频常见分辨率类型
          */
         int iVideoMode = 0;
+
+        int iLVideoInitFlag = 0;
         /**
          * 视频期望帧率
          */
@@ -4020,16 +4046,17 @@ public class pgLibConference {
             this.sPass = sPass;
 
             this.sVideoParam = sVideoParam;
+            iVideoInitFlag = _ParseInt(mNode.omlGetContent(sVideoParam, "VideoFlag"), 0);
+            iVideoCode = _ParseInt(mNode.omlGetContent(sVideoParam, "Code"), -1);
+            iVideoMode = _ParseInt(mNode.omlGetContent(sVideoParam, "Mode"), -1);
+            iVideoFrmRate = _ParseInt(mNode.omlGetContent(sVideoParam, "FrmRate"), 0);
 
-            iVideoCode = _ParseInt(mNode.omlGetContent(sVideoParam, "Code"), 3);
-            iVideoMode = _ParseInt(mNode.omlGetContent(sVideoParam, "Mode"), 2);
-            iVideoFrmRate = _ParseInt(mNode.omlGetContent(sVideoParam, "FrmRate"), 40);
+            iLVideoInitFlag = _ParseInt(mNode.omlGetContent(sVideoParam, "LVideoFlag"), 0);
+            iLVideoCode = _ParseInt(mNode.omlGetContent(sVideoParam, "LCode"), -1);
+            iLVideoMode = _ParseInt(mNode.omlGetContent(sVideoParam, "LMode"), -1);
+            iLVideoFrmRate = _ParseInt(mNode.omlGetContent(sVideoParam, "LFrmRate"), 0);
 
-            iLVideoCode = _ParseInt(mNode.omlGetContent(sVideoParam, "LCode"), 3);
-            iLVideoMode = _ParseInt(mNode.omlGetContent(sVideoParam, "LMode"), 2);
-            iLVideoFrmRate = _ParseInt(mNode.omlGetContent(sVideoParam, "LFrmRate"), 40);
-
-            iVideoBitRate = _ParseInt(mNode.omlGetContent(sVideoParam, "BitRate"), 400);
+            iVideoBitRate = _ParseInt(mNode.omlGetContent(sVideoParam, "BitRate"), 0);
             bVideoPortrait = _ParseInt(mNode.omlGetContent(sVideoParam, "Portrait"), 0);
             bVideoRotate = _ParseInt(mNode.omlGetContent(sVideoParam, "Rotate"), 0);
             iCameraNo = _ParseInt(mNode.omlGetContent(sVideoParam, "CameraNo"), 0);
@@ -4107,7 +4134,6 @@ public class pgLibConference {
         boolean bApiVideoStart = false;
         boolean bApiAudioStart = false;
         boolean bEventEnable = true;
-        int iVideoInitFlag = 0;
 
         void restore() {
             this.bInitialized = false;
@@ -4116,7 +4142,6 @@ public class pgLibConference {
             this.bApiVideoStart = false;
             this.bApiAudioStart = false;
             this.bEventEnable = true;
-            this.iVideoInitFlag = 0;
         }
     }
 
