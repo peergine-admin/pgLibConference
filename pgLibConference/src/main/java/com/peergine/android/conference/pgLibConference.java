@@ -13,6 +13,7 @@ import com.peergine.plugin.lib.pgLibJNINodeProc;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 
@@ -275,6 +276,7 @@ public class pgLibConference {
     private boolean m_bReportPeerInfo = true;
     private boolean m_EventOutObjPeer = false;
     private String m_sListVideo = "";
+    private String m_LocalAddr = "";
 
 
     /**
@@ -445,6 +447,15 @@ public class pgLibConference {
                 ";SKTBufSize3=" + mNodeCfg.SKTBufSize3 +
                 ";P2PTryTime=" + mNodeCfg.P2PTryTime;
         return true;
+    }
+
+    /**
+     * 设置本地地址和端口。默认随机分配。
+     * @param sAddr ex.
+     * @return
+     */
+    public void setLocalAddr(String sAddr){
+        m_LocalAddr = sAddr;
     }
 
     /**
@@ -1725,7 +1736,13 @@ public class pgLibConference {
             m_Node.Control = "Type=1;PumpMessage=1;LogLevel0=1;LogLevel1=1";
             m_Node.Node = msConfigNode;
             m_Node.Class = "PG_CLASS_Data:128;PG_CLASS_Video:128;PG_CLASS_Audio:128;PG_CLASS_File:128";
-            m_Node.Local = "Addr=0:0:0:127.0.0.1:0:0";
+
+            if(m_LocalAddr.isEmpty()) {
+                m_Node.Local = "Addr=0:0:0:127.0.0.1:0:0";
+            }else{
+                m_Node.Local = m_LocalAddr;
+            }
+
             m_Node.Server = "Name=" + m_Svr.sSvrName + ";Addr=" + m_Svr.sSvrAddr + ";Digest=1";
             m_Node.NodeProc = m_NodeProc;
             if (!"".equals(m_Svr.sRelayAddr)) {
@@ -3908,62 +3925,12 @@ public class pgLibConference {
 
         @Override
         public int OnReply(String sObj, int uErrCode, String sData, String sParam) {
-            int iErr = 0;
-            try {
-                if (m_Status.bInitialized && !m_bThreadExit && m_dispItem != null && m_handlerDisp != null) {
-                    synchronized(m_dispItem) {
-                        m_dispItem.iType = 0;
-                        m_dispItem.sObject = sObj;
-                        m_dispItem.sParam0 = sData;
-                        m_dispItem.sParam1 = sParam;
-                        m_dispItem.iParam0 = uErrCode;
-                        m_dispItem.iParam1 = 0;
-                        if (m_handlerDisp.post(m_RunnableNodeProc)) {
-                            m_dispItem.wait();
-                            if (m_dispItem != null) {
-                                iErr = m_dispItem.iReturn;
-                            }
-                        }
-                        else {
-                            _OutString("OnReply: Post run failed");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) {
-                _OutString("OnReply: ex=" + ex.toString());
-            }
-            return iErr;
+            return _NodeDispPost(0, sObj, sData, sParam, uErrCode, 0);
         }
 
         @Override
         public int OnExtRequest(String sObj, int uMeth, String sData, int uHandle, String sPeer) {
-            int iErr = PG_ERR_System;
-            try {
-                if (m_Status.bInitialized && !m_bThreadExit && m_dispItem != null && m_handlerDisp != null) {
-                    synchronized(m_dispItem) {
-                        m_dispItem.iType = 1;
-                        m_dispItem.sObject = sObj;
-                        m_dispItem.sParam0 = sData;
-                        m_dispItem.sParam1 = sPeer;
-                        m_dispItem.iParam0 = uMeth;
-                        m_dispItem.iParam1 = uHandle;
-                        if (m_handlerDisp.post(m_RunnableNodeProc)) {
-                            m_dispItem.wait();
-                            if (m_dispItem != null) {
-                                iErr = m_dispItem.iReturn;
-                            }
-                        }
-                        else {
-                            _OutString("OnExtRequest: Post run failed");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) {
-                _OutString("OnExtRequest: ex=" + ex.toString());
-            }
-            return iErr;
+            return _NodeDispPost(1, sObj, sData, sPeer, uMeth, uHandle);
         }
     }
 
@@ -4314,6 +4281,7 @@ public class pgLibConference {
         }
     }
 
+    private final AtomicInteger m_dispAtomic = new AtomicInteger();
     private Handler m_handlerDisp = null;
     private DispItem m_dispItem = null;
 
@@ -4342,27 +4310,80 @@ public class pgLibConference {
     private Runnable m_RunnableNodeProc = new Runnable() {
         @Override
         public void run() {
-            if (m_dispItem != null) {
-                synchronized(m_dispItem) {
-                    switch (m_dispItem.iType) {
-                        case 0:
-                            m_dispItem.iReturn = _NodeOnReply(m_dispItem.sObject,
-                                    m_dispItem.iParam0, m_dispItem.sParam0,
-                                    m_dispItem.sParam1);
-                            m_dispItem.notify();
-                            break;
+            synchronized(m_dispAtomic) {
+                if (!m_bThreadExit && m_dispItem != null) {
 
-                        case 1:
-                            m_dispItem.iReturn = _NodeOnExtRequest(m_dispItem.sObject,
-                                    m_dispItem.iParam0, m_dispItem.sParam0,
-                                    m_dispItem.iParam1, m_dispItem.sParam1);
-                            m_dispItem.notify();
-                            break;
+                    int iReturn = (m_dispItem.iType == 0) ? 0 : PG_ERR_System;
+                    try {
+                        switch (m_dispItem.iType) {
+                            case 0:
+                                iReturn = _NodeOnReply(m_dispItem.sObject,
+                                        m_dispItem.iParam0, m_dispItem.sParam0,
+                                        m_dispItem.sParam1);
+                                break;
+
+                            case 1:
+                                iReturn = _NodeOnExtRequest(m_dispItem.sObject,
+                                        m_dispItem.iParam0, m_dispItem.sParam0,
+                                        m_dispItem.iParam1, m_dispItem.sParam1);
+                                break;
+
+                            default:
+                                _OutString("m_RunnableNodeProc.run: invalid type.");
+                                break;
+                        }
+                    }
+                    catch (Exception ex) {
+                        _OutString("m_RunnableNodeProc.run: ex=" + ex.toString());
+                    }
+
+                    if (m_dispItem != null) {
+                        m_dispItem.iReturn = iReturn;
                     }
                 }
+
+                m_dispAtomic.notify();
             }
         }
     };
+
+    private int _NodeDispPost(int iType, String sObject, String sParam0, String sParam1, int iParam0, int iParam1) {
+        int iErr = (iType == 0) ? 0 : PG_ERR_System;
+        try {
+            if (m_Status.bInitialized && !m_bThreadExit) {
+                synchronized(m_dispAtomic) {
+                    if (m_dispItem != null && m_handlerDisp != null) {
+                        m_dispItem.iType = iType;
+                        m_dispItem.sObject = sObject;
+                        m_dispItem.sParam0 = sParam0;
+                        m_dispItem.sParam1 = sParam1;
+                        m_dispItem.iParam0 = iParam0;
+                        m_dispItem.iParam1 = iParam1;
+                        m_dispItem.iReturn = PG_ERR_System;
+                        if (m_handlerDisp.post(m_RunnableNodeProc)) {
+                            m_dispAtomic.wait();
+                            if (m_dispItem != null) {
+                                iErr = m_dispItem.iReturn;
+                            }
+                        }
+                        else {
+                            _OutString("pgLibLiveMultiCapture._NodeDispPost: Post run failed");
+                        }
+                    }
+                    else {
+                        iErr = (iType == 0) ? 0 : PG_ERR_BadStatus;
+                    }
+                }
+            }
+            else {
+                iErr = (iType == 0) ? 0 : PG_ERR_BadStatus;
+            }
+        }
+        catch (Exception ex) {
+            _OutString("pgLibLiveMultiCapture._NodeDispPost: ex=" + ex.toString());
+        }
+        return iErr;
+    }
 
     private boolean _NodeDispInit() {
         try {
@@ -4384,28 +4405,37 @@ public class pgLibConference {
 
     private void _NodeDispClean() {
         try {
+            _OutString("pgLibLiveMultiCapture._NodeDispClean: begin");
+
             m_bThreadExit = true;
-            if (m_handlerDisp != null) {
-                m_handlerDisp.removeCallbacks(m_RunnableNodeProc);
-            }
             if (m_Node != null) {
                 m_Node.PostMessage("__exit");
             }
-            if (m_dispItem != null) {
-                synchronized(m_dispItem) {
-                    m_dispItem.notify();
+
+            synchronized(m_dispAtomic) {
+                if (m_handlerDisp != null) {
+                    m_handlerDisp.removeCallbacks(m_RunnableNodeProc);
+                }
+                if (m_dispItem != null) {
+                    m_dispAtomic.notify();
                 }
             }
+
             if (m_thread != null) {
                 m_thread.join();
                 m_thread = null;
             }
+
+            synchronized(m_dispAtomic) {
+                m_handlerDisp = null;
+                m_dispItem = null;
+            }
+
+            _OutString("pgLibLiveMultiCapture._NodeDispClean: finish");
         }
         catch (Exception ex) {
             ex.printStackTrace();
         }
-        m_handlerDisp = null;
-        m_dispItem = null;
     }
 
 
