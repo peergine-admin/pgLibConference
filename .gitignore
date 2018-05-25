@@ -40,3 +40,5 @@ pgPluginLibExter/.settings/org.eclipse.buildship.core.prefs
 /DemoNormal/src/androidTest/java/com/peergine/conference/demo/MainActivityTestMember.java
 /Demo
 /.idea
+/pgLibConference/src/main/java/com/peergine/android/conference/pgLibConference.java.orig
+/pgLibConference/src/test/java/com/peergine/android/conference/pgLibConferenceTest.java

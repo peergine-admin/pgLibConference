@@ -435,8 +435,12 @@ public class MainFragment extends SupportFragment {
     private void EventPeerSync(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 提醒应用程序可以和此节点相互发送消息了
         showInfo(sPeer + "节点建立连接");
-        mConf.MessageSend("MessageSend test", sPeer);
-        mConf.CallSend("CallSend test", sPeer, "123");
+        if(mConf.MessageSend("MessageSend test", sPeer) == false){
+            showInfo("MessageSend return false");
+        }
+        if(mConf.CallSend("CallSend test", sPeer, "123")==false){
+            showInfo("CallSend return false");
+        }
 
     }
 
@@ -450,7 +454,9 @@ public class MainFragment extends SupportFragment {
     private void EventChairmanSync(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 提醒应用程序可以和主席发送消息了
         showInfo("主席节点建立连接 Act = " + sAct + " : " + sData + " : " + sPeer);
-        mConf.Join();
+        if(mConf.Join() == false){
+            showInfo("Join return false ");
+        }
 
         mConf.MessageSend("MessageSend test", sPeer);
         mConf.CallSend("CallSend test", sPeer, "123");
@@ -698,16 +704,20 @@ public class MainFragment extends SupportFragment {
     private void pgStart() {
         msChair = mEditchair.getText().toString().trim();
         if ("".equals(msChair)) {
-            Alert("错误", "主席端ID不能为空。");
+            showInfo("主席端ID不能为空。");
         }
         String sName = msChair;
-        mConf.Start(sName, msChair);
+        if(mConf.Start(sName, msChair) == false){
+            showInfo("Start 失败。");
+        }
         int iVideoFlag = VIDEO_NORMAL;
 //        if(msChair.equals(m_sUser)){
 //            iVideoFlag = VIDEO_ONLY_INPUT;
 //        }
 
-        mConf.VideoStart(iVideoFlag);
+        if(mConf.VideoStart(iVideoFlag) == false){
+            Alert("错误", "VideoStart 失败。");
+        }
         mConf.AudioStart();
     }
 
@@ -813,7 +823,7 @@ public class MainFragment extends SupportFragment {
         String sDate = formatter.format(currentTime);
         String sPath = getSDCardDir() + "/test/record" + sDate + ".avi";
         boolean iErr = mConf.RecordStart(msChair, sPath);
-        if ((iErr = false)) {
+        if ((iErr == false)) {
             Toast.makeText(getContext(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
             mConf.RecordStop(msChair,PG_RECORD_NORMAL);
 
@@ -830,7 +840,9 @@ public class MainFragment extends SupportFragment {
         if ("".equals(sData)) {
             return false;
         }
-        mConf.NotifySend(sData);
+        if(mConf.NotifySend(sData) == false){
+            showInfo( "NotifySend 失败。");
+        }
 
         return true;
     }
@@ -867,6 +879,8 @@ public class MainFragment extends SupportFragment {
         @Override
         public void onClick(View args0) {
             int k = 0;
+            boolean bErr;
+            int iErr;
             switch (args0.getId()) {
                 case R.id.btn_Start:
                     m_bVideoStart = false;
@@ -886,21 +900,32 @@ public class MainFragment extends SupportFragment {
                     Log.d("OnClink", "MemberAdd button");
                     break;
                 case R.id.btn_LanScan:
-                    mConf.LanScanStart();
+                    bErr = mConf.LanScanStart();
+                    if(!bErr){
+                        showInfo(" LanScanStart return false");
+                    }
                     break;
                 case R.id.btn_notifysend: {
                     String sMsg = mEdittextNotify.getText().toString().trim();
-                    mConf.NotifySend(sMsg);
+                    bErr = mConf.NotifySend(sMsg);
+                    if(!bErr){
+                        showInfo(" NotifySend return false");
+                    }
                     break;
                 }
                 case R.id.btn_msg: {
                     String sMsg = mEdittextNotify.getText().toString().trim();
-                    mConf.MessageSend(sMsg, msChair);
+                    bErr =  mConf.MessageSend(sMsg, msChair);
+                    if(!bErr){
+                        showInfo(" MessageSend return false");
+                    }
                     break;
 
                 } case R.id.btn_svr_request: {
                     String sMsg = mEdittextNotify.getText().toString().trim();
-                    mConf.SvrRequest(sMsg);
+                    if(!mConf.SvrRequest(sMsg)){
+                        showInfo(" SvrRequest return false");
+                    };
                     break;
 
                 }
@@ -918,15 +943,20 @@ public class MainFragment extends SupportFragment {
 
                 }case R.id.btn_file_put: {
 
-                    mConf.FilePutRequest(msChair,m_sUser,"/sdcard/test/test.avi","");
-
+                    iErr = mConf.FilePutRequest(msChair,m_sUser,"/sdcard/test/test.avi","");
+                    if(iErr >PG_ERR_Normal){
+                        showInfo(" FilePutRequest return false");
+                    }
                     break;
 
                 }case R.id.btn_file_get: {
                     Date currentTime = new Date();
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
                     String sDate = formatter.format(currentTime);
-                    mConf.FileGetRequest(msChair,m_sUser,"/sdcard/test/GetFile_" + sDate + ".avi","");
+                    iErr = mConf.FileGetRequest(msChair,m_sUser,"/sdcard/test/GetFile_" + sDate + ".avi","");
+                    if(iErr >PG_ERR_Normal){
+                        showInfo(" FilePutRequest return false");
+                    }
                     break;
 
                 }
