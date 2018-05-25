@@ -13,7 +13,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.peergine.android.conference.pgLibNode._OutString;
+import static com.peergine.android.conference.pgLibNode.outString;
 
 /**
  * Copyright (C) 2014-2017, Peergine, All rights reserved.
@@ -95,7 +95,7 @@ public final class pgLibTimer {
                 }
             }
             catch (Exception ex) {
-                _OutString("pgLibTimer.pgTimerTask.run, ex=" + ex.toString());
+                outString("pgLibTimer.pgTimerTask.run, ex=" + ex.toString());
             }
         }
     }
@@ -146,7 +146,7 @@ public final class pgLibTimer {
             return true;
         }
         catch (Exception ex) {
-            _OutString("pgLibTimer.TimerInit: ex=" + ex.toString());
+            outString("pgLibTimer.TimerInit: ex=" + ex.toString());
             return false;
         }
     }
@@ -172,7 +172,7 @@ public final class pgLibTimer {
                     m_TimeList.get(i).iCookie = 0;
                 }
                 catch (Exception ex) {
-                    _OutString("pgLibTimer.TimerClean, ex=" + ex.toString());
+                    outString("pgLibTimer.TimerClean, ex=" + ex.toString());
                 }
             }
             m_TimerHandler = null;
@@ -225,7 +225,7 @@ public final class pgLibTimer {
             return iTimerID;
         }
         catch (Exception ex) {
-            _OutString("pgLibTimer.Add, ex=" + ex.toString());
+            outString("pgLibTimer.Add, ex=" + ex.toString());
             return -1;
         }
     }
@@ -258,7 +258,7 @@ public final class pgLibTimer {
             m_TimeList.get(iItem).iCookie = 0;
         }
         catch (Exception ex) {
-            _OutString("pgLibTimer.TimerStop, ex=" + ex.toString());
+            outString("pgLibTimer.TimerStop, ex=" + ex.toString());
         }
     }
 }

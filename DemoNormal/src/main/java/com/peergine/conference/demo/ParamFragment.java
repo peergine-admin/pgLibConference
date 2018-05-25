@@ -57,6 +57,11 @@ public class ParamFragment extends SupportFragment {
                     start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
                             sInitParam,sVideoParam,sExpire,"0"));
                     break;
+                case R.id.btnInitDouble:
+                    Toast.makeText(getContext(), "进入Demo。双源测试", Toast.LENGTH_SHORT).show();
+                    start(ComplexFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                            sInitParam,sVideoParam,sExpire,"0"));
+                    break;
                 case R.id.btnInitCalling:
                     Toast.makeText(getContext(), "进入Demo 模拟电话呼叫流程。", Toast.LENGTH_SHORT).show();
                     start(MainFragmentCalling.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
@@ -106,57 +111,6 @@ public class ParamFragment extends SupportFragment {
                 Toast.makeText(this.getContext(),"打开录音设备失败。请检查录音设备权限！",Toast.LENGTH_SHORT).show();
             }
 
-
-    //        AndPermission.with(this)
-    //                .permission(
-    //                        Permission.CAMERA,
-    //                        Permission.RECORD_AUDIO
-    //                )
-    //                //.rationale(mRationale)
-    //                .onGranted(new Action() {
-    //                    @Override
-    //                    public void onAction(List<String> permissions) {
-    //                        // TODO what to do.
-    //                        Toast.makeText(getContext(),"获取到的权限有：" + permissions.toString(),Toast.LENGTH_SHORT).show();
-    //
-    //                    }
-    //                })
-    //                .onDenied(new Action() {
-    //                    @Override
-    //                    public void onAction(List<String> permissions) {
-    //                        // TODO what to do
-    //                        Toast.makeText(getContext(),"未获取到的权限有：" + transformText(getContext(),permissions).toString(),Toast.LENGTH_SHORT).show();
-    //                        if (AndPermission.hasAlwaysDeniedPermission(getContext(), permissions)) {
-    //                            // 这里使用一个Dialog展示没有这些权限应用程序无法继续运行，询问用户是否去设置中授权。
-    //
-    //                            final SettingService settingService = AndPermission.permissionSetting(getContext());
-    //
-    //                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-    //                            builder.setTitle("询问！");
-    //                            builder.setMessage("没有视音频权限，是否去设置中授权。");
-    //                            builder.setPositiveButton("好的", new DialogInterface.OnClickListener() {
-    //                                @Override
-    //                                public void onClick(DialogInterface dialog, int which) {
-    //                                    // 如果用户同意去设置：
-    //                                    settingService.execute();
-    //                                    android.os.Process.killProcess(android.os.Process.myPid());
-    //                                }
-    //                            });
-    //                            builder.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
-    //                                @Override
-    //                                public void onClick(DialogInterface dialog, int which) {
-    //                                    // 如果用户不同意去设置：
-    //                                    settingService.cancel();
-    //                                    android.os.Process.killProcess(android.os.Process.myPid());
-    //                                }
-    //                            });
-    //                            builder.show();
-    //                        }
-    //
-    //
-    //                    }
-    //                })
-    //                .start();
             return view;
 
     }
@@ -173,6 +127,7 @@ public class ParamFragment extends SupportFragment {
         mEditExpire = view.findViewById(R.id.editText_expire);
 
         view.findViewById(R.id.btnInitDefault).setOnClickListener(mOnClick);
+        view.findViewById(R.id.btnInitDouble).setOnClickListener(mOnClick);
         view.findViewById(R.id.btnInitCalling).setOnClickListener(mOnClick);
         view.findViewById(R.id.btnInitExter).setOnClickListener(mOnClick);
     }
