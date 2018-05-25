@@ -617,7 +617,7 @@ public class pgLibConference {
     public boolean Start(String sName, String sChair) {
         m_Group.Init(sName, sChair, m_Self.sUser);
         m_Stamp.restore();
-        return !m_Group.bEmpty && (_ServiceStart()!=PG_ERR_Normal);
+        return (!m_Group.bEmpty) && (_ServiceStart()==PG_ERR_Normal);
     }
 
     /**

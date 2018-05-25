@@ -20,6 +20,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile project(':pgPluginLib')
-    compile project(path: ':pgLibConference')
+    implementation project(':pgPluginLib')
+    implementation project(':pgLibConference')
 }
