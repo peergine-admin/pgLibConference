@@ -1304,7 +1304,7 @@ public class pgLibConference {
         String sObjPeer = _ObjPeerBuild(sID);
 
 
-        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYVIDEO) {
+        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYVIDEO ||iMode == PG_RECORD_ONLYVIDEO_HASAUDIO) {
             String sObjVideo = m_Group.sObjV;
             PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
             if (oPeer != null) {
@@ -1322,7 +1322,7 @@ public class pgLibConference {
             }
         }
 
-        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYAUDIO) {
+        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYAUDIO ||iMode == PG_RECORD_ONLYAUDIO_HASVIDEO) {
             String sObjAudio = m_Group.sObjA;
             int iErr = m_Node.ObjectRequest(sObjAudio,
                     PG_METH_AUDIO_Record, "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){}",
