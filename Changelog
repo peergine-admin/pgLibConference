@@ -1,3 +1,36 @@
+update 2018/0606 v20
+    1、添加一种新的录音录像模式以适应兼容外部录音接口，RecordAudioBothStart。
+           RecordStart 新增Mode ：PG_RECORD_ONLYVIDEO_HASAUDIO 和PG_RECORD_ONLYAUDIO_HASVIDEO
+                            其中 Mode PG_RECORD_ONLYVIDEO_HASAUDIO 可以配合RecordAudioBothStart 可以同时录制音视频。
+           调用顺序示例代码：
+                   int iErr = mConf.RecordStart(msChair,sPath,PG_RECORD_ONLYVIDEO_HASAUDIO,false);
+                   if(iErr!=0){
+                       Toast.makeText(getContext(), "录像失败。 已经关闭 Err = " + iErr, Toast.LENGTH_SHORT).show();
+                   }
+
+                   int iErr1 = RecordAudioBothStart(sPath);
+                   if(iErr1!=0){
+                       Toast.makeText(getContext(), "录音失败。 已经关闭 Err = " + iErr1, Toast.LENGTH_SHORT).show();
+                   }
+                   //```````````````````````````````
+                   //
+                   public int RecordAudioBothStart(String sAviPath) {
+                       pgLibJNINode Node = mConf.GetNode();
+                       if (Node != null) {
+                           if (Node.ObjectAdd("_vTemp", "PG_CLASS_Audio", "", 0)) {
+                               String sData = "(Path){" + Node.omlEncode(sAviPath) + "}(Action){1}(MicNo){1}(SpeakerNo){65535}(HasVideo){1}";
+                               /*String sData = "(Path){" + Node.omlEncode(sAviPath) + "}(Action){1}(MicNo){1}(SpeakerNo){65535}(HasVideo){1}";*/
+                               int iErr = Node.ObjectRequest("_vTemp", 38, sData, "");
+                               Log.d("pgLiveCapture", "RecordAudioBothStart, iErr=" + iErr);
+                               Node.ObjectDelete("_vTemp");
+                               return iErr;
+                           }
+                       }
+                       return 1;
+                   }
+           单独调用 RecordAudioBothStart 只录音频 请将 "(HasVideo){1}" 改为 "(HasVideo){0}"
+    2、修复Demo的一些问题。
+
 update 2018/0523 v20
 	1、添加单独打开视频流L的系列函数和回调。
 	2、兼容性调整，回调接口函数Event 的Peer参数改回返回带有 "_DEV_"前缀的Peer对象名称。
