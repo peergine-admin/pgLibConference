@@ -35,6 +35,8 @@ public class pgLibConference {
     public static final int PG_RECORD_NORMAL = 0;
     public static final int PG_RECORD_ONLYVIDEO = 1;
     public static final int PG_RECORD_ONLYAUDIO = 2;
+    public static final int PG_RECORD_ONLYVIDEO_HASAUDIO = 3;
+    public static final int PG_RECORD_ONLYAUDIO_HASVIDEO = 4;
     /**
      * 初始化音频控制正常对讲
      */
@@ -1232,11 +1234,11 @@ public class pgLibConference {
         }
 
         String sObjAudio = m_Group.sObjA;
-        int iHas = (iMode == PG_RECORD_NORMAL)?1:0;
+        int iHas = (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYVIDEO_HASAUDIO ||iMode == PG_RECORD_ONLYAUDIO_HASVIDEO)?1:0;
 
 
         boolean bRecord = false;
-        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYVIDEO) {
+        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYVIDEO ||iMode == PG_RECORD_ONLYVIDEO_HASAUDIO) {
             String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sAviPath) + "}(HasAudio){" + iHas + "}";
             int iErr = m_Node.ObjectRequest(sObjVideo,
                     PG_METH_VIDEO_Record, sIn, "RecordStartVideo");
@@ -1247,7 +1249,7 @@ public class pgLibConference {
             bRecord = true;
         }
 
-        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYAUDIO) {
+        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYAUDIO||iMode == PG_RECORD_ONLYAUDIO_HASVIDEO) {
 
             String sIn = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){" + m_Node.omlEncode(sAviPath) + "}(HasVideo){" + iHas + "}";
 
@@ -1302,7 +1304,7 @@ public class pgLibConference {
         String sObjPeer = _ObjPeerBuild(sID);
 
 
-        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYVIDEO) {
+        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYVIDEO ||iMode == PG_RECORD_ONLYVIDEO_HASAUDIO) {
             String sObjVideo = m_Group.sObjV;
             PG_PEER oPeer = _VideoPeerSearch(sObjPeer);
             if (oPeer != null) {
@@ -1320,7 +1322,7 @@ public class pgLibConference {
             }
         }
 
-        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYAUDIO) {
+        if (iMode == PG_RECORD_NORMAL ||iMode == PG_RECORD_ONLYAUDIO ||iMode == PG_RECORD_ONLYAUDIO_HASVIDEO) {
             String sObjAudio = m_Group.sObjA;
             int iErr = m_Node.ObjectRequest(sObjAudio,
                     PG_METH_AUDIO_Record, "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Path){}",

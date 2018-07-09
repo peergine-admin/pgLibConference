@@ -32,6 +32,7 @@ import me.yokeyword.fragmentation.SupportFragment;
 import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
 import static com.peergine.android.conference.pgLibConference.PG_RECORD_NORMAL;
+import static com.peergine.android.conference.pgLibConference.PG_RECORD_ONLYVIDEO_HASAUDIO;
 import static com.peergine.android.conference.pgLibConference.VIDEO_NORMAL;
 import static com.peergine.android.conference.pgLibConference.VIDEO_ONLY_INPUT;
 import static com.peergine.android.conference.pgLibConferenceEvent.*;
@@ -95,6 +96,7 @@ public class MainFragment extends SupportFragment {
     };
     private String sMode = "";
     private VideoAudioInputExternal external=null;
+    private String sPath = "";
     //R.id.layoutVideoS0,
 
     class MEMBER {
@@ -817,6 +819,39 @@ public class MainFragment extends SupportFragment {
         pgVideoRestore(sPeer);
     }
 
+    private void pgRecordStartNew(){
+        Date currentTime = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        String sDate = formatter.format(currentTime);
+        sPath = getSDCardDir() + "/test/record" + sDate + ".avi";
+        int iErr = mConf.RecordStart(msChair,sPath,PG_RECORD_ONLYVIDEO_HASAUDIO,false);
+        if(iErr!=0){
+            Toast.makeText(getContext(), "录像失败。 已经关闭 Err = " + iErr, Toast.LENGTH_SHORT).show();
+        }
+        //boolean iErr = mConf.RecordStart(msChair, sPath);
+//        if ((!iErr)) {
+//            Toast.makeText(getContext(), "录像失败。 已经关闭", Toast.LENGTH_SHORT).show();
+//            mConf.RecordStop(msChair,PG_RECORD_NORMAL);
+//
+//        }else{l
+//
+//        }
+        int iErr1 = RecordAudioBothStart(sPath);
+        if(iErr1!=0){
+            Toast.makeText(getContext(), "录音失败。 已经关闭 Err = " + iErr1, Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    private void pgRecordStopNew(){
+        mConf.RecordStop(msChair,PG_RECORD_ONLYVIDEO_HASAUDIO,false);
+        int iErr = RecordAudioBothStop(sPath);
+        if(iErr!=0) {
+            Toast.makeText(getContext(), "RecordAudioBothStop 录音停止。 iErr = "+iErr, Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
     private void pgRecordStart(){
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -873,7 +908,40 @@ public class MainFragment extends SupportFragment {
             }
         }
     }
+    //
+    public int RecordAudioBothStart(String sAviPath) {
+        pgLibJNINode Node = mConf.GetNode();
+        if (Node != null) {
+            if (Node.ObjectAdd("_vTemp", "PG_CLASS_Audio", "", 0)) {
+                String sData = "(Path){" + Node.omlEncode(sAviPath) + "}(Action){1}(MicNo){65535}(SpeakerNo){65535}(HasVideo){1}";
+                /*String sData = "(Path){" + Node.omlEncode(sAviPath) + "}(Action){1}(MicNo){1}(SpeakerNo){65535}(HasVideo){1}";*/
+                int iErr = Node.ObjectRequest("_vTemp", 38, sData, "");
+                Log.d("pgLiveCapture", "RecordAudioBothStart, iErr=" + iErr);
+                Node.ObjectDelete("_vTemp");
+                return iErr;
+            }
+        }
+        return 1;
+    }
 
+
+    ///
+    // 停止录制双方对讲的音频数据到一个avi文件。
+    //     sAviPath：保存音频数据的*.avi文件，必须与RecordAudioBothStart传入的sAviPath参数相同。
+    //
+    public int RecordAudioBothStop(String sAviPath) {
+        pgLibJNINode Node = mConf.GetNode();
+        if (Node != null) {
+            if (Node.ObjectAdd("_vTemp", "PG_CLASS_Audio", "", 0)) {
+                String sData = "(Path){" + Node.omlEncode(sAviPath) + "}(Action){0}";
+                int iErr = Node.ObjectRequest("_vTemp", 38, sData, "");
+                Log.d("pgLiveCapture", "RecordAudioBothStop, iErr=" + iErr);
+                Node.ObjectDelete("_vTemp");
+                return iErr;
+            }
+        }
+        return 1;
+    }
 
     private final View.OnClickListener mOnclink = new View.OnClickListener() {
         @Override
@@ -930,11 +998,11 @@ public class MainFragment extends SupportFragment {
 
                 }
                 case R.id.btn_recordstart: {
-                    pgRecordStart();
+                    pgRecordStartNew();
                     break;
                 }
                 case R.id.btn_recordstop: {
-                    pgRecordStop();
+                    pgRecordStopNew();
                     break;
                 }
                 case R.id.btn_test: {

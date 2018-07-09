@@ -138,6 +138,16 @@ public class ComplexFragment extends SupportFragment {
                 if (sObjUser.compareTo(sPeer) > 0) {
                     showInfo(" 发起视频请求");
                     pgVideoOpen(sPeer,false);
+                }
+
+            }else  if ("VIDEO_OPEN_L".equals(sAct)) {
+
+                //Demo 是为了演示方便 在这里实现自动打开视频的功能
+                //所以才做了这个ID大的主动打开视频
+                //实际情况中建议从Join出得到设备列表，或者本地保存列表，用ListView显示，点击某个ID然后开始打开视频
+                String sObjUser = _ObjPeerBuild(m_sUser);
+                if (sObjUser.compareTo(sPeer) > 0) {
+                    showInfo(" 发起视频请求");
                     pgVideoOpen(sPeer,true);
                 }
             }
@@ -149,7 +159,11 @@ public class ComplexFragment extends SupportFragment {
         String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
         mTimer.timerStart(sParam, 1);
     }
+    private void TimerStartOpenL(String sPeer) {
 
+        String sParam = "(Act){VIDEO_OPEN_L}(Peer){" + sPeer + "}";
+        mTimer.timerStart(sParam, 1);
+    }
 
 
     public static ComplexFragment newInstance(String sUser, String sPass, String sSvrAddr, String sRelayAddr,
@@ -479,8 +493,6 @@ public class ComplexFragment extends SupportFragment {
     private void EventJoin(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
         showInfo(sPeer + "加入会议");
-        /*这个是开始一个定时器*/
-        TimerStartOpen(sPeer);
 
         mConf.NotifySend(sPeer + " : join ");
         Log.d("", sPeer + " 加入会议");
@@ -500,13 +512,24 @@ public class ComplexFragment extends SupportFragment {
     private void EventVideoSync(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 提醒应用程序可以打开这个sPeer的视频了
         showInfo("视频同步");
+         /*这个是开始一个定时器*/
+        TimerStartOpen(sPeer);
+        if(sPeer.equals("_DEV_" + m_sUser)){
+            Log.d(""," VideoSync sUser == sPeer ");
+            showInfo(" VideoSync sUser == sPeer");
+        }
     }
 
     //sPeer的离线消息
     private void EventVideoSyncL(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 提醒应用可以打开这个sPeer的第二种流
-        Log.d("", " 第二种视频同步");
         showInfo("第二种视频同步");
+        TimerStartOpenL(sPeer);
+        if(sPeer.equals("_DEV_" + m_sUser)){
+            Log.d(""," VideoSyncL sUser == sPeer ");
+            showInfo(" VideoSyncL sUser == sPeer");
+
+        }
     }
 
     private void EventVideoOpen(String sAct, String sData, String sPeer) {
