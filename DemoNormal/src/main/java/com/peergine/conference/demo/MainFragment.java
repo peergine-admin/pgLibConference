@@ -1038,8 +1038,15 @@ public class MainFragment extends SupportFragment {
         }
     };
 
+    int m_iVelue = 0;
     private void test() {
 
+        int iErr = mConf.AudioMuteInput(m_iVelue);
+        showInfo("AudioMuteInput " + m_iVelue + " , Err = " + iErr);
+        m_iVelue ++;
+        if(m_iVelue > 1){
+            m_iVelue = 0;
+        }
     }
 }
 

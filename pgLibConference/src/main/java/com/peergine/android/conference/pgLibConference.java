@@ -1104,14 +1104,13 @@ public class pgLibConference {
             if (Node != null) {
                 String sData = "(Item){12}(Value){"+iValue+"}";
 
-                    int iErr = Node.ObjectRequest(sObjA, PG_METH_COMMON_SetOption, sData, "");
-                    Log.d("pgLibConference", "AudioMuteInput, iErr=" + iErr);
-                    Node.ObjectDelete("_vTemp");
-                    return iErr;
+                int iErr = Node.ObjectRequest(sObjA, PG_METH_COMMON_SetOption, sData, "");
+                Log.d("pgLibConference", "AudioMuteInput, iErr=" + iErr);
+                return iErr;
 
             }
         }
-        return 1;
+        return PG_ERR_BadStatus;
     }
 
     /**
@@ -1132,8 +1131,7 @@ public class pgLibConference {
                 String sData = "(Item){13}(Value){"+iValue+"}";
 
                 int iErr = Node.ObjectRequest(sObjA, PG_METH_COMMON_SetOption, sData, "");
-                Log.d("pgLibConference", "AudioMuteInput, iErr=" + iErr);
-                Node.ObjectDelete("_vTemp");
+                Log.d("pgLibConference", "AudioMuteOutput, iErr=" + iErr);
                 return iErr;
 
             }

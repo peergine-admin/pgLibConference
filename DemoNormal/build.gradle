@@ -46,7 +46,7 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':pgLibConference')
     implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'me.yokeyword:fragmentation:1.3.3'
     implementation project( ':pgPluginLibExter')
     //compile "com.peergine.plugin:pgPluginLib:1.35.7"
