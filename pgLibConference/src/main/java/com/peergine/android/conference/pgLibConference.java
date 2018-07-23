@@ -1088,6 +1088,59 @@ public class pgLibConference {
     }
 
     /**
+     * 启用或禁用音频输入的静音。
+     * @param iValue 1为启用，0为禁用。
+     * @return 错误码 @link PG_ERR_
+     */
+    public int AudioMuteInput(int iValue) {
+        if(iValue<0 || iValue > 1){
+            return PG_ERR_BadParam;
+        }
+        if (m_Status.bApiAudioStart) {
+
+            pgLibJNINode Node = m_Node;
+            String sObjA = m_Group.sObjA;
+
+            if (Node != null) {
+                String sData = "(Item){12}(Value){"+iValue+"}";
+
+                    int iErr = Node.ObjectRequest(sObjA, PG_METH_COMMON_SetOption, sData, "");
+                    Log.d("pgLibConference", "AudioMuteInput, iErr=" + iErr);
+                    Node.ObjectDelete("_vTemp");
+                    return iErr;
+
+            }
+        }
+        return 1;
+    }
+
+    /**
+     * 启用或禁用音频输出的静音。
+     * @param iValue 1为启用，0为禁用。
+     * @return 错误码 @link PG_ERR_
+     */
+    public int AudioMuteOutput(int iValue) {
+        if(iValue<0 || iValue > 1){
+            return PG_ERR_BadParam;
+        }
+        if (m_Status.bApiAudioStart) {
+
+            pgLibJNINode Node = m_Node;
+            String sObjA = m_Group.sObjA;
+
+            if (Node != null) {
+                String sData = "(Item){13}(Value){"+iValue+"}";
+
+                int iErr = Node.ObjectRequest(sObjA, PG_METH_COMMON_SetOption, sData, "");
+                Log.d("pgLibConference", "AudioMuteInput, iErr=" + iErr);
+                Node.ObjectDelete("_vTemp");
+                return iErr;
+
+            }
+        }
+        return PG_ERR_BadStatus;
+    }
+    /**
      * 描述：AudioCtrlVolume控制自身的扬声器和麦克风是否播放或采集声音数据
      * 阻塞方式：非阻塞，立即返回
      *
