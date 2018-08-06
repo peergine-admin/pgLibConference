@@ -234,13 +234,20 @@ public class pgLibConference {
      */
     public static final String EVENT_FILE_ACCEPT = "FileAccept";
 
+    /**
+     * 上报相对节点的信息。
+     *        sData 上报信息格式： peer=xxx&through=xxx&proxy=xxx&addrlcl=xxx&addrrmt=xxx&tunnellcl=xxx&tunnelrmt=xxx&privatermt=xxx
+     */
     public static final String EVENT_PEER_INFO = "PeerInfo";
 
+    /**
+     * 因为其他设备使用同一个ID登录，被服务器踢出
+     */
     public static final String EVENT_KICK_OUT = "KickOut";
     //======================================================================
 
     private static final String ID_PREFIX = "_DEV_";
-    private static final String LIB_VER = "20";
+    private static final String LIB_VER = "22";
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
@@ -255,6 +262,7 @@ public class pgLibConference {
     private static final String PARAM_LOGOUT = "NodeLogout";
     private static final String PARAM_SVR_REDIRECT = "SvrRedirect";
     private static final String PARAM_PEER_GET_INFO = "PeerGetInfo";
+    private static final String PARAM_PEER_GET_INFO_NO_REPORT = "PeerGetInfoNoReport";
 
     private static final String TIME_OUT_ACT_KEEP = "Keep";
     private static final String TIME_OUT_ACT_TIMER_ACTIVE = "TimerActive";
@@ -583,6 +591,23 @@ public class pgLibConference {
         }catch (Exception ex){
             _OutString("pgLibConfernece.Clean : ex = " + ex.toString());
         }
+    }
+
+    /**
+     * 获取节点连接信息
+     * @param sPeer 对端节点 名称
+     * @param bReport
+     */
+    public int PeerGetInfo(String sPeer, boolean bReport){
+
+        if("".equals(sPeer)){
+            return PG_ERR_BadParam;
+        }
+
+        String sObjPeer = _ObjPeerBuild(sPeer);
+
+        String sReport = bReport?"1":"0";
+        return _NodePeerGetInfo(sObjPeer,sReport);
     }
 
     // Create preview for node.
@@ -1676,7 +1701,8 @@ public class pgLibConference {
                 _NodeLogin();
             } else if (TIME_OUT_ACT_PEER_GET_INFO.equals(sAct)) {
                 String sPeer = m_Node.omlGetContent(sParam, "Peer");
-                _NodePeerGetInfo(sPeer);
+                String sReport = m_Node.omlGetContent(sParam, "Report");
+                _NodePeerGetInfo(sPeer,sReport);
             }
 
         }
@@ -1705,7 +1731,7 @@ public class pgLibConference {
     }
 
     private void TimerStartPeerGetInfo(String sObjPeer) {
-        String sTimerParam = "(Act){"+TIME_OUT_ACT_PEER_GET_INFO+"}(Peer){" + sObjPeer + "}";
+        String sTimerParam = "(Act){"+TIME_OUT_ACT_PEER_GET_INFO+"}(Peer){" + sObjPeer + "}(Report){1}";
         TimerStart( sTimerParam , 5, false);
     }
     //事件下发程序
@@ -1974,12 +2000,18 @@ public class pgLibConference {
         return 1;
     }
 
-    private void _NodePeerGetInfo(String sPeer) {
+    private int _NodePeerGetInfo(String sPeer,String sReport) {
+        String sParam = PARAM_PEER_GET_INFO;
+        if("0".equals(sReport)){
+            sParam = PARAM_PEER_GET_INFO_NO_REPORT;
+        }
 
-        int iErr = m_Node.ObjectRequest(sPeer, PG_METH_PEER_GetAddr , "", PARAM_PEER_GET_INFO);
+
+        int iErr = m_Node.ObjectRequest(sPeer, PG_METH_PEER_GetAddr , "", sParam);
         if (iErr > PG_ERR_Normal) {
             _OutString("_NodePeerGetInfo: iErr=" + iErr);
         }
+        return iErr;
     }
 
     private int _NodeLoginFailDelay() {
@@ -3794,13 +3826,15 @@ public class pgLibConference {
             _OnEvent(EVENT_SVR_RELAY, sData, m_Svr.sSvrName);
         }
     }
+
     private void _OnPrcRelay(String sObj, int iErr, String sParam) {
         String sSession;
         sSession = sParam.substring(9);
         String sPeer = _ObjPeerParsePeer(sObj);
         _OnEvent(EVENT_CALLSEND_RESULT, sSession + ":" + iErr, sPeer);
     }
-    private void _OnPeerGetInfoReply(String sObj, int iErr, String sData) {
+
+    private void _OnPeerGetInfoReply(String sObj, int iErr, String sData,boolean bReport) {
         if (iErr != PG_ERR_Normal) {
             return;
         }
@@ -3821,16 +3855,19 @@ public class pgLibConference {
 
         String sPrivateRmt = addrToReadable(m_Node.omlGetContent(sData, "PrivateRmt"));
 
-        String sDataInfo = "16:(" + m_Node.omlEncode(sObj) + "){(Through){" + sThrough + "}(Proxy){"
-                + m_Node.omlEncode(sProxy) + "}(AddrLcl){" + m_Node.omlEncode(sAddrLcl) + "}(AddrRmt){"
-                + m_Node.omlEncode(sAddrRmt) + "}(TunnelLcl){" + m_Node.omlEncode(sTunnelLcl) + "}(TunnelRmt){"
-                + m_Node.omlEncode(sTunnelRmt) + "}(PrivateRmt){" + m_Node.omlEncode(sPrivateRmt) + "}}";
+        String sDataInfo = "";
 
-        int iErrTemp = m_Node.ObjectRequest(m_Svr.sSvrName, 35, sDataInfo, "ReportPeerInfo");
-        if (iErrTemp > PG_ERR_Normal) {
-            _OutString("_OnPeerGetInfoReply: iErr=" + iErrTemp);
+        if(bReport) {
+            sDataInfo = "16:(" + m_Node.omlEncode(sObj) + "){(Through){" + sThrough + "}(Proxy){"
+                    + m_Node.omlEncode(sProxy) + "}(AddrLcl){" + m_Node.omlEncode(sAddrLcl) + "}(AddrRmt){"
+                    + m_Node.omlEncode(sAddrRmt) + "}(TunnelLcl){" + m_Node.omlEncode(sTunnelLcl) + "}(TunnelRmt){"
+                    + m_Node.omlEncode(sTunnelRmt) + "}(PrivateRmt){" + m_Node.omlEncode(sPrivateRmt) + "}}";
+
+            int iErrTemp = m_Node.ObjectRequest(m_Svr.sSvrName, 35, sDataInfo, "ReportPeerInfo");
+            if (iErrTemp > PG_ERR_Normal) {
+                _OutString("_OnPeerGetInfoReply: iErr=" + iErrTemp);
+            }
         }
-
         // Report to app.
         sDataInfo = "peer=" + sPeer + "&through=" + sThrough + "&proxy=" + sProxy
                 + "&addrlcl=" + sAddrLcl + "&addrrmt=" + sAddrRmt + "&tunnellcl=" + sTunnelLcl
@@ -3901,10 +3938,13 @@ public class pgLibConference {
 
     private int _NodeOnReplyPeer(String sObj, int iErr, String sData, String sParam) {
         if (sParam.equals(PARAM_PEER_GET_INFO)) {
-            _OnPeerGetInfoReply(sObj, iErr, sData);
+            _OnPeerGetInfoReply(sObj, iErr, sData,true);
             return 1;
         }
-
+        if (sParam.equals(PARAM_PEER_GET_INFO_NO_REPORT)) {
+            _OnPeerGetInfoReply(sObj, iErr, sData,false);
+            return 1;
+        }
         if (sObj.equals(m_Svr.sSvrName)) {
             if (PARAM_LOGIN.equals(sParam)) {
                 int iRet = _NodeLoginReply(iErr, sData);
