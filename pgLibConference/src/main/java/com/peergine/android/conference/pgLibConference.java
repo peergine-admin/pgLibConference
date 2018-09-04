@@ -843,9 +843,9 @@ public class pgLibConference {
      * 描述：打开某一成员的视频
      * 阻塞方式：非阻塞，立即返回
      * 返回值： true 操作成功，false 操作失败
-     * sObjPeer:成员节点名
-     * iW: 窗口宽度
-     * iH: 窗口高度
+     * @param sPeer:成员节点名
+     * @param iW: 窗口宽度
+     * @param iH: 窗口高度
      */
     public SurfaceView VideoOpen(String sPeer, int iW, int iH) {
         return VideoOpen(sPeer, iW, iH, false);
@@ -855,6 +855,15 @@ public class pgLibConference {
         return VideoOpen(sPeer, iW, iH, false);
     }
 
+    /**
+     * 描述：打开某一成员的视频
+     * @param sPeer 成员节点名
+     * @param iDevID 外部播放回调的iDevID 的值
+     * @return error code @link pgLibError.java
+     */
+    public int VideoOpen(String sPeer, int iDevID){
+        return VideoOpen(sPeer,iDevID,false);
+    }
     /**
      * 描述：以不同流打开某一成员的视频（请求端有效）
      * 阻塞方式：非阻塞，立即返回
@@ -871,6 +880,15 @@ public class pgLibConference {
         return VideoOpen(sPeer, iW, iH, true);
     }
 
+    /**
+     * 描述：打开某一成员另外一条流的视频
+     * @param sPeer 成员节点名
+     * @param iDevID 外部播放回调的iDevID 的值
+     * @return error code @link pgLibError.java
+     */
+    public int VideoOpenL(String sPeer, int iDevID){
+        return VideoOpen(sPeer,iDevID,true);
+    }
     /**
      * 描述：拒绝打开某一成员的视频
      * 阻塞方式：非阻塞，立即返回
@@ -3126,6 +3144,82 @@ public class pgLibConference {
             } while (false);
         }
         return retView;
+    }
+
+    private int VideoOpen(String sPeer, int iDevID, boolean bLarge) {
+        _OutString("VideoOpen :sObjPeer=" + sPeer + "; ");
+        int iErrRet = PG_ERR_Normal;
+        PG_PEER oPeer;
+        if (m_Status.bApiVideoStart && !"".equals(sPeer)) {
+            do {
+                String sObjPeer = _ObjPeerBuild(sPeer);
+                oPeer = _VideoPeerSearch(sObjPeer);
+                if (oPeer == null) {
+                    oPeer = _VideoPeerAdd(sObjPeer);
+                    if(oPeer ==  null){
+                        iErrRet = PG_ERR_BadParam;
+                        break;
+                    }
+                    oPeer.iActStamp = m_Stamp.iActiveStamp;
+                }
+
+
+                String sObjV;
+                int iResErr;
+                String sData;
+                String sEndEle ;
+                int iHandle;
+
+                if(!bLarge){
+                    sEndEle = "(PosX){0}(PosY){0}(SizeX){320}(SizeY){240}(Handle){"+ iDevID + "}";
+                    sObjV = m_Group.sObjV;
+                    iHandle = oPeer.iHandle;
+
+                    oPeer.iHandle = 0;
+                }else{
+                    sEndEle = "(PosX){0}(PosY){0}(SizeX){320}(SizeY){240}(Handle){"+ iDevID + "}";
+                    sObjV = m_Group.sObjLV;
+                    iHandle = oPeer.iHandleL;
+
+                    oPeer.iHandleL = 0;
+                }
+
+                //
+                if (!"".equals(sEndEle)) {
+                    iResErr = PG_ERR_Normal;
+                    sData = "(Peer){" + m_Node.omlEncode(sObjPeer) + "}(Wnd){" + sEndEle + "}";
+                    _OutString("VideoOpen: sData=" + sData);
+                } else {
+                    iResErr = PG_ERR_Reject;
+                    sData = "";
+                    _OutString("pgLibConference.VideoOpen: New node wnd failed!");
+                }
+
+
+                boolean  bJoinRes = _VideoJoin(sObjV,sPeer,iResErr,sData,iHandle);
+
+                if (bJoinRes) {
+                    if(iHandle>0) {
+                        if (iResErr == PG_ERR_Normal) {
+                            if (bLarge) {
+                                oPeer.bModeL = VIDEO_PEER_MODE_Join;
+                            } else {
+                                oPeer.bMode = VIDEO_PEER_MODE_Join;
+                            }
+                        }
+                    }else{
+                        if (bLarge) {
+                            oPeer.bModeL = VIDEO_PEER_MODE_Request;
+                        } else {
+                            oPeer.bMode = VIDEO_PEER_MODE_Request;
+                        }
+                    }
+                    _OutString("VideoOpen: scussce");
+                }
+
+            } while (false);
+        }
+        return iErrRet;
     }
 
     private int _VideoLeave(String sObjV, String sObjPeer){
