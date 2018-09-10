@@ -30,12 +30,24 @@ public class pgLibConference {
 
     //===================================================
     /**
-     * 录像的模式
+     * 录制对端的视频和音频
      */
     public static final int PG_RECORD_NORMAL = 0;
+	/**
+     * 录制对端的视频
+     */
     public static final int PG_RECORD_ONLYVIDEO = 1;
+	/**
+     * 录制对端的音频
+     */
     public static final int PG_RECORD_ONLYAUDIO = 2;
+	/**
+     * 录制对端的视频，需要在外部调用其他录制音频的API（如RecordAudioBothStart）配合使用才能录制。
+     */
     public static final int PG_RECORD_ONLYVIDEO_HASAUDIO = 3;
+	/**
+     * 录制对端的音频，需要在外部调用其他录制视频的API配合使用才能录制。
+     */
     public static final int PG_RECORD_ONLYAUDIO_HASVIDEO = 4;
     /**
      * 初始化音频控制正常对讲
