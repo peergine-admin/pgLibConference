@@ -541,7 +541,7 @@ public class MainFragment extends SupportFragment {
             showInfo(sPeer + ":" + "视频成功打开");
             Log.d("", sPeer + " 成功打开");
         } else {
-            showInfo(sPeer + ":" + "视频成功失败");
+            showInfo(sPeer + ":" + "视频打开失败 iErr = " + sData);
             Log.d("", sPeer + " 打开失败");
             pgVideoRestore(sPeer);
         }
