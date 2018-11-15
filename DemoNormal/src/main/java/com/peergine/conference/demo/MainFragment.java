@@ -541,7 +541,7 @@ public class MainFragment extends SupportFragment {
             showInfo(sPeer + ":" + "视频成功打开");
             Log.d("", sPeer + " 成功打开");
         } else {
-            showInfo(sPeer + ":" + "视频成功失败");
+            showInfo(sPeer + ":" + "视频打开失败 iErr = " + sData);
             Log.d("", sPeer + " 打开失败");
             pgVideoRestore(sPeer);
         }
@@ -1038,8 +1038,27 @@ public class MainFragment extends SupportFragment {
         }
     };
 
+    int m_iVelue = 0;
     private void test() {
+        boolean bReport = m_iVelue > 0;
 
+        int iErr = mConf.PeerGetInfo(msChair,bReport);
+        if (iErr> PG_ERR_Normal){
+            showInfo("PeerGetInfo iErr = " + iErr);
+        }
+        m_iVelue ++;
+        if(m_iVelue > 1){
+            m_iVelue = 0;
+        }
+    }
+    private void testAudioMuteInput() {
+
+        int iErr = mConf.AudioMuteInput(m_iVelue);
+        showInfo("AudioMuteInput " + m_iVelue + " , Err = " + iErr);
+        m_iVelue ++;
+        if(m_iVelue > 1){
+            m_iVelue = 0;
+        }
     }
 }
 

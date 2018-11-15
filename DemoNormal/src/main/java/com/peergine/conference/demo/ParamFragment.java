@@ -69,7 +69,7 @@ public class ParamFragment extends SupportFragment {
                     break;
                 case R.id.btnInitExter:
                     Toast.makeText(getContext(), "进入Demo。", Toast.LENGTH_SHORT).show();
-                    start(MainFragment.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
+                    start(MainFragmentExter.newInstance(sUser,sPass,sSvrAddr,sRelayAddr,
                             sInitParam,sVideoParam,sExpire,"1"));
                     break;
                 default:break;
