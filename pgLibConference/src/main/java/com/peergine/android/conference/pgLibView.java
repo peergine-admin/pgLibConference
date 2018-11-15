@@ -132,4 +132,8 @@ public final class pgLibView {
 			return null;
 		}
 	}
+
+	public static void Clean(){
+		s_listItem.clear();
+	}
 }

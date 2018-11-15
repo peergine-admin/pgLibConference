@@ -149,6 +149,7 @@ public final class pgLibNode {
 				}
 				else {
 					if (pgLibJNINode.Initialize(oCtx)) {
+						pgLibView.Clean();
 						s_iNodeLibInitCount.getAndIncrement();
 						bResult = true;
 					}
@@ -172,6 +173,7 @@ public final class pgLibNode {
 					s_iNodeLibInitCount.getAndDecrement();
 					if (s_iNodeLibInitCount.get() == 0) {
 						pgLibJNINode.Clean();
+						pgLibView.Clean();
 					}
 				}
 			}
