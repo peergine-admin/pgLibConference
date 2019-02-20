@@ -1,3 +1,7 @@
+update 2019 02 20 v24 
+修复连续点击Clean后白屏问题。
+修正说明文件描述信息。
+
 update 2018/0606 v20
     1、添加一种新的录音录像模式以适应兼容外部录音接口，RecordAudioBothStart。
            RecordStart 新增Mode ：PG_RECORD_ONLYVIDEO_HASAUDIO 和PG_RECORD_ONLYAUDIO_HASVIDEO

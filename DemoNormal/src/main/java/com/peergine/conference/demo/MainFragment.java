@@ -276,6 +276,7 @@ public class MainFragment extends SupportFragment {
             showInfo("定时器初始化失败！");
             pop();
         }
+        pop_count = 0;
         return view;
     }
 
@@ -296,6 +297,7 @@ public class MainFragment extends SupportFragment {
         }
         pgStop();
         mConf.Clean();
+        pop_count = 0;
         super.onDestroyView();
 
     }
@@ -942,7 +944,7 @@ public class MainFragment extends SupportFragment {
         }
         return 1;
     }
-
+    int pop_count = 0;
     private final View.OnClickListener mOnclink = new View.OnClickListener() {
         @Override
         public void onClick(View args0) {
@@ -962,7 +964,14 @@ public class MainFragment extends SupportFragment {
                 case R.id.btn_Clean:
                     pgClean();
                     if(getFragmentManager().getBackStackEntryCount() > 1){
+                        if(pop_count>=1)
+                        {
+                            showInfo("Clean 已经按下，正在等待退出。请稍等。");
+                            break;
+                        }
+
                         pop();
+                        pop_count ++;
                     }
 
                     Log.d("OnClink", "MemberAdd button");
