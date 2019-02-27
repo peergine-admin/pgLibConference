@@ -53,6 +53,8 @@ dependencies {
     implementation project(':pgPluginLib')
     implementation 'com.android.support:mediarouter-v7:27.1.1'
 
+    implementation 'pub.devrel:easypermissions:0.1.9'
+
     testCompile 'org.mockito:mockito-core:1.10.19'
     testCompile 'junit:junit:4.12'
     androidTestCompile 'junit:junit:4.12'

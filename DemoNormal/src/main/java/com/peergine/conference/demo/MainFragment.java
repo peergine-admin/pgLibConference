@@ -1,7 +1,10 @@
 package com.peergine.conference.demo;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,6 +22,7 @@ import android.widget.Toast;
 
 import com.peergine.android.conference.pgLibConference;
 import com.peergine.android.conference.pgLibTimer;
+import com.peergine.conference.demo.sqlite.DatabaseHelper;
 import com.peergine.plugin.exter.VideoAudioInputExternal;
 import com.peergine.plugin.lib.pgLibJNINode;
 
@@ -29,6 +33,7 @@ import java.util.Date;
 
 import me.yokeyword.fragmentation.SupportFragment;
 
+import static android.text.TextUtils.isEmpty;
 import static com.peergine.android.conference.pgLibConference.OnEventListener;
 import static com.peergine.android.conference.pgLibConference.PG_NODE_CFG;
 import static com.peergine.android.conference.pgLibConference.PG_RECORD_NORMAL;
@@ -97,6 +102,8 @@ public class MainFragment extends SupportFragment {
     private String sMode = "";
     private VideoAudioInputExternal external=null;
     private String sPath = "";
+    private DatabaseHelper database;
+    private SQLiteDatabase db;
     //R.id.layoutVideoS0,
 
     class MEMBER {
@@ -208,6 +215,51 @@ public class MainFragment extends SupportFragment {
         view.findViewById(R.id.btn_clearlog).setOnClickListener(mOnclink);
         //显示一些信息
         text_info = (TextView) view.findViewById(R.id.text_info);
+        readSql();
+    }
+
+    private void readSql(){
+        if(database==null) {
+            database = new DatabaseHelper(getActivity().getApplicationContext());//这段代码放到Activity类中才用this
+
+            db = database.getWritableDatabase();
+        }
+        String chairman_id = "";
+
+        try {
+            Cursor c = db.query("config2", null, null, null, null, null, null);//查询并获得游标
+            if (c.moveToFirst()) {//判断游标是否为空
+
+                c.move(c.getCount() - 1);//移动到指定记录
+                chairman_id = c.getString(c.getColumnIndex("chairman_id"));
+                c.close();
+            }
+        }catch (Exception e){
+
+        }
+
+
+        if(!isEmpty(chairman_id)){
+            mEditchair.setText(chairman_id);
+        }
+    }
+
+    private void wirteSql(String chairman_id){
+        if(database==null) {
+            database = new DatabaseHelper(getActivity().getApplicationContext());//这段代码放到Activity类中才用this
+            db = database.getWritableDatabase();
+        }
+
+        String whereClause = "chairman_id=?";//删除的条件
+        String[] whereArgs = {"*"};//删除的条件参数
+        db.delete("config2",whereClause,whereArgs);//执行删除
+
+        //
+        ContentValues cv = new ContentValues();//实例化一个ContentValues用来装载待插入的数据
+
+        cv.put("chairman_id", chairman_id);
+        db.insert("config2",null,cv);//执行插入操作
+
     }
 
     @Override
@@ -452,6 +504,7 @@ public class MainFragment extends SupportFragment {
     private void EventPeerOffline(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 提醒应用程序此节点离线了
         showInfo(sPeer + "节点离线 sData = " + sData);
+        pgVideoClose(sPeer);
     }
 
     //sPeer的离线消息
@@ -469,6 +522,7 @@ public class MainFragment extends SupportFragment {
     //sPeer的离线消息
     private void EventChairmanOffline(String sAct, String sData, String sPeer) {
         showInfo("主席节点离线 sData = " + sPeer);
+        pgVideoClose(sPeer);
     }
 //-------------------------------------------------------------------------
     //sPeer的离线消息
@@ -485,9 +539,6 @@ public class MainFragment extends SupportFragment {
     private void EventJoin(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
         showInfo(sPeer + "加入会议");
-        /*这个是开始一个定时器*/
-        TimerStartOpen(sPeer);
-
 
         mConf.NotifySend(sPeer + " : join ");
         Log.d("", sPeer + " 加入会议");
@@ -507,6 +558,8 @@ public class MainFragment extends SupportFragment {
     private void EventVideoSync(String sAct, String sData, String sPeer) {
         // TODO: 2016/11/7 提醒应用程序可以打开这个sPeer的视频了
         showInfo("视频同步");
+        /*这个是开始一个定时器*/
+        TimerStartOpen(sPeer);
     }
 
     //sPeer的离线消息
@@ -527,6 +580,8 @@ public class MainFragment extends SupportFragment {
     private void EventVideoLost(String sAct, String sData, final String sPeer) {
         // TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
         showInfo(sPeer + " 的视频已经丢失 可以尝试重新连接");
+        pgVideoClose(sPeer);
+        TimerStartOpen(sPeer);
     }
 
 
@@ -709,7 +764,11 @@ public class MainFragment extends SupportFragment {
         msChair = mEditchair.getText().toString().trim();
         if ("".equals(msChair)) {
             showInfo("主席端ID不能为空。");
+            return;
         }
+
+        wirteSql(msChair);
+
         String sName = msChair;
         if(mConf.Start(sName, msChair) == false){
             showInfo("Start 失败。");
@@ -790,6 +849,10 @@ public class MainFragment extends SupportFragment {
         MembTmp.pView = mConf.VideoOpen(sPeer, 160, 120);
         if (MembTmp.pView != null) {
             MembTmp.pLayout.removeAllViews();
+            LinearLayout parent = (LinearLayout) MembTmp.pView.getParent();
+            if(parent!= null){
+                parent.removeAllViews();
+            }
             MembTmp.pLayout.addView(MembTmp.pView);
         }
 

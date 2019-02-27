@@ -4,9 +4,12 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,10 +20,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.peergine.conference.demo.sqlite.DatabaseHelper;
 import com.peergine.util.Checker;
 
 
 import me.yokeyword.fragmentation.SupportFragment;
+
+import static android.text.TextUtils.isEmpty;
 
 
 public class ParamFragment extends SupportFragment {
@@ -49,7 +55,7 @@ public class ParamFragment extends SupportFragment {
                 Toast.makeText(getContext(), "部分参数为空。请检查。", Toast.LENGTH_SHORT).show();
                 return;
             }
-
+            wirteSql(sSvrAddr,sUser);
             String sExpire = mEditExpire.getText().toString().trim();
             switch (btnID){
                 case R.id.btnInitDefault:
@@ -76,7 +82,8 @@ public class ParamFragment extends SupportFragment {
             }
         }
     };
-
+    private DatabaseHelper database;
+    private SQLiteDatabase db;
 
 
     public static ParamFragment newInstance(){
@@ -130,5 +137,53 @@ public class ParamFragment extends SupportFragment {
         view.findViewById(R.id.btnInitDouble).setOnClickListener(mOnClick);
         view.findViewById(R.id.btnInitCalling).setOnClickListener(mOnClick);
         view.findViewById(R.id.btnInitExter).setOnClickListener(mOnClick);
+        readSql();
+    }
+
+    private void readSql(){
+        if(database==null) {
+            database = new DatabaseHelper(getActivity().getApplicationContext());//这段代码放到Activity类中才用this
+
+            db = database.getWritableDatabase();
+        }
+        String addr = "";
+        String id = "";
+        try {
+            Cursor c = db.query("config", null, null, null, null, null, null);//查询并获得游标
+            if (c.moveToFirst()) {//判断游标是否为空
+
+                c.move(c.getCount() - 1);//移动到指定记录
+                addr = c.getString(c.getColumnIndex("addr"));
+                id = c.getString(c.getColumnIndex("id"));
+                c.close();
+            }
+        }catch (Exception e){
+
+        }
+
+        if(!isEmpty(addr)){
+            mEditSvraddr.setText(addr);
+        }
+        if(!isEmpty(id)){
+            mEditUser.setText(id);
+        }
+    }
+
+    private void wirteSql(String sSvr ,String sID){
+        if(database==null) {
+            database = new DatabaseHelper(getActivity().getApplicationContext());//这段代码放到Activity类中才用this
+            db = database.getWritableDatabase();
+        }
+
+        String whereClause = "addr=?";//删除的条件
+        String[] whereArgs = {"*"};//删除的条件参数
+        db.delete("config",whereClause,whereArgs);//执行删除
+
+        //
+        ContentValues cv = new ContentValues();//实例化一个ContentValues用来装载待插入的数据
+        cv.put("addr", sSvr);
+        cv.put("id", sID);
+        db.insert("config",null,cv);//执行插入操作
+
     }
 }
