@@ -2081,7 +2081,7 @@ public class pgLibConference {
                 _SyncPeerClean();
                 _VideoPeerClean();
                 if (m_Group.bChairman) {
-                    int iFlagGroup = PG_ADD_COMMON_Sync| PG_ADD_GROUP_Master| PG_ADD_GROUP_NearPeer|PG_ADD_GROUP_Index;
+                    int iFlagGroup = PG_ADD_COMMON_Sync| PG_ADD_GROUP_Update| PG_ADD_GROUP_Refered|PG_ADD_GROUP_Modify |PG_ADD_GROUP_Offline;
                     if (!m_Node.ObjectAdd(m_Group.sObjG, PG_CLASS_Group, "", iFlagGroup)) {
                         _OutString("ServiceStart: Add group object failed");
                         break;
@@ -2095,7 +2095,7 @@ public class pgLibConference {
                         break;
                     }
                 } else {
-                    int iFlagGroup = PG_ADD_COMMON_Sync| PG_ADD_GROUP_Master| PG_ADD_GROUP_Index;
+                    int iFlagGroup = PG_ADD_COMMON_Sync| PG_ADD_GROUP_Update| PG_ADD_GROUP_Modify | PG_ADD_GROUP_Offline;
                     if (!m_Node.ObjectAdd(m_Group.sObjG, PG_CLASS_Group, m_Group.sObjChair, iFlagGroup)) {
                         _OutString("ServiceStart: Add group object failed");
                         break;
@@ -2706,7 +2706,7 @@ public class pgLibConference {
 
         String sMeth = this.m_Node.omlGetContent(sData, "Meth");
         String sError = this.m_Node.omlGetContent(sData, "Error");
-        if ("34".equals(sMeth) && sError.equals("" + PG_ERR_BadUser)) {
+        if ("34".equals(sMeth)) {
             //心跳包列表 删除
             if (!m_Group.bEmpty && m_Group.bChairman) {
                 _KeepDel(sObj);

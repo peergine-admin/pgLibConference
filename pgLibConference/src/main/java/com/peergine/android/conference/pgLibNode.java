@@ -46,13 +46,14 @@ public final class pgLibNode {
 	public static final int PG_ADD_PEER_Digest = 0x8;
 	public static final int PG_ADD_PEER_Disable = 0x10;
 
-	public static final int PG_ADD_GROUP_Master =0x1;
-	public static final int PG_ADD_GROUP_Refered = 0x2;
-	public static final int PG_ADD_GROUP_NearPeer = 0x4;
-	public static final int PG_ADD_GROUP_Modify = 0x8;
-	public static final int PG_ADD_GROUP_Index = 0x10;
-	public static final int PG_ADD_GROUP_Offline = 0x20;
-	public static final int PG_ADD_GROUP_HearOnly = 0x40;
+    public static final int PG_ADD_GROUP_Update = 0x1;
+	public static final int PG_ADD_GROUP_Master =0x2;
+	public static final int PG_ADD_GROUP_Refered = 0x4;
+	public static final int PG_ADD_GROUP_NearPeer = 0x8;
+	public static final int PG_ADD_GROUP_Modify = 0x10;
+	public static final int PG_ADD_GROUP_Index = 0x20;
+	public static final int PG_ADD_GROUP_Offline = 0x40;
+	public static final int PG_ADD_GROUP_HearOnly = 0x80;
 
 	public static final int PG_ADD_FILE_TcpSock = 0x1;
 	public static final int PG_ADD_FILE_Flush = 0x2;
