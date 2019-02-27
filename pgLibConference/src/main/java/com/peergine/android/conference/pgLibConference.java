@@ -654,6 +654,10 @@ public class pgLibConference {
      *  @return ：true 成功  false 失败
      */
     public boolean Start(String sName, String sChair) {
+
+        if(m_Status.bServiceStart){
+            return true;
+        }
         m_Group.Init(sName, sChair, m_Self.sUser);
         m_Stamp.restore();
         return (!m_Group.bEmpty) && (_ServiceStart()==PG_ERR_Normal);
@@ -665,6 +669,9 @@ public class pgLibConference {
      *  返回值：true 成功  false 失败
      */
     public void Stop() {
+        if(!m_Status.bServiceStart){
+            return;
+        }
         _ServiceStop();
         m_Group.bEmpty = true;
     }
