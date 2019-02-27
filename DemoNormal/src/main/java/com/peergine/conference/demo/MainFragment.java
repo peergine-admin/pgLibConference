@@ -287,9 +287,9 @@ public class MainFragment extends SupportFragment {
             mConf.SetEventListener(m_OnEvent);
 
             mConf.SetExpire(iExpire);
-            PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
-            mNodeCfg.P2PTryTime = 65535;
-            mConf.ConfigNode(mNodeCfg);
+//            PG_NODE_CFG mNodeCfg = new PG_NODE_CFG();
+//            mNodeCfg.P2PTryTime = 1;
+//            mConf.ConfigNode(mNodeCfg);
 
         }
 
