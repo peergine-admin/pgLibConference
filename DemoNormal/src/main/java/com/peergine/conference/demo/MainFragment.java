@@ -817,11 +817,16 @@ public class MainFragment extends SupportFragment {
             }
             for (int i = 0; i < mListMemberS.size(); i++) {
 
-                if (mListMemberS.get(i).sPeer.equals(sPeer) || "".equals(mListMemberS.get(i).sPeer)) {
+                if (mListMemberS.get(i).sPeer.equals(sPeer)) {
                     return mListMemberS.get(i);
                 }
             }
 
+            for (int i = 0; i < mListMemberS.size(); i++) {
+                if ("".equals(mListMemberS.get(i).sPeer)) {
+                    return mListMemberS.get(i);
+                }
+            }
         } catch (Exception ex) {
             Log.d("", "VideoOption. ex=" + ex.toString());
         }
