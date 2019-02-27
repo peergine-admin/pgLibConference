@@ -259,7 +259,7 @@ public class pgLibConference {
     //======================================================================
 
     private static final String ID_PREFIX = "_DEV_";
-    private static final String LIB_VER = "22";
+    private static final String LIB_VER = "25";
     private static final int KEEP_TIMER_INTERVAL = 2;
     private static final int ACTIVE_TIMER_INTERVAL = 2;
 
