@@ -67,7 +67,9 @@ public final class pgLibTimer {
         @Override
         public void run() {
             try {
-                target.run();
+                if(target!=null){
+                    target.run();
+                }
             } finally {
                 int c = counter.getAndDecrement();
                 System.out.println("pgLibTimer.terminate no " + c + " Threads");

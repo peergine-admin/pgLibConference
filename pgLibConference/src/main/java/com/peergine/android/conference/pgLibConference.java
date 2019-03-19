@@ -483,7 +483,7 @@ public class pgLibConference {
     /**
      * 描述：P2P会议对象初始化函数
      * 阻塞方式：非阻塞，立即返回。
-     * @param sName ：[IN] 会议名称
+     * @param sConfName ：[IN] 会议名称
      * @param sChair ：[IN] 主席端设备ID
      * @param sUser ：[IN] 登录用户名，自身的设备ID
      * @param sPass ：[IN] 登录密码
