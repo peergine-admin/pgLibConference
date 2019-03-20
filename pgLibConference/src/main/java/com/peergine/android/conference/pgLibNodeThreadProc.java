@@ -177,7 +177,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
         return iErr;
     }
 
-    private boolean _NodeDispInit() {
+    public boolean _NodeDispInit() {
         try {
             m_dispItem = new DispItem();
             m_handlerDisp = new Handler();
@@ -195,7 +195,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
         }
     }
 
-    private void _NodeDispClean() {
+    public void _NodeDispClean() {
         try {
             _OutString("pgLibLiveMultiCapture._NodeDispClean: begin");
 
