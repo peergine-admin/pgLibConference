@@ -153,7 +153,7 @@ public class MainFragment extends SupportFragment {
 
     private void TimerStartOpen(String sPeer) {
         String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
-        mTimer.timerStart(sParam, 1);
+        mTimer.timerStart(sParam, 1,false);
     }
 
 

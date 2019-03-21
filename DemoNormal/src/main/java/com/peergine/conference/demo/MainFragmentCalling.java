@@ -441,7 +441,7 @@ public class MainFragmentCalling extends SupportFragment {
         // TODO: 2016/11/7 这里可以获取所有会议成员  可以尝试把sPeer加入会议成员表中
         showInfo(sPeer + "加入会议");
         String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
-        timer.timerStart(sParam, 1);
+        timer.timerStart(sParam, 1 ,false);
 
         m_Conf.NotifySend(sPeer + " : join ");
         Log.d("", sPeer + " 加入会议");
