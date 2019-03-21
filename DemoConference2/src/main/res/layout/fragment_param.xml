@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context="com.peergine.conference.demo.ParamFragment">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/colorPrimary"
+            android:orientation="horizontal"></LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="0.2"
+                android:text="@string/user" />
+
+            <EditText
+                android:id="@+id/editText_user"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:hint="@string/id_needID" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.2"
+
+                android:text="@string/svraddr" />
+
+            <EditText
+                android:id="@+id/editText_svraddr"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:inputType="text"
+                android:text="@string/connect_peergine_com_7781" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+
+                android:text="初始化参数" />
+
+            <EditText
+                android:id="@+id/editText_initparam"
+                style="@android:style/Widget.AutoCompleteTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="text"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+
+                android:text="@string/videoparam" />
+
+            <EditText
+                android:id="@+id/editText_videoparam"
+                style="@android:style/Widget.AutoCompleteTextView"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_weight="1"
+                android:inputType="textMultiLine"
+                android:selectAllOnFocus="false"
+                android:singleLine="false"
+                android:text="(Code){3}(Mode){2}(FrmRate){66}(LCode){3}(LMode){3}(LFrmRate){66}(Portrait){1}(Rotate){0}(BitRate){250}(CameraNo){1}(AudioSpeechDisable){0}"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnInitDefault"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Demo默认"
+                tools:ignore="ButtonStyle" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnInitDouble"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Demo2视频流"
+                tools:ignore="ButtonStyle" />
+
+            <Button
+                android:id="@+id/btnInitCalling"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Demo模拟呼叫"
+                tools:ignore="ButtonStyle" />
+
+            <Button
+                android:id="@+id/btnInitExter"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="DemoExter"
+                tools:ignore="ButtonStyle" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
