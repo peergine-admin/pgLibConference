@@ -102,6 +102,7 @@ public final class pgLibNode {
 	public static final int PG_METH_PEER_KickOut = 47;
 	public static final int PG_METH_PEER_AccessCtrl = 48;
 	public static final int PG_METH_PEER_PushOption = 49;
+	public static final int PG_METH_PEER_Ping = 49;
 
 
 	public static final int PG_METH_GROUP_Modify=32;

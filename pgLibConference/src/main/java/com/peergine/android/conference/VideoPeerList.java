@@ -23,7 +23,10 @@ public class VideoPeerList {
     }
 
     public VideoPeer _VideoPeerAdd(String sObjPeer){
-        VideoPeer oPeer = null;
+        VideoPeer oPeer = _VideoPeerSearch(sObjPeer);
+        if(oPeer != null){
+            return oPeer;
+        }
         try {
             oPeer = new VideoPeer(sObjPeer);
             m_listVideoPeer.add(oPeer);

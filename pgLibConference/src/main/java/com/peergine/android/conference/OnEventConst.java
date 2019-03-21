@@ -14,6 +14,8 @@ public class OnEventConst {
      */
     public static final String EVENT_KICK_OUT = "KickOut";
 
+    public static final String EVENT_PING = "Ping";
+
     /**
      * 上报相对节点的信息。
      *        sData 上报信息格式： peer=xxx&through=xxx&proxy=xxx&addrlcl=xxx&addrrmt=xxx&tunnellcl=xxx&tunnelrmt=xxx&privatermt=xxx
@@ -50,11 +52,11 @@ public class OnEventConst {
     /**
      * 服务器回复消息错误事件
      */
-    public static final String EVENT_SVR_REPLYR_ERROR = "SvrReplyError";
+    public static final String EVENT_SVR_REPLYR_ERROR = "SvrRequestReplyError";
     /**
      * 服务器回复消息事件
      */
-    public static final String EVENT_SVR_RELAY = "SvrReply";
+    public static final String EVENT_SVR_RELAY = "SvrRequestReply";
 
     /**
      * 上报局域网节点信息
@@ -124,19 +126,6 @@ public class OnEventConst {
      * 拍照结果事件 ;sEventParam 上报VideoMode
      */
     public static final String EVENT_VIDEO_CAMERA = "VideoCamera";
-
-
-    /**
-     * 视频录像结果事件
-     */
-    public static final String EVENT_RECORD = "Record";
-
-
-    /**
-     * 音频通道同步事件
-     */
-    public static final String EVENT_AUDIO_SYNC = "AudioSync";
-
 
     /**
      * 文件上传请求 sObjPeer 为 ID

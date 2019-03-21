@@ -28,7 +28,7 @@ public final class pgLibTimer {
     private Random m_Random = new Random();
     private pgTimerTask m_timerTask = null;
     private ScheduledExecutorService m_timer = null;
-
+    private long m_Stamp = 0;
     public interface OnTimeOut{
         void onTimeOut(String sParam);
     }
@@ -99,7 +99,7 @@ public final class pgLibTimer {
     }
 
     private void TimerProc() {
-
+        m_Stamp ++ ;
         for (int i = 0; i < m_TimeList.size(); i++) {
 
             TimerItem oItem = m_TimeList.get(i);
@@ -194,6 +194,10 @@ public final class pgLibTimer {
             outString("pgLibTimer.TimerClean, ex=" + ex.toString());
         }
 
+    }
+
+    public long timerStamp(){
+        return m_Stamp;
     }
 
     /**

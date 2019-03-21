@@ -37,11 +37,11 @@ public class VideoPeer {
 
 
     void VideoJoin(int iStreamMode, int iStamp ,String sWndEle){
-        if(iStreamMode > 0 ) {
+        if(iStreamMode == 1 ) {
             largeVideoRequestStamp = iStamp;
             largeVideoMode = VIDEO_PEER_MODE_Request;
             largeVideoWndEle = sWndEle;
-        }else{
+        }else  if(iStreamMode == 0 ){
             smallVideoRequestStamp = iStamp;
             smallVideoMode = VIDEO_PEER_MODE_Request;
             smallVideoWndEle = sWndEle;
@@ -52,11 +52,11 @@ public class VideoPeer {
         return iVideoRequestStamp > 0 && iStamp - iVideoRequestStamp > 60 ;
     }
     void OnVideoJoin(int iStreamMode, int iStamp,int iHandle){
-        if(iStreamMode > 0 ) {
+        if(iStreamMode == 1 ) {
             largeOnVideoRequestStamp = iStamp;
             largeVideoRequestHandle = iStamp;
             largeVideoMode = VIDEO_PEER_MODE_Request;
-        }else{
+        }else  if(iStreamMode == 0 ){
             smallOnVideoRequestStamp = iStamp;
             smallVideoRequestHandle = iStamp;
             smallVideoMode = VIDEO_PEER_MODE_Request;
@@ -70,7 +70,7 @@ public class VideoPeer {
     void VideoJoined(int iStreamMode,int iStamp,String sWndEle){
         videoHeartbeatStamp = iStamp;
 
-        if(iStreamMode > 0){
+        if(iStreamMode == 1){
             largeVideoRequestStamp = 0;
             largeOnVideoRequestStamp = 0;
             largeVideoRequestHandle = 0;
@@ -78,7 +78,7 @@ public class VideoPeer {
                 largeVideoWndEle = sWndEle;
             }
             largeVideoMode = VIDEO_PEER_MODE_Join;
-        }else{
+        }else if(iStreamMode == 0){
             smallVideoRequestStamp = 0;
             smallOnVideoRequestStamp = 0;
             smallVideoRequestHandle = 0;
@@ -90,18 +90,23 @@ public class VideoPeer {
 
     }
     void VideoLeave(int iStreamMode){
-        if(iStreamMode > 0) {
+
+        if(iStreamMode == 1) {
             largeVideoRequestStamp = 0;
             largeOnVideoRequestStamp = 0;
             largeVideoRequestHandle = 0;
             largeVideoMode = VIDEO_PEER_MODE_Leave;
-        }else{
+        }else if(iStreamMode == 0){
             smallVideoRequestStamp = 0;
             smallOnVideoRequestStamp = 0;
             smallVideoRequestHandle = 0;
             smallVideoMode = VIDEO_PEER_MODE_Leave;
         }
 
+    }
+
+    boolean IsAllVideoLeaed(){
+        return largeVideoMode == VIDEO_PEER_MODE_Leave && smallVideoMode == VIDEO_PEER_MODE_Leave;
     }
 
     void Release(){
