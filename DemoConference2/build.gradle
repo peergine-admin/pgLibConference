@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-def fileName = "../../../../../DemoApp/DemoNormal_v${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.apk";
+def fileName = "../../../../../DemoApp/DemoConference_v2.0.apk";
 android {
     compileSdkVersion rootProject.ext.android.compileSdkVersion
     buildToolsVersion rootProject.ext.android.buildToolsVersion

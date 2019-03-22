@@ -1,4 +1,4 @@
-package com.peergine.conference.demo.sqlite;
+package com.peergine.conference.demo2.sqlite;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

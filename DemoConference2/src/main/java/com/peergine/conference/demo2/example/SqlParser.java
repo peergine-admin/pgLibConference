@@ -1,13 +1,11 @@
-package com.peergine.conference.demo.example;
+package com.peergine.conference.demo2.example;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.peergine.conference.demo.sqlite.DatabaseHelper;
-
-import static android.text.TextUtils.isEmpty;
+import com.peergine.conference.demo2.sqlite.DatabaseHelper;
 
 public class SqlParser {
 
