@@ -39,9 +39,12 @@ public class GroupList {
 
     public void  _GroupDelete2(String sConfName){
         Group group = _GroupSearch(sConfName);
-        m_listGroup.remove(group);
-
-    } public void  _GroupDelete(Group group){
+        _GroupDelete(group);
+    }
+    public void  _GroupDelete(Group group){
+        if(group == null) {
+            return;
+        }
         m_listGroup.remove(group);
 
     }

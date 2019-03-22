@@ -71,4 +71,40 @@ public final class pgLibError {
 	
 	public pgLibError() {
 	}
+
+	private static String strErrors[] = {
+			"PG_ERR_Normal",
+			"PG_ERR_System",
+			"PG_ERR_BadParam",
+			"PG_ERR_BadClass",
+			"PG_ERR_BadMethod",
+			"PG_ERR_BadObject",
+			"PG_ERR_BadStatus",
+			"PG_ERR_BadFile",
+			"PG_ERR_BadUser",
+			"PG_ERR_BadPass",
+			"PG_ERR_NoLogin",
+			"PG_ERR_Network",
+			"PG_ERR_Timeout",
+			"PG_ERR_Reject",
+			"PG_ERR_Busy",
+			"PG_ERR_Opened",
+			"PG_ERR_Closed",
+			"PG_ERR_Exist",
+			"PG_ERR_NoExist",
+			"PG_ERR_NoSpace",
+			"PG_ERR_BadType",
+			"PG_ERR_CheckErr",
+			"PG_ERR_BadServer",
+			"PG_ERR_BadDomain",
+			"PG_ERR_NoData"
+	};
+
+	public static final String pgLibErr2Str(int iErr){
+		if(iErr<0 || iErr >= strErrors.length){
+			return "PG_ERR_Unknown";
+		}
+		return strErrors[iErr];
+	}
+
 }

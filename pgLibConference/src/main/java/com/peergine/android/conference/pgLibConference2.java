@@ -143,7 +143,7 @@ public class pgLibConference2 {
     public static int _ParseInt(String sInt, int iDef) {
         try {
             if ("".equals(sInt)) {
-                return 0;
+                return iDef;
             }
             return Integer.parseInt(sInt);
         } catch (Exception ex) {
@@ -252,7 +252,7 @@ public class pgLibConference2 {
 
             m_sUser = sUser;
             m_sPass = sPass;
-            m_sInitSvrName = m_sSvrAddr = sSvrAddr;
+            m_sInitSvrAddr = m_sSvrAddr = sSvrAddr;
             m_sRelayAddr = sRelayAddr;
             m_sInitParam = sInitParam;
 
@@ -345,6 +345,24 @@ public class pgLibConference2 {
      */
     public String GetSelfObjPeer() {
         return m_sObjSelf;
+    }
+
+    /**
+     * 描述：给服务器发送消息。
+     * 阻塞方式：非阻塞，立即返回
+     * @param sData 发送到服务器的消息内容
+     * @return true 操作成功，false 操作失败
+     */
+    public int SvrRequest(String sData) {
+        if (m_Node == null) {
+            return PG_ERR_System;
+        }
+
+        int iErr = m_Node.ObjectRequest(m_sSvrName, PG_METH_PEER_Call, ("1024:" + sData), "SvrRequest");
+        if (iErr > 0) {
+            _OutString("SvrRequest: iErr=" + iErr);
+        }
+        return iErr;
     }
 
     /**
@@ -572,18 +590,19 @@ public class pgLibConference2 {
      */
     public int Start(String sConfName, String sChair){
         if(_isEmpty(sConfName) || _isEmpty(sChair)){
-            return PG_ERR_Normal;
+            return PG_ERR_BadParam;
         }
         Group group = m_GroupList._GroupSearch(sConfName);
         if(group!=null){
-            return PG_ERR_Exist;
+            return PG_ERR_Normal;
         }
         group = new Group(sConfName,sChair,m_sUser);
         int iErr = _ServiceStart(group);
         if(iErr > 0 ){
-            _OutString("Start : Error");
+            _OutString("Start : Error = " + pgLibErr2Str(iErr));
             return iErr;
         }
+        m_GroupList._GroupAdd(group);
         return 0;
     }
 
@@ -961,7 +980,6 @@ public class pgLibConference2 {
      * @param sConfName 会议名称
      * @param sPeer 成员节点名
      * @param iStreamMode 视频流选择 0：默认视频流 1：额外的视频流
-     * @param sPeer 节点ID或对象
      * @param bEnable 是否接收和发送视频流
      * @return error code @link pgLibError.java
      */
@@ -1394,7 +1412,7 @@ public class pgLibConference2 {
         return _GroupObjectIs(sObject) ?sObject.substring(3) : sObject;
     }
     public static String _DataBuildObject(String sGroup) {
-        String sObjVideo = ("_G_" + sGroup);
+        String sObjVideo = ("_D_" + sGroup);
         if (sObjVideo.length() > 127) {
             _OutString("_GroupBuildObject: '" + sObjVideo + "' to long !");
         }
@@ -1402,7 +1420,7 @@ public class pgLibConference2 {
     }
 
     public static  boolean _DataObjectIs(String sObject) {
-        return (sObject.indexOf("_G_") == 0);
+        return (sObject.indexOf("_D_") == 0);
     }
 
     public static  String _DataObjectParseGroup(String sObject) {
@@ -2180,6 +2198,12 @@ public class pgLibConference2 {
 
     }
 
+    /**
+     * Rpc 回复回调
+     * @param sObj 对端对象名称
+     * @param iErr 错误码
+     * @param sParam Request 时使用的参数
+     */
     private void _OnRpcResponse(String sObj, int iErr, String sParam) {
         String sSession;
         sSession = sParam.substring(9);
@@ -2187,6 +2211,11 @@ public class pgLibConference2 {
         _OnEvent(EVENT_RPC_RESPONSE, sSession + ":" + iErr, sPeer,"","");
     }
 
+    /**
+     * 收到JoinRequest的请求
+     * @param sParam 请求参数
+     * @param sObjPeer 对端节点名称
+     */
     private void _OnJoinRequest(String sParam, String sObjPeer){
         String sObjPeerRoute = m_Node.omlGetContent(sParam,"ObjPeer");
         String sConfName = m_Node.omlGetContent(sParam,"ConfName");
@@ -2194,10 +2223,20 @@ public class pgLibConference2 {
         this._OnEvent(EVENT_JOIN_REQUEST, "", sObjPeerRoute ,sConfName,"");
     }
 
+    /**
+     * 收到 Message 消息
+     * @param sParam 消息内容
+     * @param sObjPeer 对端节点名称
+     */
     private void _OnMessageSend(String sParam, String sObjPeer){
           this._OnEvent(EVENT_MESSAGE, sParam, sObjPeer,"","");
     }
 
+    /**
+     * 收到心跳消息
+     * @param sParam 消息内容
+     * @param sObjPeer 对端节点名称
+     */
     private void _OnVideoHeartBeat(String sParam, String sObjPeer){
         String sConfName = m_Node.omlGetContent(sParam,"ConfName");
         Group group = m_GroupList._GroupSearch(sConfName);
@@ -2216,7 +2255,10 @@ public class pgLibConference2 {
     }
 
 
-
+    /**
+     * 收到服务器下发的重启指令
+     * @param sParam 下发参数内容
+     */
     private void  _OnNodeRestart(String sParam){
         if (sParam.contains("redirect=1")) {
             _NodeRedirectReset(3);
@@ -2234,6 +2276,12 @@ public class pgLibConference2 {
     }
 
     //服务器下发数据
+
+    /**
+     * SvrRequest 状态回复
+     * @param iErr 错误码
+     * @param sData 回复内容
+     */
     private void _SvrRequestReply(int iErr, String sData) {
         String sSvrName = m_sSvrName;
         if (iErr != 0) {
@@ -2243,6 +2291,10 @@ public class pgLibConference2 {
         }
     }
 
+    /**
+     * 收到LanScan 的结果上报
+     * @param sData 内容
+     */
     private void _LanScanResult(String sData) {
         if (m_Node == null) {
             return;
@@ -2279,6 +2331,13 @@ public class pgLibConference2 {
         m_LanScan.bApiLanScan = false;
     }
 
+    /**
+     * 返回与对端节点对象 的连接消息
+     * @param sObj 对端对象名称
+     * @param iErr 错误码
+     * @param sData 内容
+     * @param bReport 是否上报到服务器
+     */
     private void _OnPeerGetInfoReply(String sObj, int iErr, String sData,boolean bReport) {
         if (iErr != PG_ERR_Normal) {
             return;
@@ -2320,10 +2379,24 @@ public class pgLibConference2 {
         _OnEvent(EVENT_PEER_INFO, sDataInfo, sPeer,"","");
     }
 
+    /**
+     * ? 保留
+     * @param sObj 对象名称
+     * @param sData 内容
+     * @param iHandle 句柄
+     * @param sObjPeer 对端对象名称
+     */
     private void _OnRequestPeerPing(String sObj, String sData, int iHandle, String sObjPeer) {
         _OnEvent(EVENT_PING, "", sObjPeer,"","");
     }
 
+    /**
+     * 被踢下线
+     * @param sObj 对象名称
+     * @param sData 内容
+     * @param iHandle 句柄
+     * @param sObjPeer 对端对象名
+     */
     private void _OnRequestPeerKickOut(String sObj, String sData, int iHandle, String sObjPeer) {
         if (sObjPeer.equals(m_sSvrName)) {
             String sParam = m_Node.omlGetContent(sData, "Param");
@@ -2574,7 +2647,7 @@ public class pgLibConference2 {
                     _OutString("ServiceStart: Add group object failed");
                     break;
                 }
-//                _ChairmanAdd();
+                PeerAdd(group.sObjChair);
             }
 
             if (!m_Node.ObjectAdd(group.sObjD, PG_CLASS_Data, group.sObjG, 0)) {
@@ -2590,6 +2663,7 @@ public class pgLibConference2 {
 //        // 成员端检测主席端的状态时戳
 //        m_Stamp.iKeepChainmanStamp = 0;
 //        m_Stamp.iRequestChainmanStamp = 0;
+            return PG_ERR_Normal;
         }while (false);
         _ServiceStop(group);
         return PG_ERR_System;
@@ -2616,7 +2690,7 @@ public class pgLibConference2 {
             m_Node.ObjectDelete(group.sObjD);
             m_Node.ObjectDelete(group.sObjG);
             if (!group.isChairman()) {
-//                _ChairmanDel();
+//               _ChairmanDel();
             }
         }
     }
@@ -2817,6 +2891,11 @@ public class pgLibConference2 {
             return PG_ERR_BadParam;
         }
 
+        String sClass = m_Node.ObjectGetClass(sObjV);
+        if (!"".equals(sClass)) {
+            m_Node.ObjectDelete(sObjV);
+        }
+
         if (!this.m_Node.ObjectAdd(sObjV, PG_CLASS_Video, sObjGroup, uFlag)) {
             _OutString("_VideoViewCreate: Add 'Video' failed.");
             return PG_ERR_System;
@@ -2825,8 +2904,12 @@ public class pgLibConference2 {
         String sData = "(Code){" + iCode + "}(Mode){" + iMode + "}(Rate){" + iRate+ "}";
 
         _OutString("._VideoViewCreate : sData = " + sData);
-
-        return m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Open, sData, "_VideoViewCreate");
+        int iErr = m_Node.ObjectRequest(sObjV, PG_METH_VIDEO_Open, sData, "_VideoViewCreate");
+        if(iErr > PG_ERR_Normal){
+            m_Node.ObjectDelete(sObjV);
+            return iErr;
+        }
+        return iErr;
 
     }
 
@@ -2843,7 +2926,7 @@ public class pgLibConference2 {
         }
 
         if(group.bApiVideoStart){
-            return PG_ERR_Opened;
+            return PG_ERR_Normal;
         }
 //        if (!m_Group.bChairman) {
 //                _ChairPeerCheck();
@@ -2859,7 +2942,7 @@ public class pgLibConference2 {
         iErr = _VideoViewCreate(group.sObjG,group.sObjLV,group.sVideoParamLarge);
         if (iErr > 0) {
             _OutString("pgLibConference.VideoInit: VideoViewStart L failed. iErr=" + iErr);
-
+            _VideoObjectDestory(group.sObjV);
             return iErr;
         }
 
@@ -3090,24 +3173,47 @@ public class pgLibConference2 {
     //音频相关初始化
     private int _AudioInit(Group group) {
         _OutString("->AudioInit");
+        if(group == null) {
+            return PG_ERR_BadParam;
+        }
+
+        if(group.bApiAudioStart){
+            return PG_ERR_Normal;
+        }
 
         int uFlag =  _AudioFlagGet( group.sAudioParam);
+
+        String sClass = m_Node.ObjectGetClass(group.sObjA);
+        if (!"".equals(sClass)) {
+            m_Node.ObjectDelete(group.sObjA);
+        }
 
         if (!m_Node.ObjectAdd(group.sObjA, "PG_CLASS_Audio", group.sObjG, uFlag)) {
             _OutString("._AudioInit: Add Audio failed.");
             return PG_ERR_System;
         }
 
-        return m_Node.ObjectRequest(group.sObjA, PG_METH_AUDIO_Open ,
+        int iErr = m_Node.ObjectRequest(group.sObjA, PG_METH_AUDIO_Open ,
                 "(Code){1}(Mode){0}", "AudioInit");
+        if(iErr  > PG_ERR_Normal){
+            m_Node.ObjectDelete(group.sObjA);
+            return iErr;
+        }
+        group.bApiAudioStart = true;
+        return iErr;
     }
 
     //音频相关清理
     private void _AudioClean(Group group) {
         _OutString(".AudioClean");
 
+        if(!group.bApiAudioStart){
+            return;
+        }
+
         m_Node.ObjectRequest(group.sObjA, PG_METH_AUDIO_Close , "", "pgLibConference.AudioClean");
         m_Node.ObjectDelete(group.sObjA);
+        group.bApiAudioStart = false;
     }
 
     private int _NodeOnExtRequestAudio(String sObj, int uMeth, String sData, int iHandle, String sObjPeer) {

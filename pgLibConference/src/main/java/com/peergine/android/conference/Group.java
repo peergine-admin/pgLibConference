@@ -27,7 +27,6 @@ public class Group {
     String sVideoParamLarge;
     String sAudioParam;
 
-    boolean bServiceStart = false;
     boolean bApiVideoStart = false;
     boolean bApiAudioStart = false;
 
