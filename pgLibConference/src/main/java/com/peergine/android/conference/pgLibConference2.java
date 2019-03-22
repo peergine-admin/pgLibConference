@@ -8,6 +8,7 @@ import android.view.SurfaceView;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import static com.peergine.android.conference.OnEventConst.*;
+import static com.peergine.android.conference.VideoPeer.VIDEO_PEER_MODE_Response;
 import static com.peergine.android.conference.pgLibNode.*;
 import static com.peergine.android.conference.pgLibError.*;
 
@@ -69,12 +70,6 @@ public class pgLibConference2 {
     private static final String TIME_OUT_ACT_RELOGIN = "Relogin";
     private static final String TIME_OUT_ACT_PEER_GET_INFO = "PeerGetInfo";
 
-
-    private static final int VIDEO_PEER_MODE_Leave  =0;
-    private static final int VIDEO_PEER_MODE_Request = 1;
-    private static final int VIDEO_PEER_MODE_Response = 2;
-    private static final int VIDEO_PEER_MODE_Join = 3;
-    private static final int VIDEO_RESPONSE_TIMEOUT = 30;
 
     private String m_sUser ;
     private String m_sPass ;
@@ -309,12 +304,12 @@ public class pgLibConference2 {
      * 阻塞方式：非阻塞，立即返回。
      */
     public void Clean(){
-        _NodeStop();
+
         if(m_NodeThreadProc != null){
             m_NodeThreadProc._NodeDispClean();
             m_NodeThreadProc = null;
         }
-
+        _NodeStop();
         m_Timer.timerClean();
         if(m_bNodeLibInit){
             pgLibNode.NodeLibClean();

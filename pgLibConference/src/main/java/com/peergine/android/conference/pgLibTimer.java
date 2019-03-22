@@ -91,6 +91,7 @@ public class pgLibTimer {
      */
     @SuppressLint("HandlerLeak")
     public boolean timerInit(OnTimeOut onTimeOut) {
+        this.onTimeOut = onTimeOut;
         return _TimerInit();
     }
     /**
@@ -98,7 +99,7 @@ public class pgLibTimer {
      */
     public void timerClean() {
        _TimerClean();
-
+        this.onTimeOut = null;
     }
 
     public long timerStamp(){
@@ -159,6 +160,7 @@ public class pgLibTimer {
                     item.iCookie = 0;
 
                     // Timer callback.
+                    _OutString("stamp ");
                     m_Stamp ++;
                     _OnTimeout(sParam);
                 }

@@ -5,11 +5,11 @@ import android.view.SurfaceView;
 import static com.peergine.android.conference.pgLibConference2._isEmpty;
 
 public class VideoPeer {
-    private static final int VIDEO_PEER_MODE_Leave  =0;
-    private static final int VIDEO_PEER_MODE_Request = 1;
-    private static final int VIDEO_PEER_MODE_Response = 2;
-    private static final int VIDEO_PEER_MODE_Join = 3;
-    private static final int VIDEO_RESPONSE_TIMEOUT = 30;
+    public static final int VIDEO_PEER_MODE_Leave  =0;
+    public static final int VIDEO_PEER_MODE_Request = 1;
+    public static final int VIDEO_PEER_MODE_Response = 2;
+    public static final int VIDEO_PEER_MODE_Join = 3;
+    public static final int VIDEO_RESPONSE_TIMEOUT = 30;
 
     String sObjPeer = "";
     VideoPeer(String sObjPeer) {
@@ -54,12 +54,12 @@ public class VideoPeer {
     void OnVideoJoin(int iStreamMode, int iStamp,int iHandle){
         if(iStreamMode == 1 ) {
             largeOnVideoRequestStamp = iStamp;
-            largeVideoRequestHandle = iStamp;
-            largeVideoMode = VIDEO_PEER_MODE_Request;
+            largeVideoRequestHandle = iHandle;
+            largeVideoMode = VIDEO_PEER_MODE_Response;
         }else  if(iStreamMode == 0 ){
             smallOnVideoRequestStamp = iStamp;
-            smallVideoRequestHandle = iStamp;
-            smallVideoMode = VIDEO_PEER_MODE_Request;
+            smallVideoRequestHandle = iHandle;
+            smallVideoMode = VIDEO_PEER_MODE_Response;
         }
     }
     boolean OnVideoJoinCheck(int iStreamMode,int iStamp){

@@ -209,7 +209,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
             if (m_Node != null) {
                 m_Node.PostMessage("__exit");
             }
-
+            _OutString("._NodeDispClean: m_Node.PostMessage finish");
             synchronized(m_dispAtomic) {
                 if (m_handlerDisp != null) {
                     m_handlerDisp.removeCallbacks(m_RunnableNodeProc);
@@ -218,12 +218,12 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
                     m_dispAtomic.notify();
                 }
             }
-
+            _OutString("._NodeDispClean: synchronized(m_dispAtomic) finish");
             if (m_thread != null) {
                 m_thread.join();
                 m_thread = null;
             }
-
+            _OutString("._NodeDispClean: m_thread.join finish");
             synchronized(m_dispAtomic) {
                 m_handlerDisp = null;
                 m_dispItem = null;
