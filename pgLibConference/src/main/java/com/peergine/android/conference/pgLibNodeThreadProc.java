@@ -1,13 +1,13 @@
 package com.peergine.android.conference;
 
 import android.os.Handler;
+import android.util.Log;
 
 import com.peergine.plugin.lib.pgLibJNINode;
 import com.peergine.plugin.lib.pgLibJNINodeProc;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.peergine.android.conference.pgLibConference2._OutString;
 import static com.peergine.android.conference.pgLibError.PG_ERR_BadStatus;
 import static com.peergine.android.conference.pgLibError.PG_ERR_System;
 
@@ -17,17 +17,23 @@ import static com.peergine.android.conference.pgLibError.PG_ERR_System;
 public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodeProc {
     private pgLibJNINode m_Node = null;
     pgLibNodeProc m_NodeProc = null;
-    pgLibNodeThreadProc(){
-        super();
-    }
-    pgLibNodeThreadProc(pgLibJNINode Node){
-        super();
-        m_Node = Node;
-    }
+//    pgLibNodeThreadProc(){
+//        super();
+//    }
+//    pgLibNodeThreadProc(pgLibJNINode Node){
+//        super();
+//        m_Node = Node;
+//    }
     pgLibNodeThreadProc(pgLibJNINode Node, pgLibNodeProc NodeProc) {
         super();
         m_Node = Node;
         m_NodeProc = NodeProc;
+    }
+
+    public static void _OutString(String sOut) {
+        //if (BuildConfig.DEBUG) {
+        Log.d("pgLibNodeThreadProc", sOut);
+        //}
     }
     ///-------------------------------------------------------------------------
     // Node dispatch handles 从中间件回调
@@ -159,7 +165,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
                             }
                         }
                         else {
-                            _OutString("pgLibLiveMultiCapture._NodeDispPost: Post run failed");
+                            _OutString("pgLibLiveMultiRender._NodeDispPost: Post run failed");
                         }
                     }
                     else {
@@ -172,7 +178,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
             }
         }
         catch (Exception ex) {
-            _OutString("pgLibLiveMultiCapture._NodeDispPost: ex=" + ex.toString());
+            _OutString("._NodeDispPost: ex=" + ex.toString());
         }
         return iErr;
     }
@@ -189,7 +195,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
             return true;
         }
         catch (Exception ex) {
-            _OutString("pgLibLiveMultiCapture._NodeDispInit: ex=" + ex.toString());
+            _OutString("._NodeDispInit: ex=" + ex.toString());
             _NodeDispClean();
             return false;
         }
@@ -197,7 +203,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
 
     public void _NodeDispClean() {
         try {
-            _OutString("pgLibLiveMultiCapture._NodeDispClean: begin");
+            _OutString("._NodeDispClean: begin");
 
             m_bThreadExit = true;
             if (m_Node != null) {
@@ -224,7 +230,7 @@ public class pgLibNodeThreadProc extends pgLibJNINodeProc implements pgLibNodePr
             }
 
             m_Node = null;
-            _OutString("pgLibLiveMultiCapture._NodeDispClean: finish");
+            _OutString("._NodeDispClean: finish");
         }
         catch (Exception ex) {
             ex.printStackTrace();
