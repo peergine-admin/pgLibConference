@@ -157,12 +157,12 @@ public class ComplexFragment extends SupportFragment {
     private void TimerStartOpen(String sPeer) {
 
         String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}";
-        mTimer.timerStart(sParam, 1);
+        mTimer.timerStart(sParam, 1,false);
     }
     private void TimerStartOpenL(String sPeer) {
 
         String sParam = "(Act){VIDEO_OPEN_L}(Peer){" + sPeer + "}";
-        mTimer.timerStart(sParam, 1);
+        mTimer.timerStart(sParam, 1,false);
     }
 
 
