@@ -4,6 +4,10 @@ import android.view.SurfaceView;
 
 import java.util.ArrayList;
 
+
+/**
+ * TODO 添加检查请求打开视频的超时关闭机制
+ */
 public class VideoPeerList {
 
     private final ArrayList<VideoPeer> m_listVideoPeer = new ArrayList<>();

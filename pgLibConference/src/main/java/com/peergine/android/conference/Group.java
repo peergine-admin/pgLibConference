@@ -12,9 +12,6 @@ public class Group {
     String sChair = "";
     String sUser = "";
 
-    int iKeepTimer = -1;
-    int iActiveTimer = -1;
-
     String sObjChair = "";
 
     String sObjG = "";
@@ -30,6 +27,10 @@ public class Group {
     boolean bApiVideoStart = false;
     boolean bApiAudioStart = false;
 
+    int iHandleJoinRequest = 0;
+
+    int iKeepTimer = -1;
+    int iActiveTimer = -1;
     // 视频连接状态检测
     int videoHeartbeatExpire = 10;
     int videoHeartbeatStamp = 0;

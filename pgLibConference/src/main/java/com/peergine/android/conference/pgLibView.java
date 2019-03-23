@@ -85,27 +85,30 @@ public final class pgLibView {
 	 * 释放View
 	 * @param View View对象
 	 */
-	public static void Release(SurfaceView View) {
+	public static boolean Release(SurfaceView View) {
 		try {
 			if (View != null && View.getParent() != null) {
 				System.out.println("pgLibView.Release: The view has attached in the parent layout!");
-				return;
+				return false;
 			}
-
+			boolean bResult = false;
 			synchronized(s_listItem) {
 				for (int i = 0; i < s_listItem.size(); i++) {
 					NodeItem item = s_listItem.get(i);
 					if (View == item.View) {
 						System.out.println("pgLibView.Release: View delete, sViewID=" + item.sID);
 						s_listItem.remove(i);
+						bResult = true;
 						break;
 					}
 				}
 			}
+			return bResult;
 		}
 		catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		return false;
 	}
 
 	/**

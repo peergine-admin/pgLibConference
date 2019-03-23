@@ -52,11 +52,11 @@ public class OnEventConst {
     /**
      * 服务器回复消息错误事件
      */
-    public static final String EVENT_SVR_REPLYR_ERROR = "SvrRequestReplyError";
+    public static final String EVENT_SVR_REPLYR_ERROR = "SvrReplyError";
     /**
      * 服务器回复消息事件
      */
-    public static final String EVENT_SVR_RELAY = "SvrRequestReply";
+    public static final String EVENT_SVR_RELAY = "SvrReply";
 
     /**
      * 上报局域网节点信息
@@ -66,13 +66,20 @@ public class OnEventConst {
 
 
     /**
-     * 成员端请求加入会议事件（主席端上报）
+     * 收到成员端请求加入会议事件（主席端上报）
      */
     public static final String EVENT_JOIN_REQUEST = "JoinRequest";
+    /**
+     * 主席端是否收到成员端请求加入会议的结果（成员端上报）
+     *   不能表示已经加入会议，只能表示主席端收到请求加入会议的消息了。
+     *   sData : PG_ERR_NoExist 主席节点会议不存在；
+     *          PG_ERR_BadUser 这个会议这个节点不是主席端
+     */
+    public static final String EVENT_JOIN_RESPONSE = "JoinResponse";
 
     /**
-     * 成员加入组事件
-     *
+     * 成员加入加入会议事件
+     * 上报所在会议的所有成员 单条只上报一个成员。
      */
     public static final String EVENT_JOIN = "Join";
     /**

@@ -20,9 +20,9 @@ public interface OnEventListener {
      * @param sAct 上报事件名称 Action
      * @param sData 上报事件数据，默认为空
      * @param sPeer 上报事件对端节点, 默认为空
-     * @param sGroup 上报事件相关会议名称，默认为空
+     * @param sConfName 上报事件相关会议名称，默认为空
      * @param sEventParam 上报事件额外参数,默认为空
      *
      */
-    void event(String sAct, String sData, String sPeer,String sGroup,String sEventParam);
+    void event(String sAct, String sData, String sPeer,String sConfName,String sEventParam);
 }
