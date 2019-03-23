@@ -242,7 +242,7 @@ public class Conference {
 
     public void pgStop(String sConfName ) {
         if(confNameList._Search(sConfName)){
-
+            pgVideoClean(sConfName);
             m_Conf2.AudioStop(sConfName );
             m_Conf2.VideoStop(sConfName );
             m_Conf2.Stop(sConfName );
