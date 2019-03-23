@@ -12,96 +12,52 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:paddingTop="20dp">
 
             <LinearLayout
-                android:layout_width="162dp"
-                android:layout_height="246dp"
-                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:paddingLeft="1dip"
                 android:paddingRight="1dip">
 
-                <LinearLayout
+                <include
                     android:id="@+id/layoutVideoS0"
-                    android:layout_width="160dp"
-                    android:layout_height="120dip"
-                    android:layout_marginBottom="1dip"
-                    android:background="#ff000000"
-                    android:orientation="horizontal"></LinearLayout>
+                    layout="@layout/videoview" />
 
-                <LinearLayout
-                    android:id="@+id/layoutVideoS2"
-                    android:layout_width="160dip"
-                    android:layout_height="120dip"
-                    android:layout_marginBottom="1dip"
-                    android:background="#ff000000"
-                    android:orientation="horizontal"></LinearLayout>
+                <include
+                    android:id="@+id/layoutVideoS1"
+                    layout="@layout/videoview" />
+
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="165dp"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:paddingLeft="1dip"
                 android:paddingRight="1dip">
+                <include
+                    android:id="@+id/layoutVideoS2"
+                    layout="@layout/videoview" />
 
-                <LinearLayout
-                    android:id="@+id/layoutVideoS1"
-                    android:layout_width="160dip"
-                    android:layout_height="120dip"
-                    android:layout_marginBottom="1dip"
-                    android:background="#ff000000"
-                    android:orientation="horizontal"></LinearLayout>
-
-                <LinearLayout
+                <include
                     android:id="@+id/layoutVideoS3"
-                    android:layout_width="160dip"
-                    android:layout_height="120dip"
-                    android:layout_marginBottom="1dip"
-                    android:background="#ff000000"
-                    android:orientation="horizontal"></LinearLayout>
+                    layout="@layout/videoview" />
             </LinearLayout>
 
         </LinearLayout>
+
+        <include android:id="@+id/menu_chair_1"
+            layout="@layout/conference_itme"/>
+        <include android:id="@+id/menu_chair_2"
+            layout="@layout/conference_itme"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.2"
-                android:text="@string/id_chainman" />
-
-            <EditText
-                android:id="@+id/editText_chair"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="请找客服申请测试ID"
-                android:inputType="" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <Button
-                android:id="@+id/btn_Start"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/id_start" />
-
-            <Button
-                android:id="@+id/btn_stop"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Stop" />
 
             <Button
                 android:id="@+id/btn_Clean"
@@ -109,13 +65,13 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Clean" />
-
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
+
 
             <TextView
                 android:layout_width="0dp"

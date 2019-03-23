@@ -17,7 +17,7 @@ public class ConferencePeerList {
             }
             for (int i = 0; i < m_listConferencePeer.size(); i++) {
                 ConferencePeer peer = m_listConferencePeer.get(i);
-                if (peer.sPeer.equals(sPeer) && peer.sPeer.equals(sConfName)) {
+                if (peer.sPeer.equals(sPeer) && peer.sConfName.equals(sConfName)) {
                     return peer;
                 }
             }

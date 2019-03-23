@@ -45,6 +45,7 @@ public class Conference {
 
     private LayoutMange m_LayoutMange = null;
     private VideoAudioInputExternal external=null;
+    private final ConfNameList confNameList = new ConfNameList();
 
     //定时器例子 超时处理实现
     final pgLibTimer m_Timer = new pgLibTimer();
@@ -122,7 +123,7 @@ public class Conference {
         }
         m_Node = m_Conf2.GetNode();
 
-        mPreviewLayout = (LinearLayout) layoutMange.Alloc();
+        mPreviewLayout = (LinearLayout) layoutMange.Alloc("self Preview");
 
         if(isInputExternal){
             external = new VideoAudioInputExternal(m_Conf2.GetNode(),mPreviewLayout,iMode,context);
@@ -144,6 +145,10 @@ public class Conference {
     }
 
     public void Clean(){
+        for (int i = 0;i< confNameList.m_listConfName.size();i++){
+            pgStop(confNameList.m_listConfName.get(i));
+        }
+        confNameList._Clean();
 
         m_Conf2.PreviewStop();
 
@@ -199,24 +204,50 @@ public class Conference {
         if(iErr > PG_ERR_Normal) {
             showAlert("初始化音频失败： iErr = " +  pgLibErr2Str(iErr) + " sConfName = " + sConfName);
         }
-        if(!isChairman(sChair)) {
-            iErr = m_Conf2.JoinRequest(sConfName);
-            if (iErr > PG_ERR_Normal) {
-                showInfo("发送加入会议请求失败： iErr = " + pgLibErr2Str(iErr) + " sConfName = " + sConfName);
+
+        JoinReuest(sConfName,sChair);
+
+        confNameList._Add(sChair);
+
+        return iErr;
+    }
+
+    public void MessageSend(String sMsg){
+        for(int i = 0 ; i< conferencePeerList.m_listConferencePeer.size(); i++ ){
+            String sPeer = conferencePeerList.m_listConferencePeer.get(i).sPeer;
+            int iErr = m_Conf2.MessageSend(sPeer,sMsg);
+            if(iErr> PG_ERR_Normal){
+                showInfo("MessageSend 错误：" +pgLibErr2Str(iErr) + " sPeer = " + sPeer );
             }
         }
-        return iErr;
     }
 
     private boolean isChairman(String sChair) {
         return sChair.equals(m_sUser);
     }
 
-    public void pgStop(String sConfName ) {
-        m_Conf2.AudioStop(sConfName );
-        m_Conf2.VideoStop(sConfName );
-        m_Conf2.Stop(sConfName );
+    private int JoinReuest(String sConfName, String sChair){
+        int iErr = PG_ERR_Normal;
+        if(!isChairman(sChair)) {
+            iErr = m_Conf2.JoinRequest(sConfName);
+            if (iErr > PG_ERR_Normal) {
+                showInfo("发送加入会议请求失败： iErr = " + pgLibErr2Str(iErr) + " sConfName = " + sConfName);
 
+                TimerReJoinRequest(sConfName,sChair);
+
+            }
+        }
+        return iErr;
+    }
+
+    public void pgStop(String sConfName ) {
+        if(confNameList._Search(sConfName)){
+
+            m_Conf2.AudioStop(sConfName );
+            m_Conf2.VideoStop(sConfName );
+            m_Conf2.Stop(sConfName );
+            confNameList._Delete(sConfName);
+        }
     }
 
     /**
@@ -272,7 +303,7 @@ public class Conference {
         }
         if(peer.pLayout == null){
             //申请桌面的linear
-            peer.pLayout=m_LayoutMange.Alloc();
+            peer.pLayout=m_LayoutMange.Alloc(sConfName + " : " + sPeer);
             if(peer.pLayout == null) {
                 showAlert("无法申请到LenearLayout，VideoOpenRequest ： " + sConfName + " sPeer = " + sPeer);
                 return PG_ERR_System;
@@ -286,6 +317,9 @@ public class Conference {
             return iErr;
         }
         peer.pLayout.removeAllViews();
+        if(peer.pView.getParent() != null){
+            ((LinearLayout)(peer.pView.getParent())).removeAllViews();
+        }
         peer.pLayout.addView(peer.pView);
         return iErr;
     }
@@ -310,7 +344,7 @@ public class Conference {
         }
         if(peer.pLayout == null){
             //申请桌面的linear
-            peer.pLayout=m_LayoutMange.Alloc();
+            peer.pLayout=m_LayoutMange.Alloc(sConfName + " : " + sPeer);
             if(peer.pLayout == null) {
                 showAlert("无法申请到LenearLayout，VideoOpenRequest ： " + sConfName + " sPeer = " + sPeer);
                 return PG_ERR_System;
@@ -324,6 +358,9 @@ public class Conference {
             return iErr;
         }
         peer.pLayout.removeAllViews();
+        if(peer.pView.getParent() != null){
+            ((LinearLayout)(peer.pView.getParent())).removeAllViews();
+        }
         peer.pLayout.addView(peer.pView);
         return iErr;
     }
@@ -344,12 +381,12 @@ public class Conference {
 //            showAlert("申请内存失败" + sConfName + " sPeer = " + sPeer);
             return;
         }
-        if(peer.pLayout == null){
+        if(peer.pLayout != null){
             peer.pLayout.removeAllViews();
             m_LayoutMange.Free(peer.pLayout);
             peer.pLayout = null;
         }
-        if(peer.pView  == null){
+        if(peer.pView  != null){
             pgLibView.Release(peer.pView);
             peer.pView = null;
         }
@@ -515,9 +552,14 @@ public class Conference {
                 //实际情况中建议从Join出得到设备列表，或者本地保存列表，用ListView显示，点击某个ID然后开始打开视频
                 String sObjUser = _ObjPeerBuild(m_sUser);
                 String sObjPeer = _ObjPeerBuild(sPeer);
-                if (sObjUser.compareTo(sPeer) > 0) {
+                if (sObjUser.compareTo(sObjPeer) > 0) {
                     showInfo(" 发起视频请求");
                     pgVideoOpenRequest(sConfName,sPeer);
+                }
+            }
+            if("RE_JOIN_REQUEST" .equals(sAct)){
+                if(confNameList._Search(sConfName)){
+                    JoinReuest(sConfName,sPeer);
                 }
             }
         }
@@ -526,6 +568,10 @@ public class Conference {
     private void TimerStartOpen(String sConfName ,String sPeer) {
         String sParam = "(Act){VIDEO_OPEN}(Peer){" + sPeer + "}(ConfName){" + sConfName + "}";
         m_Timer.timerStart(sParam, 1,false);
+    }
+    private void TimerReJoinRequest(String sConfName ,String sPeer) {
+        String sParam = "(Act){RE_JOIN_REQUEST}(Peer){" + sPeer + "}(ConfName){" + sConfName + "}";
+        m_Timer.timerStart(sParam, 10,false);
     }
 
 
@@ -597,6 +643,15 @@ public class Conference {
             m_Conf2.MemberAdd(sConfName,sPeer);
         }
 
+    }
+
+    private void EventJoinResponse(String sAct, String sData, String sPeer, String sConfName, String sEventParam) {
+        showInfo("发送加入会议请求回应结果，sPeer = " + sPeer + " sConfName = " + sConfName);
+        if(!sData.equals("0")){
+            showInfo("发送加入会议请求失败，重新发送 Err = " + pgLibErr2Str(Integer.parseInt(sData)));
+            JoinReuest(sConfName,sPeer);
+
+        }
     }
 
     //sPeer的离线消息
@@ -782,6 +837,9 @@ public class Conference {
             }
             else if (sAct.equals(EVENT_JOIN_REQUEST)) {
                 EventJoinRequest(sAct, sData, sPeer, sConfName,sEventParam);
+            }
+            else if (sAct.equals(EVENT_JOIN_RESPONSE)) {
+                EventJoinResponse(sAct, sData, sPeer, sConfName,sEventParam);
             } else if (sAct.equals(EVENT_JOIN)) {
                 EventJoin(sAct, sData, sPeer,sConfName,sEventParam);
             } else if (sAct.equals(EVENT_LEAVE)) {
@@ -825,9 +883,11 @@ public class Conference {
 //                EventFileGetRequest(sAct, sData, sPeer);
 //            }
             else {
-                showInfo("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sPeer);
+                _OutString("MainFragment.OnEvent: Act=" + sAct + ", Data=" + sData + ", Peer=" + sPeer);
             }
         }
+
+
     };
 
 

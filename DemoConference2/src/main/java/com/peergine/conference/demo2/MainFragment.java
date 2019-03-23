@@ -38,7 +38,7 @@ import static com.peergine.android.conference.pgLibError.pgLibErr2Str;
 public class MainFragment extends SupportFragment {
 
     private boolean isInputExternal = false;
-    private String msChair = "";
+//    private String msChair = "";
 
     private String m_sUser = "";
     private String m_sPass = "";
@@ -49,11 +49,9 @@ public class MainFragment extends SupportFragment {
 
     private final Conference conference = new Conference();
     private final LayoutMange layoutMange = new LayoutMange();
-    private final ConfNameList confNameList = new ConfNameList();
 
     private int[] linearLayouts = {R.id.layoutVideoS0, R.id.layoutVideoS1, R.id.layoutVideoS2, R.id.layoutVideoS3};
 
-    private EditText mEditchair = null;
     private EditText mEdittextNotify = null;
 
     private TextView text_info = null;
@@ -98,18 +96,19 @@ public class MainFragment extends SupportFragment {
         for(int i = 0 ; i < linearLayouts.length ; i ++){
             LinearLayout linearLayout = (LinearLayout) view.findViewById(linearLayouts[i]);
             layoutMange.Add(linearLayout);
-            linearLayout.setOnClickListener(layoutOnClick);
+            //linearLayout.setOnClickListener(layoutOnClick);
         }
 
         /**
          * 初始化控件
          */
 
+        view.findViewById(R.id.menu_chair_1).findViewById(R.id.btn_item_start).setOnClickListener(mOnclinkMenu);
+        view.findViewById(R.id.menu_chair_1).findViewById(R.id.btn_item_stop).setOnClickListener(mOnclinkMenu);
+        view.findViewById(R.id.menu_chair_2).findViewById(R.id.btn_item_start).setOnClickListener(mOnclinkMenu);
+        view.findViewById(R.id.menu_chair_2).findViewById(R.id.btn_item_stop).setOnClickListener(mOnclinkMenu);
 
-        mEditchair = (EditText) view.findViewById(R.id.editText_chair);
 
-        view.findViewById(R.id.btn_Start).setOnClickListener(mOnclink);
-        view.findViewById(R.id.btn_stop).setOnClickListener(mOnclink);
         view.findViewById(R.id.btn_Clean).setOnClickListener(mOnclink);
 
         mEdittextNotify = (EditText) view.findViewById(R.id.editText_notify);
@@ -127,7 +126,10 @@ public class MainFragment extends SupportFragment {
 
         String chairman_id = SqlParser.readSqlChairmanID(getActivity().getApplicationContext());
         if(!isEmpty(chairman_id)){
-            mEditchair.setText(chairman_id);
+        ((EditText)(view.findViewById(R.id.menu_chair_1).findViewById(R.id.editText_chair))).setText(chairman_id);
+        ((EditText)(view.findViewById(R.id.menu_chair_2).findViewById(R.id.editText_chair))).setText(chairman_id);
+
+//            mEditchair.setText(chairman_id);
         }
     }
 
@@ -262,6 +264,39 @@ public class MainFragment extends SupportFragment {
         builder.show();
     }
 
+    private final View.OnClickListener mOnclinkMenu = new View.OnClickListener() {
+        @Override
+        public void onClick(View args0) {
+            int k = 0;
+            boolean bErr;
+            int iErr;
+            switch (args0.getId()) {
+                case R.id.btn_item_start:
+                    String sChair = ((EditText)((LinearLayout)(args0.getParent())).findViewById(R.id.editText_chair)).getText().toString().trim();
+                    //editText_chair
+                    iErr = conference.pgStart(sChair, sChair);
+                    if (iErr > PG_ERR_Normal) {
+                        showInfo("创建会议失败。" + pgLibErr2Str(iErr));
+                        return;
+                    }
+
+
+                    Log.d("OnClink", "init button");
+                    break;
+                case R.id.btn_item_stop:
+                    sChair = ((EditText)((LinearLayout)(args0.getParent())).findViewById(R.id.editText_chair)).getText().toString().trim();
+//                    sChair = mEditchair.getText().toString().trim();
+
+                    conference.pgStop(sChair);
+                    Log.d("OnClink", "MemberAdd button");
+                    break;
+                default:
+
+                    break;
+            }
+        }
+    };
+
     int pop_count = 0;
     private final View.OnClickListener mOnclink = new View.OnClickListener() {
         @Override
@@ -270,32 +305,26 @@ public class MainFragment extends SupportFragment {
             boolean bErr;
             int iErr;
             switch (args0.getId()) {
-                case R.id.btn_Start:
-                    String sChair = mEditchair.getText().toString().trim();
-
-                    iErr = conference.pgStart(sChair,sChair);
-                    if(iErr > PG_ERR_Normal){
-                        showInfo("创建会议失败。" + pgLibErr2Str(iErr));
-                        return;
-                    }
-
-                    confNameList._Add(sChair);
-                    Log.d("OnClink", "init button");
-                    break;
-                case R.id.btn_stop:
-                    sChair = mEditchair.getText().toString().trim();
-                    if(confNameList._Search(sChair)){
-                        conference.pgStop(sChair);
-                        confNameList._Delete(sChair);
-                    }
-
-                    Log.d("OnClink", "MemberAdd button");
-                    break;
+//                case R.id.btn_Start:
+//                    String sChair = mEditchair.getText().toString().trim();
+//
+//                    iErr = conference.pgStart(sChair,sChair);
+//                    if(iErr > PG_ERR_Normal){
+//                        showInfo("创建会议失败。" + pgLibErr2Str(iErr));
+//                        return;
+//                    }
+//
+//
+//                    Log.d("OnClink", "init button");
+//                    break;
+//                case R.id.btn_stop:
+//                    sChair = mEditchair.getText().toString().trim();
+//
+//                    conference.pgStop(sChair);
+//                    Log.d("OnClink", "MemberAdd button");
+//                    break;
                 case R.id.btn_Clean:
-                    for (int i = 0;i< confNameList.m_listConfName.size();i++){
-                        conference.pgStop(confNameList.m_listConfName.get(i));
-                    }
-                    confNameList._Clean();
+
                     conference.Clean();
                     if(getFragmentManager().getBackStackEntryCount() > 1){
                         if(pop_count>=1)
@@ -326,10 +355,7 @@ public class MainFragment extends SupportFragment {
 //                }
                 case R.id.btn_msg: {
                     String sMsg = mEdittextNotify.getText().toString().trim();
-                    iErr =  conference.m_Conf2.MessageSend(sMsg, msChair);
-                    if(iErr > PG_ERR_Normal){
-                        showInfo(" MessageSend iErr = " + pgLibErr2Str(iErr));
-                    }
+                    conference.MessageSend(sMsg);
                     break;
 
                 } case R.id.btn_svr_request: {
@@ -341,14 +367,16 @@ public class MainFragment extends SupportFragment {
                     break;
 
                 }
-//                case R.id.btn_recordstart: {
+                case R.id.btn_recordstart: {
+                    showInfo("暂时没有实现");
 //                    pgRecordStartNew();
-//                    break;
-//                }
-//                case R.id.btn_recordstop: {
+                    break;
+                }
+                case R.id.btn_recordstop: {
+                    showInfo("暂时没有实现");
 //                    pgRecordStopNew();
-//                    break;
-//                }
+                    break;
+                }
 //                case R.id.btn_test: {
 //                    test();
 //                    break;
