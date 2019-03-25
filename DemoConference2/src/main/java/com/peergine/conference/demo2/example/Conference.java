@@ -19,10 +19,10 @@ import com.peergine.plugin.lib.pgLibJNINode;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import static com.peergine.android.conference.OnEventConst.*;
-import static com.peergine.android.conference.OnEventConst.PG_RECORD_ONLYVIDEO_HASAUDIO;
 import static com.peergine.android.conference.pgLibError.*;
 import static com.peergine.android.conference.pgLibError.PG_ERR_System;
 
@@ -405,14 +405,14 @@ public class Conference {
     }
 
     String sBothPath = "";
-    private void pgRecordStartNew(String sConfName,String sPeer){
+    public void pgRecordStartNew(String sConfName,String sPeer){
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String sDate = formatter.format(currentTime);
         sBothPath = GetSdcardDir() + "/test/record" + sDate + ".avi";
-        int iErr = m_Conf2.RecordStart(sConfName,sPeer,iStreamMode,sBothPath, PG_RECORD_ONLYVIDEO_HASAUDIO);
+        int iErr = m_Conf2.RecordStart(sConfName,sPeer,iStreamMode,sBothPath, PG_RECORD_NORMAL);
         if(iErr!=0){
-//            Toast.makeText(getContext(), "录像失败。 已经关闭 Err = " + iErr, Toast.LENGTH_SHORT).show();
+           showInfo("录像失败。 已经关闭 Err = " + iErr);
         }
         //boolean iErr = m_Conf2.RecordStart(msChair, sPath);
 //        if ((!iErr)) {
@@ -422,22 +422,29 @@ public class Conference {
 //        }else{l
 //
 //        }
-        int iErr1 = RecordAudioBothStart(sBothPath);
-        if(iErr1!=0){
-//            Toast.makeText(getContext(), "录音失败。 已经关闭 Err = " + iErr1, Toast.LENGTH_SHORT).show();
-        }
+//        int iErr1 = RecordAudioBothStart(sBothPath);
+//        if(iErr1!=0){
+////            Toast.makeText(getContext(), "录音失败。 已经关闭 Err = " + iErr1, Toast.LENGTH_SHORT).show();
+//        }
 
     }
 
-    private void pgRecordStopNew(String sConfName,String sPeer){
-        m_Conf2.RecordStop(sConfName,sPeer, iStreamMode ,PG_RECORD_ONLYVIDEO_HASAUDIO);
-        int iErr = RecordAudioBothStop(sBothPath);
-        if(iErr!=0) {
-//            Toast.makeText(getContext(), "RecordAudioBothStop 录音停止。 iErr = "+iErr, Toast.LENGTH_SHORT).show();
-        }
+    public void pgRecordStopNew(String sConfName,String sPeer){
+        m_Conf2.RecordStop(sConfName,sPeer, iStreamMode ,PG_RECORD_NORMAL);
+//        int iErr = RecordAudioBothStop(sBothPath);
+//        if(iErr!=0) {
+////            Toast.makeText(getContext(), "RecordAudioBothStop 录音停止。 iErr = "+iErr, Toast.LENGTH_SHORT).show();
+//        }
 
     }
 
+    public int pgTest(String sConfName,String sPeer){
+         int iErr = m_Conf2.VideoCheck(sConfName,sPeer,iStreamMode);
+         if(iErr > PG_ERR_Normal){
+             showInfo("VideoStatus iErr = " + pgLibErr2Str(iErr));
+         }
+         return iErr;
+    }
 //    private void pgRecordStart(){
 //        Date currentTime = new Date();
 //        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -630,6 +637,15 @@ public class Conference {
     private void EventPeerOffline(String sAct, String sData, String sPeer,String sConfName, String sEventPara) {
         // TODO: 2016/11/7 提醒应用程序此节点离线了
         showInfo(sPeer + "节点离线 sData = " + sData);
+        ArrayList<ConferencePeer> list = conferencePeerList._Search(sPeer);
+        if(list != null){
+            for (int i = 0;i< list.size();i++){
+                ConferencePeer conferencePeer = list.get(i);
+                pgVideoClose(conferencePeer.sConfName,conferencePeer.sPeer);
+
+                JoinReuest(sConfName,sPeer);
+            }
+        }
 //        pgVideoClose(sPeer);
     }
 
@@ -704,13 +720,20 @@ public class Conference {
 
     }
 
-    private void EventVideoLost(String sAct, String sData, final String sPeer,String sConfName, String sEventPara) {
+    private void EventVideoCheck(String sAct, String sData, final String sPeer, String sConfName, String sEventPara) {
         // TODO: 2016/11/8  对方视频已经丢失 挂断对方视频 并尝试重新打开
-        showInfo(sPeer + " 的视频已经丢失 可以尝试重新连接");
+        showInfo(sPeer + " 回复对端视频状态 iErr = " + pgLibErr2Str(Integer.parseInt(sData)));
 
-        if(sEventPara.equals("0")){
+        if(!sData.equals("0")){
             pgVideoClose(sConfName,sPeer);
-            TimerStartOpen(sConfName,sPeer);
+            if(sData.equals("" + PG_ERR_BadStatus)){
+                showInfo("对端视频会议已经准备就绪，可以尝试打开视频。");
+//                TimerStartOpen(sConfName,sPeer);
+            }
+//            else{
+////                showInfo("");
+//            }
+
         }
     }
 
@@ -853,8 +876,8 @@ public class Conference {
             else if (sAct.equals(EVENT_VIDEO_RESPONSE)) {
                 EventVideoResponse(sAct, sData, sPeer,sConfName,sEventParam);
             }
-            else if (sAct.equals(EVENT_VIDEO_LOST)) {
-                EventVideoLost(sAct, sData, sPeer,sConfName,sEventParam);
+            else if (sAct.equals(EVENT_VIDEO_CHECK)) {
+                EventVideoCheck(sAct, sData, sPeer,sConfName,sEventParam);
             } else if (sAct.equals(EVENT_VIDEO_CLOSE)) {
                 EventVideoClose(sAct, sData, sPeer,sConfName,sEventParam);
             }

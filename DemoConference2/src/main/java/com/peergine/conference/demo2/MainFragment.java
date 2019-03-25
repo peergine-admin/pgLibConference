@@ -102,12 +102,20 @@ public class MainFragment extends SupportFragment {
         /**
          * 初始化控件
          */
+        ViewGroup menuchar1 = view.findViewById(R.id.menu_chair_1);
 
-        view.findViewById(R.id.menu_chair_1).findViewById(R.id.btn_item_start).setOnClickListener(mOnclinkMenu);
-        view.findViewById(R.id.menu_chair_1).findViewById(R.id.btn_item_stop).setOnClickListener(mOnclinkMenu);
-        view.findViewById(R.id.menu_chair_2).findViewById(R.id.btn_item_start).setOnClickListener(mOnclinkMenu);
-        view.findViewById(R.id.menu_chair_2).findViewById(R.id.btn_item_stop).setOnClickListener(mOnclinkMenu);
+        menuchar1.findViewById(R.id.btn_item_start).setOnClickListener(mOnclinkMenu);
+        menuchar1.findViewById(R.id.btn_item_stop).setOnClickListener(mOnclinkMenu);
+        menuchar1.findViewById(R.id.btn_item_recordstart).setOnClickListener(mOnclinkMenu);
+        menuchar1.findViewById(R.id.btn_item_recordstop).setOnClickListener(mOnclinkMenu);
+        menuchar1.findViewById(R.id.btn_item_test).setOnClickListener(mOnclinkMenu);
 
+        ViewGroup menuchar2 = view.findViewById(R.id.menu_chair_2);
+        menuchar2.findViewById(R.id.btn_item_start).setOnClickListener(mOnclinkMenu);
+        menuchar2.findViewById(R.id.btn_item_stop).setOnClickListener(mOnclinkMenu);
+        menuchar2.findViewById(R.id.btn_item_recordstart).setOnClickListener(mOnclinkMenu);
+        menuchar2.findViewById(R.id.btn_item_recordstop).setOnClickListener(mOnclinkMenu);
+        menuchar2.findViewById(R.id.btn_item_test).setOnClickListener(mOnclinkMenu);
 
         view.findViewById(R.id.btn_Clean).setOnClickListener(mOnclink);
 
@@ -116,11 +124,8 @@ public class MainFragment extends SupportFragment {
         view.findViewById(R.id.btn_msg).setOnClickListener(mOnclink);
         view.findViewById(R.id.btn_svr_request).setOnClickListener(mOnclink);
 
-        view.findViewById(R.id.btn_recordstart).setOnClickListener(mOnclink);
-        view.findViewById(R.id.btn_recordstop).setOnClickListener(mOnclink);
-        view.findViewById(R.id.btn_test).setOnClickListener(mOnclink);
 
-        view.findViewById(R.id.btn_clearlog).setOnClickListener(mOnclink);
+
         //显示一些信息
         text_info = (TextView) view.findViewById(R.id.text_info);
 
@@ -143,6 +148,7 @@ public class MainFragment extends SupportFragment {
         createTestDir();
 
         Bundle args = getArguments();
+        assert args != null;
         m_sUser = args.getString("User");
         m_sPass = args.getString("User");
         m_sSvrAddr = args.getString("SvrAddr");
@@ -270,10 +276,11 @@ public class MainFragment extends SupportFragment {
             int k = 0;
             boolean bErr;
             int iErr;
+            String sChair = "";
             switch (args0.getId()) {
                 case R.id.btn_item_start:
-                    String sChair = ((EditText)((LinearLayout)(args0.getParent())).findViewById(R.id.editText_chair)).getText().toString().trim();
-                    //editText_chair
+                    sChair = ((EditText)((LinearLayout)(args0.getParent())).findViewById(R.id.editText_chair)).getText().toString().trim();
+                    // Demo 使用主席名作为 会议名称
                     iErr = conference.pgStart(sChair, sChair);
                     if (iErr > PG_ERR_Normal) {
                         showInfo("创建会议失败。" + pgLibErr2Str(iErr));
@@ -290,8 +297,23 @@ public class MainFragment extends SupportFragment {
                     conference.pgStop(sChair);
                     Log.d("OnClink", "MemberAdd button");
                     break;
+                case R.id.btn_item_recordstart: {
+                    sChair = ((EditText)((LinearLayout)(args0.getParent().getParent())).findViewById(R.id.editText_chair)).getText().toString().trim();
+                    showInfo("测试录制主席端视频");
+                    conference.pgRecordStartNew(sChair,sChair);
+                    break;
+                }
+                case R.id.btn_item_recordstop: {
+                    sChair = ((EditText)((LinearLayout)(args0.getParent().getParent())).findViewById(R.id.editText_chair)).getText().toString().trim();
+//                    showInfo("测试录制主席端视频");
+                    conference.pgRecordStopNew(sChair,sChair);
+                    break;
+                }case R.id.btn_item_test : {
+                    sChair = ((EditText)((LinearLayout)(args0.getParent().getParent())).findViewById(R.id.editText_chair)).getText().toString().trim();
+                    conference.pgTest(sChair,sChair);
+                    break;
+                }
                 default:
-
                     break;
             }
         }
@@ -367,16 +389,7 @@ public class MainFragment extends SupportFragment {
                     break;
 
                 }
-                case R.id.btn_recordstart: {
-                    showInfo("暂时没有实现");
-//                    pgRecordStartNew();
-                    break;
-                }
-                case R.id.btn_recordstop: {
-                    showInfo("暂时没有实现");
-//                    pgRecordStopNew();
-                    break;
-                }
+
 //                case R.id.btn_test: {
 //                    test();
 //                    break;
@@ -400,9 +413,9 @@ public class MainFragment extends SupportFragment {
 //                    break;
 //
 //                }
-                case R.id.btn_clearlog: {
-                    text_info.setText("");
-                }
+//                case R.id.btn_clearlog: {
+//                    text_info.setText("");
+//                }
                 default:
 
                     break;

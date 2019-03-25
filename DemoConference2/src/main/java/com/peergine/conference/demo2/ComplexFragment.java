@@ -934,9 +934,9 @@ public class ComplexFragment extends SupportFragment {
 
                 }
 
-                case R.id.btn_clearlog: {
-                    text_info.setText("");
-                }
+//                case R.id.btn_clearlog: {
+//                    text_info.setText("");
+//                }
                 default:
 
                     break;

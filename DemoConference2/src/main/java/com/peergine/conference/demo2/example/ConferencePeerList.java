@@ -53,6 +53,25 @@ public class ConferencePeerList {
         m_listConferencePeer.remove(peer);
     }
 
+    //搜索成员列表
+    ArrayList<ConferencePeer> _Search(String sPeer) {
+        ArrayList<ConferencePeer> list= new ArrayList<>();
+        try {
+            if ("".equals(sPeer)) {
+                Log.d("", "Search can't Search Start");
+                return list;
+            }
+            for (int i = 0; i < m_listConferencePeer.size(); i++) {
+                ConferencePeer peer = m_listConferencePeer.get(i);
+                if (peer.sPeer.equals(sPeer)) {
+                    list.add(peer);
+                }
+            }
 
+        } catch (Exception ex) {
+            Log.d("", "VideoOption. ex=" + ex.toString());
+        }
+        return list;
+    }
 
 }

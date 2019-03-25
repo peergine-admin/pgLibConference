@@ -210,13 +210,13 @@ public class MainFragmentExter extends SupportFragment {
         view.findViewById(R.id.btn_msg).setOnClickListener(mOnclink);
         view.findViewById(R.id.btn_svr_request).setOnClickListener(mOnclink);
 
-        view.findViewById(R.id.btn_recordstart).setOnClickListener(mOnclink);
-        view.findViewById(R.id.btn_recordstop).setOnClickListener(mOnclink);
-        view.findViewById(R.id.btn_test).setOnClickListener(mOnclink);
+//        view.findViewById(R.id.btn_recordstart).setOnClickListener(mOnclink);
+//        view.findViewById(R.id.btn_recordstop).setOnClickListener(mOnclink);
+//        view.findViewById(R.id.btn_test).setOnClickListener(mOnclink);
 
 //        view.findViewById(R.id.btn_file_put).setOnClickListener(mOnclink);
 //        view.findViewById(R.id.btn_file_get).setOnClickListener(mOnclink);
-        view.findViewById(R.id.btn_clearlog).setOnClickListener(mOnclink);
+//        view.findViewById(R.id.btn_clearlog).setOnClickListener(mOnclink);
         //显示一些信息
         text_info = (TextView) view.findViewById(R.id.text_info);
     }
@@ -1049,9 +1049,9 @@ public class MainFragmentExter extends SupportFragment {
 //
 //                }
 
-                case R.id.btn_clearlog: {
-                    text_info.setText("");
-                }
+//                case R.id.btn_clearlog: {
+//                    text_info.setText("");
+//                }
                 default:
 
                     break;

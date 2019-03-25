@@ -1,40 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="主席ID："
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="1dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/editText_chair"
-        android:layout_width="160dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="4"
-        android:ems="10"
-        android:hint="请找客服申请测试ID"
-        android:inputType="textPersonName"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="20dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="主席ID："
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="1dp" />
 
-    <Button
-        android:id="@+id/btn_item_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Start" />
+        <EditText
+            android:id="@+id/editText_chair"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:ems="10"
+            android:hint="请找客服申请测试ID"
+            android:inputType="textPersonName"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="20dp" />
 
-    <Button
-        android:id="@+id/btn_item_stop"
-        android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/btn_item_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Start" />
+
+        <Button
+            android:id="@+id/btn_item_stop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stop" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Stop" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_item_recordstart"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="recordstart" />
+
+        <Button
+            android:id="@+id/btn_item_recordstop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="recordstop" />
+
+        <Button
+            android:id="@+id/btn_item_test"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Test" />
+    </LinearLayout>
 
 </LinearLayout>
+
