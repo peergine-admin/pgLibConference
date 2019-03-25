@@ -88,6 +88,12 @@ public class OnEventConst {
     public static final String EVENT_LEAVE = "Leave";
 
     /**
+     *
+     *
+     *
+     */
+
+    /**
      * 广播消息事件
      */
     public static final String EVENT_NOTIFY = "Notify";

@@ -7,6 +7,7 @@ import android.view.SurfaceView;
 
 import com.peergine.plugin.lib.pgLibJNINode;
 
+import static com.peergine.android.conference.HeartBeartPeerList._HeartBeatSendReqErr;
 import static com.peergine.android.conference.OnEventConst.*;
 import static com.peergine.android.conference.VideoPeer.VIDEO_PEER_MODE_Join;
 import static com.peergine.android.conference.VideoPeer.VIDEO_PEER_MODE_Response;
@@ -46,8 +47,9 @@ public class pgLibConference2 {
     private final RecordList recordList = new RecordList();
     private final String gHeartBeatAction = "HBeat";
     private final HeartBeartPeerList gHeartBeatPeerList = new HeartBeartPeerList();
-    private final String vHeartBeatAction = "VBeat";
-    private final HeartBeartPeerList vHeartBeatPeerList = new HeartBeartPeerList();
+
+    public final String vHeartBeatAction = "VBeat";
+
     private final HeartBeartPeerList.OnHeartBeartEvent onHeartBeartEvent = new HeartBeartPeerList.OnHeartBeartEvent() {
         @Override
         public void event(String sAct, String sData, String sObjPeer, String sConfName, String sEventParam) {
@@ -302,7 +304,6 @@ public class pgLibConference2 {
             m_iIDTimerRelogin = -1;
 
             gHeartBeatPeerList.Initialize(m_Node, gHeartBeatAction , LIB_VER, 10, onHeartBeartEvent);
-            vHeartBeatPeerList.Initialize(m_Node, vHeartBeatAction , LIB_VER, 10, onHeartBeartEvent);
 
             if (!_NodeStart()) {
                 Clean();
@@ -328,7 +329,6 @@ public class pgLibConference2 {
         _NodeStop();
 
         gHeartBeatPeerList.Clean();
-        vHeartBeatPeerList.Clean();
 
         m_Timer.timerClean();
         if(m_bNodeLibInit){
@@ -622,6 +622,11 @@ public class pgLibConference2 {
             return iErr;
         }
         m_GroupList._GroupAdd(group);
+        group.vHeartBeatPeerList.Initialize(m_Node,
+                vHeartBeatAction+ ":" + sConfName ,
+                LIB_VER,m_iExpire,
+                onHeartBeartEvent);
+
         if(!sChair.equals(m_sUser)){
             gHeartBeatPeerList._Add(group.sObjChair,LIB_VER,m_iExpire,1);
         }
@@ -644,8 +649,8 @@ public class pgLibConference2 {
             return;
         }
 
-        vHeartBeatPeerList._Delete(group.sObjChair);
-
+        gHeartBeatPeerList._Delete(group.sObjChair);
+        group.vHeartBeatPeerList.Clean();
         _ServiceStop(group);
 
         m_GroupList._GroupDelete(group);
@@ -903,7 +908,7 @@ public class pgLibConference2 {
         }
         oPeer.VideoJoin(iStreamMode,group.peerHeartbeatStamp,sWndEle);
 
-        vHeartBeatPeerList._Add(sObjPeer,LIB_VER,m_iExpire,1);
+        group.vHeartBeatPeerList._Add(sObjPeer,LIB_VER,m_iExpire,1);
 
         return iResErr;
     }
@@ -1019,9 +1024,10 @@ public class pgLibConference2 {
         oPeer.VideoLeave(iStreamMode);
         if(oPeer.IsAllVideoLeaed()){
             group.videoPeerList._VideoPeerDelete(oPeer);
+            group.vHeartBeatPeerList._Delete(sObjPeer);
         }
 
-        vHeartBeatPeerList._Delete(sObjPeer);
+
 
     }
 
@@ -1059,7 +1065,7 @@ public class pgLibConference2 {
             return PG_ERR_BadStatus;
         }
 
-        String sParam =  "(ConfName){" + sConfName + "}(Peer){" + sPeer + "}(StreamMode){" + iStreamMode + "}";
+        String sParam =  "(ConfName){" + sConfName + "}(Peer){" + m_sUser + "}(StreamMode){" + iStreamMode + "}";
         String sData = "VCheck?" + sParam;
         int iErr = m_Node.ObjectRequest(sObjPeer, PG_METH_PEER_Call, sData, PARAM_VIDEO_CHECK + ":" + sParam);
         if (iErr > 0) {
@@ -2353,9 +2359,46 @@ public class pgLibConference2 {
         } else if ("UMessage".equals(sCmd)) {
             _OnMessageSend(sParam,sObjPeer);
         } else if (gHeartBeatAction.equals(sCmd)) {
-            gHeartBeatPeerList._OnHeartBeatRecv(sObjPeer,sParam);
-        }else if (vHeartBeatAction.equals(sCmd)) {
-            vHeartBeatPeerList._OnHeartBeatRecv(sObjPeer,sParam);
+            int iErrCode = _ParseInt(m_Node.omlGetContent(sParam,"ErrCode"),0);
+            if(iErrCode == PG_ERR_Normal){
+                int iErr = gHeartBeatPeerList._OnHeartBeatRecv(sObjPeer,sParam);
+                if(iErr > 0) {
+                    _OutString("_OnRequestPeerMessage : " + gHeartBeatAction + " Error send Error ");
+                    _HeartBeatSendReqErr(m_Node,sObjPeer,sCmd,iErr);
+                }
+            }
+            else{
+                _OutString(gHeartBeatAction+ " : recv ErrCode.");
+//                gHeartBeatPeerList._Delete(sObjPeer);
+            }
+
+        }else if (sCmd.indexOf(vHeartBeatAction) == 0) {
+            String sCmd2 = "";
+            String sParam2;
+            iInd = sCmd.indexOf(':');
+            if (iInd > 0) {
+                sCmd2 = sCmd.substring(0, iInd);
+                sParam2 = sCmd.substring(iInd + 1);
+            } else {
+                sParam2 = sData;
+            }
+            String sConfName = sParam2;
+            int iErrCode = _ParseInt(m_Node.omlGetContent(sParam,"ErrCode"),0);
+            Group group = m_GroupList._GroupSearch(sConfName);
+            if (group == null) {
+                _HeartBeatSendReqErr(m_Node, sObjPeer, sCmd, PG_ERR_NoExist);
+                return;
+            }
+
+            if(iErrCode == PG_ERR_Normal) {
+                int iErr = group.vHeartBeatPeerList._OnHeartBeatRecv(sObjPeer, sParam);
+                if (iErr > PG_ERR_Normal) {
+                    _HeartBeatSendReqErr(m_Node, sObjPeer, sCmd, iErr);
+                }
+            }else{
+                _OutString(gHeartBeatAction+ " : recv ErrCode.");
+//                group.vHeartBeatPeerList._Delete(sObjPeer);
+            }
         }
     }
 
@@ -2956,7 +2999,6 @@ public class pgLibConference2 {
         String sEventParam = iStreamMode + "";
         if(iErr > PG_ERR_Normal){
             _OnEvent(EVENT_VIDEO_RESPONSE, "" + iErr, sPeer,sConfName,sEventParam );
-            return;
         }
 
         Group group = m_GroupList._GroupSearch(sConfName);
@@ -2972,9 +3014,18 @@ public class pgLibConference2 {
             return;
         }
 
-        oPeer.VideoJoined(iStreamMode,0,"");
+        if(iErr > PG_ERR_Normal){
+            oPeer.VideoLeave(iStreamMode);
+            if(oPeer.IsAllVideoLeaed()){
+                group.videoPeerList._VideoPeerDelete(oPeer);
+                group.vHeartBeatPeerList._Delete(sObjPeer);
+            }
+        }else{
+            oPeer.VideoJoined(iStreamMode,0,"");
 
-        this._OnEvent(EVENT_VIDEO_RESPONSE, "" + iErr, sPeer,sConfName,sEventParam);
+            this._OnEvent(EVENT_VIDEO_RESPONSE, "" + iErr, sPeer,sConfName,sEventParam);
+        }
+
     }
 
     private void _OnVideoClose(String sObj, String sData, int iHandle, String sObjPeer) {
@@ -3005,9 +3056,10 @@ public class pgLibConference2 {
 
         if(oPeer.IsAllVideoLeaed()){
             group.videoPeerList._VideoPeerDelete(oPeer);
+            group.vHeartBeatPeerList._Delete(sObjPeer);
         }
 
-        vHeartBeatPeerList._Delete(sObjPeer);
+
     }
 
     //上报发送视频帧信息

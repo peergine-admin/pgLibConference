@@ -637,13 +637,13 @@ public class Conference {
     private void EventPeerOffline(String sAct, String sData, String sPeer,String sConfName, String sEventPara) {
         // TODO: 2016/11/7 提醒应用程序此节点离线了
         showInfo(sPeer + "节点离线 sData = " + sData);
-        ArrayList<ConferencePeer> list = conferencePeerList._Search(sPeer);
-        if(list != null){
-            for (int i = 0;i< list.size();i++){
-                ConferencePeer conferencePeer = list.get(i);
-                pgVideoClose(conferencePeer.sConfName,conferencePeer.sPeer);
-
-                JoinReuest(sConfName,sPeer);
+        if(!"reason=1".equals(sData)) {
+            ArrayList<ConferencePeer> list = conferencePeerList._Search(sPeer);
+            if (list != null) {
+                for (int i = 0; i < list.size(); i++) {
+                    ConferencePeer conferencePeer = list.get(i);
+                    pgVideoClose(conferencePeer.sConfName, conferencePeer.sPeer);
+                }
             }
         }
 //        pgVideoClose(sPeer);
@@ -728,7 +728,9 @@ public class Conference {
             pgVideoClose(sConfName,sPeer);
             if(sData.equals("" + PG_ERR_BadStatus)){
                 showInfo("对端视频会议已经准备就绪，可以尝试打开视频。");
-//                TimerStartOpen(sConfName,sPeer);
+                TimerStartOpen(sConfName,sPeer);
+            }if(sData.equals("" + PG_ERR_NoExist)){
+                TimerReJoinRequest(sConfName,sPeer);
             }
 //            else{
 ////                showInfo("");

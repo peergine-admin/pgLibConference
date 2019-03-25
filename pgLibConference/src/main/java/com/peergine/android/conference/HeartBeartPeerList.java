@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import static android.text.TextUtils.isEmpty;
 import static com.peergine.android.conference.OnEventConst.EVENT_PEER_OFFLINE;
 import static com.peergine.android.conference.pgLibConference2._ParseInt;
+import static com.peergine.android.conference.pgLibError.PG_ERR_BadStatus;
 import static com.peergine.android.conference.pgLibError.PG_ERR_Normal;
+import static com.peergine.android.conference.pgLibError.PG_ERR_System;
 import static com.peergine.android.conference.pgLibNode.PG_ADD_COMMON_Sync;
 import static com.peergine.android.conference.pgLibNode.PG_CLASS_Peer;
 import static com.peergine.android.conference.pgLibNode.PG_METH_PEER_Message;
@@ -22,6 +24,8 @@ public class HeartBeartPeerList {
         void event(String sAct,String sData , String sObjPeer,String sConfName, String sEventParam);
     }
 
+    public final int DIR_REQUEST = 0;
+    public final int DIR_RESPONE = 1;
 
     pgLibJNINode m_Node = null;
     String sAction = "";
@@ -42,15 +46,14 @@ public class HeartBeartPeerList {
     };
 
 
-    private class HeartBeartPeer{
-        int iConut = 0;
+    private class HeartBeatPeer {
+//        int iConut = 0;
         String sObjPeer = "";
         String sVersion = "";
         int iMaster = 0;
         boolean bOffline = false;
         int peerHeartbeatExpire = 10;
 
-        int peerHeartbeatStartStamp = 0;
         /**
          * 收到主席端消息刷新时戳
          */
@@ -60,9 +63,9 @@ public class HeartBeartPeerList {
          */
         int requestStamp = 0;
 
-        HeartBeartPeer(String sObjPeer ,String sVersion,int iExpire, int iCurStamp, int iMaster){
+        HeartBeatPeer(String sObjPeer , String sVersion, int iExpire, int iCurStamp, int iMaster){
             this.sObjPeer = sObjPeer;
-            this.peerHeartbeatStartStamp = iCurStamp;
+            this.requestStamp = this.responseStamp = iCurStamp;
             this.sVersion = sVersion;
             this.peerHeartbeatExpire = iExpire;
             this.iMaster = iMaster;
@@ -70,9 +73,9 @@ public class HeartBeartPeerList {
 
     }
 
-    private ArrayList<HeartBeartPeer> m_listHeartBeartPeer = new ArrayList<>();
+    private ArrayList<HeartBeatPeer> m_listHeartBeartPeer = new ArrayList<>();
 
-    private void _OutString(String sOut) {
+    private static void _OutString(String sOut) {
         Log.d("HeartBeartPeerList",sOut);
     }
 
@@ -104,13 +107,13 @@ public class HeartBeartPeerList {
         return PG_ERR_Normal;
     }
 
-    private HeartBeartPeer _Search(String sObjPeer){
+    private HeartBeatPeer _Search(String sObjPeer){
         if(isEmpty(sObjPeer)){
             return null;
         }
 
         for (int i = 0; i < m_listHeartBeartPeer.size(); i++) {
-            HeartBeartPeer peer = m_listHeartBeartPeer.get(i);
+            HeartBeatPeer peer = m_listHeartBeartPeer.get(i);
             if (peer.sObjPeer.equals(sObjPeer)) {
                 return peer;
             }
@@ -119,7 +122,7 @@ public class HeartBeartPeerList {
     }
 
     //添加主席节点  使之能在加入会议前与主席通信，发送Join信号
-    public HeartBeartPeer _Add(String sObjPeer,String sVer,int iExpire,int iMaster) {
+    public HeartBeatPeer _Add(String sObjPeer, String sVer, int iExpire, int iMaster) {
         if(m_Node == null){
             return null;
         }
@@ -132,13 +135,15 @@ public class HeartBeartPeerList {
             }
         }
 
-        HeartBeartPeer heartBeartPeer = _Search(sObjPeer);
+        HeartBeatPeer heartBeartPeer = _Search(sObjPeer);
         if(heartBeartPeer == null){
-            heartBeartPeer = new HeartBeartPeer(sObjPeer,sVer,iExpire, m_iStamp,iMaster);
+            heartBeartPeer = new HeartBeatPeer(sObjPeer,sVer,iExpire, m_iStamp,iMaster);
             m_listHeartBeartPeer.add(heartBeartPeer);
         }
-        heartBeartPeer.iConut ++;
-        _HeartBeatSendReq(heartBeartPeer);
+        heartBeartPeer.iMaster = (iMaster == 1 || heartBeartPeer.iMaster == 1)?1:0;
+        if(heartBeartPeer.iMaster == 1) {
+            _HeartBeatSendReq(heartBeartPeer, DIR_REQUEST);
+        }
         return heartBeartPeer;
     }
 
@@ -156,13 +161,9 @@ public class HeartBeartPeerList {
 
     //删除主席节点  使能在添加主席节点失败后能重新添加
     public void _Delete(String sObjPeer) {
-        HeartBeartPeer heartBeartPeer = _Search(sObjPeer);
+        HeartBeatPeer heartBeartPeer = _Search(sObjPeer);
         if(heartBeartPeer != null){
-            heartBeartPeer.iConut --;
-            if(heartBeartPeer.iConut <= 0 ){
-                m_listHeartBeartPeer.remove(heartBeartPeer);
-            }
-
+            m_listHeartBeartPeer.remove(heartBeartPeer);
         }
     }
 
@@ -183,9 +184,9 @@ public class HeartBeartPeerList {
         TimerStart();
 
         if (m_iStamp % 2 == 0) {
-            ArrayList<HeartBeartPeer> beartPeerArrayList = null;
+            ArrayList<HeartBeatPeer> beartPeerArrayList = null;
             try{
-                beartPeerArrayList = (ArrayList<HeartBeartPeer>) m_listHeartBeartPeer.clone();
+                beartPeerArrayList = (ArrayList<HeartBeatPeer>) m_listHeartBeartPeer.clone();
             }catch (Exception ex){
                 _OutString("_TimerOut:listHeartBeartPeer.clone faile.");
             }
@@ -195,7 +196,7 @@ public class HeartBeartPeerList {
             //如果是主席，主动给所有成员发心跳
             int i = 0;
             while (i < beartPeerArrayList.size()) {
-                HeartBeartPeer heartBeartPeer = beartPeerArrayList.get(i);
+                HeartBeatPeer heartBeartPeer = beartPeerArrayList.get(i);
                 if(!heartBeartPeer.bOffline) {
                     if (heartBeartPeer.iMaster > 0) {
                         // 超过3倍心跳周期，没有接收到成员端的心跳应答，说明成员端之间连接断开了
@@ -203,7 +204,7 @@ public class HeartBeartPeerList {
                             _OnEvent(EVENT_PEER_OFFLINE, "reason=1", heartBeartPeer.sObjPeer, "", "");
                             beartPeerArrayList.remove(heartBeartPeer);
                             //标记为不在线
-                            HeartBeartPeer oPeer = _Search(heartBeartPeer.sObjPeer);
+                            HeartBeatPeer oPeer = _Search(heartBeartPeer.sObjPeer);
                             if(oPeer !=null){
                                 oPeer.bOffline = true;
                             }
@@ -212,19 +213,19 @@ public class HeartBeartPeerList {
 
                         // 每个心跳周期发送一个心跳请求给Salve端
                         if ((m_iStamp - heartBeartPeer.requestStamp) >= peerHeartbeatExpire) {
-                            _HeartBeatSendReq(heartBeartPeer);
+                            _HeartBeatSendReq(heartBeartPeer,DIR_REQUEST);
                         }
                     } else {
                         // 超过1.5倍心跳周期，没有接收到Master端的心跳请求，尝试主动给Master端发送心跳
                         if ((m_iStamp - heartBeartPeer.responseStamp) > (heartBeartPeer.peerHeartbeatExpire * 3 / 2)) {
 
                             if ((m_iStamp - heartBeartPeer.requestStamp) >= peerHeartbeatExpire) {
-                                _HeartBeatSendReq(heartBeartPeer);
+                                _HeartBeatSendReq(heartBeartPeer,DIR_REQUEST);
                             }
                         }
 
                         // 超过3倍心跳周期，没有接收到主席端的心跳请求，说明间 连接断开了
-                        if ((m_iStamp - heartBeartPeer.responseStamp) > (heartBeartPeer.peerHeartbeatExpire * 3 / 2)) {
+                        if ((m_iStamp - heartBeartPeer.responseStamp) > (heartBeartPeer.peerHeartbeatExpire * 3)) {
 
                             _OnEvent(EVENT_PEER_OFFLINE, "reason=1", heartBeartPeer.sObjPeer, "", "");
                             beartPeerArrayList.remove(heartBeartPeer);
@@ -233,7 +234,15 @@ public class HeartBeartPeerList {
                         }
                     }
                 }else{
-                    tryRelink(heartBeartPeer);
+
+                    if(heartBeartPeer.iMaster == 0){
+                        _Delete(heartBeartPeer.sObjPeer);
+                    }
+
+                    if(m_iStamp %(peerHeartbeatExpire/2 * 2) == 0){
+                        tryRelink(heartBeartPeer);
+                    }
+
                 }
                 i++;
             }
@@ -241,51 +250,59 @@ public class HeartBeartPeerList {
     }
 
 
-    private void _HeartBeatSendReq(HeartBeartPeer heartBeartPeer){
+    private void _HeartBeatSendReq(HeartBeatPeer heartBeartPeer, int Dir){
 
         if(heartBeartPeer == null){
             return;
         }
 
-
         String sVer = heartBeartPeer.iMaster > 0 ? sVersion : heartBeartPeer.sVersion;
         int iExpire = heartBeartPeer.iMaster > 0 ? peerHeartbeatExpire : heartBeartPeer.peerHeartbeatExpire;
-        String sData = sAction + "?(Version){" + sVer + "}(Expire){" + iExpire + "}(Master){" + heartBeartPeer.iMaster + "}" ;
+        String sData = sAction + "?(Dir){" + Dir + "}(Ver){" + sVer + "}(Exp){" + iExpire + "}" ;
         _OutString("_HeartBeatSendReq sObjPeer=" + heartBeartPeer.sObjPeer + " sData = " + sData);
         m_Node.ObjectRequest(heartBeartPeer.sObjPeer, PG_METH_PEER_Message, sData, "HBeat");
         heartBeartPeer.requestStamp = m_iStamp;
     }
 
-        //收到Keep 处理
-    public void _OnHeartBeatRecv(String sObjPeer,String sParam) {
-        _OutString("_OnHeartBeatRecv sObjPeer=" + sObjPeer + " sParam = " + sParam);
-        int iExpire = _ParseInt(m_Node.omlGetContent(sParam,"Expire"),10);
-        int iMaster = _ParseInt(m_Node.omlGetContent(sParam,"Master"),0);
-        String sVersion = m_Node.omlGetContent(sParam,"Version");
+    public static void _HeartBeatSendReqErr(pgLibJNINode node,String sObjPeer,String sAction,int iErrCode){
+        String sData = sAction + "?(Dir){1}(Err){" + iErrCode + "}";
+        _OutString("_HeartBeatSendReq sObjPeer=" + sObjPeer + " sData = " + sData);
+        node.ObjectRequest(sObjPeer, PG_METH_PEER_Message, sData, "HBeat");
+    }
 
-        HeartBeartPeer heartBeartPeer = _Search(sObjPeer);
+        //收到Keep 处理
+    public int _OnHeartBeatRecv(String sObjPeer,String sParam) {
+        if(m_Node == null){
+            return PG_ERR_BadStatus;
+        }
+        _OutString("_OnHeartBeatRecv sObjPeer=" + sObjPeer + " sParam = " + sParam);
+        int iExpire = _ParseInt(m_Node.omlGetContent(sParam,"Exp"),10);
+        int iDir = _ParseInt(m_Node.omlGetContent(sParam,"Dir"),10);
+        String sVersion = m_Node.omlGetContent(sParam,"Ver");
+
+        HeartBeatPeer heartBeartPeer = _Search(sObjPeer);
         if(heartBeartPeer == null){
-            if(iMaster == 1) {
-                heartBeartPeer = _Add(sObjPeer, sVersion, iExpire, 0);
-            }
+            heartBeartPeer = _Add(sObjPeer, sVersion, iExpire, 0);
         }
 
         if(heartBeartPeer == null) {
-            return;
+            return PG_ERR_System;
         }
         heartBeartPeer.bOffline = false;
         heartBeartPeer.responseStamp = m_iStamp;
-        if(heartBeartPeer.iMaster == 0){
-            _HeartBeatSendReq(heartBeartPeer);
+
+        if(iDir == 0){
+            _HeartBeatSendReq(heartBeartPeer,DIR_RESPONE);
         }
+        return PG_ERR_Normal;
     }
 
     /**
      * 尝试重新连接
      * @param heartBeartPeer 对象
      */
-    private void tryRelink(HeartBeartPeer heartBeartPeer){
-        if(heartBeartPeer ==null || isEmpty(heartBeartPeer.sObjPeer)){
+    private void tryRelink(HeartBeatPeer heartBeartPeer){
+        if(heartBeartPeer ==null || isEmpty(heartBeartPeer.sObjPeer) ){
             return;
         }
         if(m_Node == null){
@@ -299,7 +316,7 @@ public class HeartBeartPeerList {
                 _OutString("._Add .PeerAdd Object  failed.");
             }
         }
-        _HeartBeatSendReq(heartBeartPeer);
+        _HeartBeatSendReq(heartBeartPeer,DIR_REQUEST);
     }
 
 }

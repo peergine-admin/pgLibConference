@@ -50,7 +50,7 @@ public class Group {
 
     final VideoPeerList videoPeerList = new VideoPeerList();
     final SyncPeerList syncPeerList = new SyncPeerList();
-
+    final HeartBeartPeerList vHeartBeatPeerList = new HeartBeartPeerList();
     public Group(String sConfName, String sChair, String sUser) {
 
         this.sConfName = sConfName;
