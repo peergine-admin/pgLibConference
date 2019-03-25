@@ -93,11 +93,10 @@ public class OnEventConst {
     public static final String EVENT_NOTIFY = "Notify";
 
 
-    /**
-     * 视频丢失事件
-     */
-    public static final String EVENT_VIDEO_LOST = "VideoLost";
-
+//    /**
+//     * 视频丢失事件
+//     */
+//    public static final String EVENT_VIDEO_LOST = "VideoLost";
 
     /**
      * 视频通道同步事件 ;sEventParam 上报VideoMode
@@ -120,6 +119,18 @@ public class OnEventConst {
      * 视频关闭事件 ;sEventParam 上报VideoMode
      */
     public static final String EVENT_VIDEO_CLOSE = "VideoClose";
+
+    /**
+     * 获取VideoStatus 消息回应上报信息
+     *  sData : 错误码
+     *      PG_ERR_System : 没有初始化
+     *      PG_ERR_BadParam ： 参数为空
+     *      PG_ERR_NoExist ： 找不到这个会议
+     *      PG_ERR_BadStatus ： 这个节点的视频流没有打开
+     *       其他错误 ：系统错误
+     *  sEventParam ： StreamMode
+     */
+    public static final String EVENT_VIDEO_CHECK = "VideoCheck";
 
     /**
      * 视频状态信息上报 , ;sEventParam 上报VideoMode

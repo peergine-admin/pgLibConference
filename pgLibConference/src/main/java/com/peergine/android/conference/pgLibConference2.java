@@ -8,6 +8,7 @@ import android.view.SurfaceView;
 import com.peergine.plugin.lib.pgLibJNINode;
 
 import static com.peergine.android.conference.OnEventConst.*;
+import static com.peergine.android.conference.VideoPeer.VIDEO_PEER_MODE_Join;
 import static com.peergine.android.conference.VideoPeer.VIDEO_PEER_MODE_Response;
 import static com.peergine.android.conference.pgLibNode.*;
 import static com.peergine.android.conference.pgLibError.*;
@@ -43,9 +44,19 @@ public class pgLibConference2 {
     private final pgLibTimer m_Timer = new pgLibTimer();
     private final GroupList m_GroupList = new GroupList();
     private final RecordList recordList = new RecordList();
+    private final String gHeartBeatAction = "HBeat";
+    private final HeartBeartPeerList gHeartBeatPeerList = new HeartBeartPeerList();
+    private final String vHeartBeatAction = "VBeat";
+    private final HeartBeartPeerList vHeartBeatPeerList = new HeartBeartPeerList();
+    private final HeartBeartPeerList.OnHeartBeartEvent onHeartBeartEvent = new HeartBeartPeerList.OnHeartBeartEvent() {
+        @Override
+        public void event(String sAct, String sData, String sObjPeer, String sConfName, String sEventParam) {
+            _OnEvent(sAct,sData,sObjPeer,sConfName,sEventParam);
+        }
+    };
     private String m_sObjSelf = "";
 
-
+    private static final int m_iExpire = 10;
     //======================================================================
 
     private static final int KEEP_TIMER_INTERVAL = 2;
@@ -58,7 +69,7 @@ public class pgLibConference2 {
     private static final String PARAM_RPC_REQUEST = "RpcRequest";
     private static final String PARAM_JOIN_REQUEST = "JoinRequest";
     private static final String PARAM_VIDEO_OPEN_REQUEST = "VideoOpenRequest";
-
+    private static final String PARAM_VIDEO_CHECK = "VideoCheck";
     private static final String PARAM_LOGOUT = "NodeLogout";
     private static final String PARAM_SVR_REDIRECT = "SvrRedirect";
     private static final String PARAM_PEER_GET_INFO = "PeerGetInfo";
@@ -100,6 +111,7 @@ public class pgLibConference2 {
     private boolean m_bInitialize = false;
     private boolean m_bNodeLibInit = false;
     private boolean m_bEventEnable = true;
+    private boolean m_bLogin = false;
     private boolean m_bLogined = false;
     private PG_LANSCAN m_LanScan = null;
 
@@ -289,6 +301,9 @@ public class pgLibConference2 {
             m_iLoginFailCount = 0;
             m_iIDTimerRelogin = -1;
 
+            gHeartBeatPeerList.Initialize(m_Node, gHeartBeatAction , LIB_VER, 10, onHeartBeartEvent);
+            vHeartBeatPeerList.Initialize(m_Node, vHeartBeatAction , LIB_VER, 10, onHeartBeartEvent);
+
             if (!_NodeStart()) {
                 Clean();
                 _OutString("Initialize: Node start failed.");
@@ -311,6 +326,10 @@ public class pgLibConference2 {
             m_NodeThreadProc = null;
         }
         _NodeStop();
+
+        gHeartBeatPeerList.Clean();
+        vHeartBeatPeerList.Clean();
+
         m_Timer.timerClean();
         if(m_bNodeLibInit){
             pgLibNode.NodeLibClean();
@@ -603,6 +622,10 @@ public class pgLibConference2 {
             return iErr;
         }
         m_GroupList._GroupAdd(group);
+        if(!sChair.equals(m_sUser)){
+            gHeartBeatPeerList._Add(group.sObjChair,LIB_VER,m_iExpire,1);
+        }
+
         return 0;
     }
 
@@ -620,8 +643,13 @@ public class pgLibConference2 {
         if(group == null){
             return;
         }
+
+        vHeartBeatPeerList._Delete(group.sObjChair);
+
         _ServiceStop(group);
+
         m_GroupList._GroupDelete(group);
+
     }
 
     /**
@@ -874,6 +902,9 @@ public class pgLibConference2 {
             return iResErr;
         }
         oPeer.VideoJoin(iStreamMode,group.peerHeartbeatStamp,sWndEle);
+
+        vHeartBeatPeerList._Add(sObjPeer,LIB_VER,m_iExpire,1);
+
         return iResErr;
     }
 
@@ -989,8 +1020,54 @@ public class pgLibConference2 {
         if(oPeer.IsAllVideoLeaed()){
             group.videoPeerList._VideoPeerDelete(oPeer);
         }
+
+        vHeartBeatPeerList._Delete(sObjPeer);
+
     }
 
+    /**
+     * 检查sConfName.Peer节点的视频打开状态 ,在某些突然掉线，或者对端没有响应的情况下。
+     * @param sConfName 会议名称
+     * @param sPeer 对端节点名称
+     * @param iStreamMode 视频流
+     * @return ErrCode
+     *      PG_ERR_System : 没有初始化
+     *      PG_ERR_BadParam ： 参数为空
+     *      PG_ERR_NoExist ： 找不到这个会议
+     *      PG_ERR_BadStatus ： 这个节点的视频流没有打开
+     *      其他错误 ：发送请求失败
+     */
+    public int VideoCheck(String sConfName,String sPeer,int iStreamMode){
+        if (m_Node == null) {
+            return PG_ERR_System;
+        }
+        if(_isEmpty(sPeer) || _isEmpty(sConfName)){
+            return PG_ERR_BadParam;
+        }
+        Group group = m_GroupList._GroupSearch(sConfName);
+        if(group == null || !group.bApiVideoStart){
+            return PG_ERR_NoExist;
+        }
+
+        String sObjPeer = _ObjPeerBuild(sPeer);
+        VideoPeer videoPeer = group.videoPeerList._VideoPeerSearch(sObjPeer);
+        if(videoPeer == null){
+            return PG_ERR_BadStatus;
+        }
+        int iVideoStatusMode = iStreamMode == 0? videoPeer.smallVideoMode : videoPeer.largeVideoMode;
+        if(iVideoStatusMode != VIDEO_PEER_MODE_Join){
+            return PG_ERR_BadStatus;
+        }
+
+        String sParam =  "(ConfName){" + sConfName + "}(Peer){" + sPeer + "}(StreamMode){" + iStreamMode + "}";
+        String sData = "VCheck?" + sParam;
+        int iErr = m_Node.ObjectRequest(sObjPeer, PG_METH_PEER_Call, sData, PARAM_VIDEO_CHECK + ":" + sParam);
+        if (iErr > 0) {
+            _OutString(".VideoStatus: iErr=" + iErr);
+        }
+
+        return iErr;
+    }
 
     /**
      * 描述：控制成员的视频流
@@ -1369,7 +1446,7 @@ public class pgLibConference2 {
     /**
      * 拒绝文件传输
      * @param sTargePeer 对端ID
-     * @param sTargePeer 本端ID
+     * @param sSourcePeer 本端ID
      * @param iErrCode 错误码
      * @return 错误码
      */
@@ -1613,6 +1690,11 @@ public class pgLibConference2 {
         }
     }
 
+    /**
+     * 生成构造参数Control
+     * @param sInitParam 初始化参数
+     * @return sControl
+     */
     private String _NodeInitConfigParserControl(String sInitParam){
         String sControl = "Type=1;PumpMessage=1;LogLevel0=1;LogLevel1=1";
         int Type = 1;
@@ -1806,9 +1888,9 @@ public class pgLibConference2 {
         String sSvrName = m_sSvrName;
 
         m_Node.ObjectRequest(sSvrName, PG_METH_PEER_Logout, "", PARAM_LOGOUT);
-        if (m_bLogined) {
+        if (m_bLogin) {
             _OnEvent(EVENT_LOGOUT, "", "","","");
-            m_bLogined = false;
+            m_bLogin = false;
         }
     }
 
@@ -1893,8 +1975,8 @@ public class pgLibConference2 {
         }
 
         m_iLoginFailCount = 0;
+        m_bLogin = true;
         m_bLogined = true;
-
         _OnEvent(EVENT_LOGIN, "" + PG_ERR_Normal, "","","");
         return 1;
     }
@@ -1975,7 +2057,6 @@ public class pgLibConference2 {
 
         }
 
-
         m_Node.ObjectExtReply(sObjPeer, iErrCode, "", iHandle);
     }
 
@@ -1991,6 +2072,60 @@ public class pgLibConference2 {
         String sPeer = _ObjPeerParsePeer(sObj);
         _OnEvent(EVENT_JOIN_RESPONSE, ""+ iErr, sPeer,sConfName,"");
     }
+
+    /**
+     * 回应VideoStatus 请求
+     * @param sParam 参数
+     * @param sObjPeer 对象名
+     * @param iHandle 句柄
+     */
+    private void _OnGetVideoCheck(String sParam, String sObjPeer, int iHandle) {
+        String sPeerRoute = m_Node.omlGetContent(sParam,"Peer");
+        String sConfName = m_Node.omlGetContent(sParam,"ConfName");
+        int iStreamMode = _ParseInt(m_Node.omlGetContent(sParam,"StreamMode"),0);
+
+        int iErrCode = PG_ERR_Normal;
+        do {
+            if (_isEmpty(sPeerRoute) || _isEmpty(sConfName)) {
+                iErrCode =PG_ERR_BadParam;
+                break;
+            }
+            Group group = m_GroupList._GroupSearch(sConfName);
+            if (group == null || !group.bApiVideoStart) {
+                iErrCode = PG_ERR_NoExist;
+                break;
+            }
+
+            String sObjPeerRoute = _ObjPeerBuild(sPeerRoute);
+            VideoPeer videoPeer = group.videoPeerList._VideoPeerSearch(sObjPeerRoute);
+            if (videoPeer == null) {
+                iErrCode = PG_ERR_BadStatus;
+                break;
+            }
+            int iVideoStatusMode = iStreamMode == 0 ? videoPeer.smallVideoMode : videoPeer.largeVideoMode;
+            if (iVideoStatusMode != VIDEO_PEER_MODE_Join) {
+                iErrCode = PG_ERR_BadStatus;
+                break;
+            }
+        }while (false);
+
+//        String sRetData = "(ErrCode){" + iErrCode + "}" +
+//                "(Peer){" + sPeerRoute + "}(ConfName){" + sConfName + "}(StreamMode){" + iStreamMode + "}";
+        m_Node.ObjectExtReply(sObjPeer, iErrCode, "", iHandle);
+    }
+
+    private void _OnGetVideoCheckReply(String sObj, int iErr, String sData, String sParam){
+        int len =  PARAM_VIDEO_CHECK.length();
+        String sParam1 = sParam.substring(len+1);
+//        String sPeer = _ObjPeerParsePeer(sObj);
+        String sConfName = m_Node.omlGetContent(sParam,"ConfName");
+        String sPeer = m_Node.omlGetContent(sParam,"Peer");
+        int iStreamMode = _ParseInt(m_Node.omlGetContent(sParam,"StreamMode"),0);
+//        int iErrCode = _ParseInt(m_Node.omlGetContent(sParam,"StreamMode"),0);
+        _OnEvent(EVENT_VIDEO_CHECK, ""+ iErr, sPeer,sConfName,"" +  iStreamMode);
+    }
+
+
     /**
      * 收到 Message 消息
      * @param sParam 消息内容
@@ -2092,9 +2227,9 @@ public class pgLibConference2 {
             iInd++;
         }
 
-//        if (!m_Status.bLogined) {
+        if (!m_bLogin) {
 //            _ChairPeerStatic();
-//        }
+        }
 
         m_LanScan.bApiLanScan = false;
     }
@@ -2183,17 +2318,17 @@ public class pgLibConference2 {
             }
 
             m_iLoginFailCount = 0;
-            m_bLogined = true;
+            m_bLogin = true;
             _OnEvent(EVENT_LOGIN, "0", "","","");
         } else if (sError.equals("" + PG_ERR_Network)
                 || sError.equals("" + PG_ERR_Timeout)
                 || sError.equals("" + PG_ERR_Busy)) {
             _NodeRedirectReset(0);
 
-            m_bLogined = false;
+            m_bLogin = false;
             _OnEvent(EVENT_LOGOUT, sError, "","","");
         } else {
-            m_bLogined = false;
+            m_bLogin = false;
             _OnEvent(EVENT_LOGOUT, sError, "","","");
         }
 
@@ -2217,8 +2352,10 @@ public class pgLibConference2 {
             _OnNodeRestart(sParam);
         } else if ("UMessage".equals(sCmd)) {
             _OnMessageSend(sParam,sObjPeer);
-        } else if ("HBeat".equals(sCmd)) {
-            _OnVideoHeartBeat(sParam,sObjPeer);
+        } else if (gHeartBeatAction.equals(sCmd)) {
+            gHeartBeatPeerList._OnHeartBeatRecv(sObjPeer,sParam);
+        }else if (vHeartBeatAction.equals(sCmd)) {
+            vHeartBeatPeerList._OnHeartBeatRecv(sObjPeer,sParam);
         }
     }
 
@@ -2236,10 +2373,11 @@ public class pgLibConference2 {
             _OnRpcRequest(sParam,sObjPeer,iHandle);
         }else if ("JoinRequest".equals(sCmd)) {
             _OnJoinRequest(sParam,sObjPeer,iHandle);
+        } else if ("VCheck".equals(sCmd)) {
+            _OnGetVideoCheck(sParam,sObjPeer,iHandle);
         }
 
     }
-
 
     private void _OnRequestPeerError(String sObj, String sData, int iHandle, String sObjPeer) {
         String sMeth = this.m_Node.omlGetContent(sData, "Meth");
@@ -2383,6 +2521,9 @@ public class pgLibConference2 {
 
         if (sParam.indexOf(PARAM_JOIN_REQUEST) == 0){
             _OnJoinResponse(sObj, iErr, sParam);
+        }
+        if (sParam.indexOf(PARAM_VIDEO_CHECK) == 0){
+            _OnGetVideoCheckReply(sObj, iErr, sData, sParam);
         }
         return 1;
     }
@@ -2865,6 +3006,8 @@ public class pgLibConference2 {
         if(oPeer.IsAllVideoLeaed()){
             group.videoPeerList._VideoPeerDelete(oPeer);
         }
+
+        vHeartBeatPeerList._Delete(sObjPeer);
     }
 
     //上报发送视频帧信息
